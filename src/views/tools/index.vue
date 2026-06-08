@@ -45,6 +45,9 @@ onUnmounted(() => {
   window.removeEventListener('orientationchange', checkOrientation)
 })
 
+const handlePopupAction = () => {
+  
+}
 
 </script>
 
