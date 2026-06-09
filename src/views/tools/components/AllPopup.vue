@@ -39,22 +39,23 @@
 
     <!-- 场景3：维修 -->
     <template v-else-if="type === 'repair'">
-      <div class="tip-content">
+      <div class="tip-content repair">
         <p class="tit">设备报修</p>
-        <div class="">
-          <van-cell-group inset>
-            <van-field v-model="message" rows="2" autosize label="" type="textarea" 
-              maxlength="20" 
-              placeholder="请输入故障原因，最多20字（选填）"
-              show-word-limit />
-          </van-cell-group>
-
+        <div v-if="isShow" class="reason">
+          <span v-for="(item, index) in list" :key="index" @click="selectReason(index)" :class="['reason-item', { active: selectedIndex === index }]">{{ item }}</span>
         </div>
+        <div class="ttarea">
+          <van-cell-group inset>
+            <van-field v-model="message" rows="2" autosize label="" type="textarea" maxlength="20"
+              placeholder="请输入故障原因，最多20字（选填）" show-word-limit />
+          </van-cell-group>
+        </div>
+        <p class="warn-tip">温馨提示：上报车辆故障后，车辆将冻结，你将退退出驾驶。若遇到黑屏或者画面卡顿，请重新刷新页面</p>
       </div>
       <div class="footer">
         <div class="flex">
           <span class="btn left" @click.stop="cancel">取消</span>
-          <span class="btn left" @click.stop="report">上报</span>
+          <span class="btn right" @click.stop="report">上报</span>
         </div>
       </div>
     </template>
@@ -68,11 +69,23 @@ import { computed, ref } from 'vue'
 
 const props = defineProps({
   show: { type: Boolean, default: false },
-  type: { type: String, default: 'tip' }, // 'tip' | 'logout'
-  count: { type: Number, default: 0 }
+  type: { type: String, default: 'tip' },
+  count: { type: Number, default: 0 },
+  isShow: { type: Boolean, default: true }
 })
 
 const message = ref('');
+
+const list = ref([
+  "车辆翻车", "画面卡顿", "无视频信号", "车辆无法控制", "画面黑屏", "电量低",
+  "其他"
+])
+const selectedIndex = ref(0)
+const selectReason = (index) => {
+  selectedIndex.value = index
+
+}
+
 
 const emit = defineEmits(['update:show', 'action'])
 
@@ -175,6 +188,83 @@ const report = () => {
 
 .mr {
   margin-right: 5px;
+}
+
+.repair {
+  width: 220px;
+}
+
+.reason {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px; /* 使用 gap 替代 margin，布局更整洁 */
+  padding: 3px 0;
+}
+
+.reason-item {
+  padding: 1px 2px;
+  border-radius: 2px; /* 胶囊形状，适合标签选择 */
+  color: #666666;
+  font-size: 7px;
+  cursor: pointer;
+  transition: all 0.2s ease; /* 添加过渡动画，使状态切换更平滑 */
+  user-select: none; /* 防止双击时文字被选中 */
+  border: 0.5px solid #666666;
+  margin-top: 2px;
+  margin-right: 7px;
+
+}
+
+.reason-item:active {
+  opacity: 0.8; 
+}
+
+/* 选中状态的高亮样式 */
+.reason-item.active {
+  border: 0.5px solid #FFC838;
+  background-color: #FFC838;
+  color: #1A1A1A;
+}
+
+.warn-tip {
+  font-family: PingFangSC, PingFang SC;
+  font-weight: 400;
+  font-size: 5px;
+  color: #999999;
+  padding-top: 5px;
+  text-align: left;
+}
+
+.ttarea {
+  ::v-deep .van-field__control {
+    color: #222;
+    line-height: 1;
+    font-size: 10px;
+    height: 28px !important;
+
+    &::placeholder {
+      font-size: 8px;
+      color: #999999;
+    }
+  }
+
+
+  ::v-deep .van-field {
+    background: #F2F2F2;
+    padding: 8px;
+  }
+
+  ::v-deep .van-field__word-limit {
+    font-size: 8px;
+    margin-top: 0;
+    line-height: 1;
+  }
+
+  ::v-deep .van-cell-group--inset {
+    border-radius: 3px;
+    margin: 0;
+
+  }
 }
 </style>
 
