@@ -71,7 +71,7 @@ const props = defineProps({
   show: { type: Boolean, default: false },
   type: { type: String, default: 'tip' },
   count: { type: Number, default: 0 },
-  isShow: { type: Boolean, default: true }
+  isShow: { type: Boolean, default: false }
 })
 
 const message = ref('');
@@ -102,6 +102,7 @@ const handleAction = (actionType) => {
 
 const cancel = () => {
   visible.value = false
+  selectedIndex.value = 0
 }
 
 const logout = () => {
@@ -236,7 +237,7 @@ const report = () => {
 }
 
 .ttarea {
-  ::v-deep .van-field__control {
+  :deep(.van-field__control) {
     color: #222;
     line-height: 1;
     font-size: 10px;
@@ -249,18 +250,18 @@ const report = () => {
   }
 
 
-  ::v-deep .van-field {
+  :deep(.van-field) {
     background: #F2F2F2;
     padding: 8px;
   }
 
-  ::v-deep .van-field__word-limit {
+  :deep(.van-field__word-limit) {
     font-size: 8px;
     margin-top: 0;
     line-height: 1;
   }
 
-  ::v-deep .van-cell-group--inset {
+  :deep(.van-cell-group--inset) {
     border-radius: 3px;
     margin: 0;
 

@@ -35,9 +35,30 @@
         <img src="@/assets/images/icon_set@2x.png" alt="">
       </div>
 
+
+      <div class="side-menu">
+        <!-- 菜单项列表 -->
+        <div class="menu-item" v-for="(item, index) in menuList" :key="index" @click="handleIcon(item)">
+          <img class="img" :src="item.icon" mode="scaleToFill" />
+          <span class="label">{{ item.name }}</span>
+        </div>
+      </div>
+      <div class="slider" v-show="showSpeed">
+        <div class="slider-left">
+          <van-slider v-model="value" active-color="#FFC838">
+            <template #button>
+              <div class="custom-button-slider">{{ value }} km/h</div>
+            </template>
+          </van-slider>
+        </div>
+      </div>
+
       <ALLPopup v-model:show="tipVisible" type="tip" :count="count" @action="handlePopupAction" />
-      <ALLPopup v-model:show="logoutVisible" type="logout" :count="count" @action="handlePopupAction" />
-      <ALLPopup v-model:show="repairVisible" type="repair" :count="count" @action="handlePopupAction" />
+      <ALLPopup v-model:show="logoutVisible" type="logout"  @action="handlePopupAction" />
+      <ALLPopup v-model:show="repairVisible" type="repair" :isShow="showRepairReason"  @action="handlePopupAction" />
+      <SetPopup v-model:show="setVisible" @action="handlePopupAction" />
+    
+  
     </div>
   </div>
 </template>
@@ -45,19 +66,40 @@
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue'
 import ALLPopup from './components/ALLPopup.vue'
+import SetPopup from './components/SetPopup.vue'
+import { formatTime } from "@/utils/utils"
+import {
+  ch1,
+  speeds,
+  cSpeeds,
+  repairs
+} from "./img.js"
+
 const isLandscape = ref(true)
 const tipVisible = ref(false)
 const logoutVisible = ref(false)
 const repairVisible = ref(false)
 const batteryPercentage = ref(23)
 const currentTime = ref()
-
+const showSpeed = ref(false)
+const showRepairReason = ref(false)
 const count = ref(15)
+const value = ref(5)
+const setVisible = ref(true)
 
 // 检测屏幕方向
 const checkOrientation = () => {
   isLandscape.value = window.innerWidth > window.innerHeight
 }
+
+const menuList = ref([
+  { name: '报修', icon: repairs, key: "repairs" },
+  { name: '前差' },
+  { name: '后差' },
+  { name: 'CH4', icon: ch1 },
+  { name: '高低速', icon: speeds, key: 'highLowSpeed' },
+  { name: '定速', icon: cSpeeds, key: 'speed' }
+]);
 
 onMounted(() => {
   checkOrientation()
@@ -83,24 +125,16 @@ onMounted(() => {
 
 })
 
-
-
-const formatTime = (totalSeconds) => {
-  const hours = Math.floor(totalSeconds / 3600);
-  const minutes = Math.floor((totalSeconds % 3600) / 60);
-  const seconds = totalSeconds % 60;
-
-  // 格式化为两位数，例如 1 -> "01"
-  const formattedHours = hours.toString().padStart(2, '0');
-  const formattedMinutes = minutes.toString().padStart(2, '0');
-  const formattedSeconds = seconds.toString().padStart(2, '0');
-  console.log(`${formattedHours}:${formattedMinutes}:${formattedSeconds}`)
-  if (hours == "00") {
-    return `${formattedMinutes}:${formattedSeconds}`;
+const handleIcon = (item) => {
+  if (item.key == 'repairs') {
+    showRepairReason.value = true
+    repairVisible.value = true
+    return
   }
-  return `${formattedHours}:${formattedMinutes}:${formattedSeconds}`;
+  if (item.key == 'speed') {
+    showSpeed.value = true
+  }
 }
-
 
 
 onUnmounted(() => {
@@ -227,8 +261,10 @@ const handlePopupAction = (type) => {
     gap: 2px;
     /* 信号点和车标之间的微小间距 */
   }
+
   .car {
     position: relative;
+
     .mini-forbidden {
       position: absolute;
       bottom: 1px;
@@ -293,5 +329,69 @@ const handlePopupAction = (type) => {
     background: #ff4d4f;
     transform: translate(-50%, -50%) rotate(45deg);
   }
+}
+
+.side-menu {
+  // 1. 整体容器样式
+  position: fixed;
+  top: 18px;
+  right: 7px;
+
+  z-index: 2;
+
+  display: flex;
+  flex-direction: column;
+  gap: 2px; // 每个菜单项之间的间距
+
+  // 胶囊背景效果
+  background: rgba(20, 20, 20, 0.75); // 深灰色半透明背景
+  backdrop-filter: blur(10px); // 毛玻璃模糊效果
+  border-radius: 20px; // 大圆角形成胶囊状
+  padding: 5px 1px; // 内部留白
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3); // 轻微阴影增加层次感
+}
+
+.menu-item {
+  // 2. 单个菜单项布局
+  display: flex;
+  flex-direction: column; // 图标在上，文字在下
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  opacity: 1;
+
+  .img {
+    display: block;
+    width: 6px;
+    height: 6px;
+  }
+
+  .label {
+    font-family: PingFangSC, PingFang SC;
+    font-weight: 400;
+    font-size: 5px;
+    color: #FFFFFF;
+    white-space: nowrap; // 防止文字换行
+    text-align: center;
+  }
+}
+
+.slider {
+  position: absolute;
+  z-index: 1;
+  top:105px;
+  right:24px;
+  width:50px;
+}
+
+.custom-button-slider {
+  width: 1px;
+  color: #fff;
+  font-size: 5px;
+  line-height: 6px;
+  text-align: center;
+  background-color: #FFC838;
+  border-radius: 1px;
 }
 </style>
