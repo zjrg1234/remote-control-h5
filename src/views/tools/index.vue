@@ -1,25 +1,24 @@
 <template>
   <div class="landscape-page">
     <div class="page-content">
-
       <div class="bg">
         <video src=""></video>
       </div>
-      <div class="logout">
-        <img src="@/assets/images/icon_exit@2x.png" alt="">
+      <div class="logout" @click="logout">
+        <img src="@/assets/images/icon_exit@2x.png" alt="" />
       </div>
       <div class="status-bar-capsule">
         <div class="flex">
           <!-- 左侧：信号强度图标 -->
           <div class="fl">
-            <span class="dot "></span>
+            <span class="dot"></span>
             <div class="car">
-              <img src="@/assets/images/icon_car@2x.png" alt="">
+              <img src="@/assets/images/icon_car@2x.png" alt="" />
               <span class="mini-forbidden"></span>
             </div>
           </div>
           <div>
-            <img src="@/assets/images/icon_battery@2x.png" alt="">
+            <img src="@/assets/images/icon_battery@2x.png" alt="" />
             <span class="battery-text">{{ batteryPercentage }}%</span>
           </div>
           <div>
@@ -29,16 +28,27 @@
             <span class="time-text">{{ currentTime }}</span>
           </div>
         </div>
-
       </div>
-      <div class="right-cont">
-        <img src="@/assets/images/icon_set@2x.png" alt="">
+      <div class="right-cont" @click="set">
+        <img src="@/assets/images/icon_set@2x.png" alt="" />
       </div>
 
+      <div class="side-menu-icon">
 
+        <Ripple />
+
+        <img src="@/assets/images/icon_sound_close@2x.png" v-if="!showSound" @click="showSound = true" alt="" />
+        <img src="@/assets/images/icon_sound_open@2x.png" v-if="showSound" @click="showSound = false" alt="" />
+     
+      </div>
       <div class="side-menu">
         <!-- 菜单项列表 -->
-        <div class="menu-item" v-for="(item, index) in menuList" :key="index" @click="handleIcon(item)">
+        <div
+          class="menu-item"
+          v-for="(item, index) in menuList"
+          :key="index"
+          @click="handleIcon(item)"
+        >
           <img class="img" :src="item.icon" mode="scaleToFill" />
           <span class="label">{{ item.name }}</span>
         </div>
@@ -53,99 +63,132 @@
         </div>
       </div>
 
-      <ALLPopup v-model:show="tipVisible" type="tip" :count="count" @action="handlePopupAction" />
-      <ALLPopup v-model:show="logoutVisible" type="logout"  @action="handlePopupAction" />
-      <ALLPopup v-model:show="repairVisible" type="repair" :isShow="showRepairReason"  @action="handlePopupAction" />
+      <ALLPopup
+        v-model:show="tipVisible"
+        type="tip"
+        :count="count"
+        @action="handlePopupAction"
+      />
+      <ALLPopup
+        v-model:show="logoutVisible"
+        type="logout"
+        @action="handlePopupAction"
+      />
+      <ALLPopup
+        v-model:show="repairVisible"
+        type="repair"
+        :isShow="showRepairReason"
+        @action="handlePopupAction"
+      />
       <SetPopup v-model:show="setVisible" @action="handlePopupAction" />
-    
-  
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted } from 'vue'
-import ALLPopup from './components/ALLPopup.vue'
-import SetPopup from './components/SetPopup.vue'
-import { formatTime } from "@/utils/utils"
-import {
-  ch1,
-  speeds,
-  cSpeeds,
-  repairs
-} from "./img.js"
+import { ref, onMounted, onUnmounted, nextTick } from "vue";
+import ALLPopup from "./components/ALLPopup.vue";
+import SetPopup from "./components/SetPopup.vue";
+import Ripple from "./components/Ripple.vue";
+import { formatTime } from "@/utils/utils";
+import { ch1, speeds, cSpeeds, repairs } from "./img.js";
 
-const isLandscape = ref(true)
-const tipVisible = ref(false)
-const logoutVisible = ref(false)
-const repairVisible = ref(false)
-const batteryPercentage = ref(23)
-const currentTime = ref()
-const showSpeed = ref(false)
-const showRepairReason = ref(false)
-const count = ref(15)
-const value = ref(5)
-const setVisible = ref(true)
-
+const isLandscape = ref(true);
+const tipVisible = ref(false);
+const logoutVisible = ref(false);
+const repairVisible = ref(false);
+const batteryPercentage = ref(23);
+const currentTime = ref();
+const showSpeed = ref(false);
+const showRepairReason = ref(false);
+const count = ref(15);
+const value = ref(5);
+const setVisible = ref(false);
+const showSound = ref(false)
 // 检测屏幕方向
 const checkOrientation = () => {
-  isLandscape.value = window.innerWidth > window.innerHeight
-}
+  isLandscape.value = window.innerWidth > window.innerHeight;
+};
+
+
 
 const menuList = ref([
-  { name: '报修', icon: repairs, key: "repairs" },
-  { name: '前差' },
-  { name: '后差' },
-  { name: 'CH4', icon: ch1 },
-  { name: '高低速', icon: speeds, key: 'highLowSpeed' },
-  { name: '定速', icon: cSpeeds, key: 'speed' }
+  { name: "报修", icon: repairs, key: "repairs" },
+  { name: "前差" },
+  { name: "后差" },
+  { name: "CH4", icon: ch1 },
+  { name: "高低速", icon: speeds, key: "highLowSpeed" },
+  { name: "定速", icon: cSpeeds, key: "speed" },
 ]);
 
 onMounted(() => {
-  checkOrientation()
-  window.addEventListener('resize', checkOrientation)
-  window.addEventListener('orientationchange', checkOrientation)
+  checkOrientation();
+  window.addEventListener("resize", checkOrientation);
+  window.addEventListener("orientationchange", checkOrientation);
 
   // 2. 修复 const 不能重新赋值的 bug
   let timer = setInterval(() => {
-    count.value -= 1
+    count.value -= 1;
     if (count.value <= 0) {
-      count.value = 0
-      clearInterval(timer)
-      timer = null
+      count.value = 0;
+      clearInterval(timer);
+      timer = null;
     }
-  }, 1000)
+  }, 1000);
 
   let num = 1;
   let timer1 = setInterval(() => {
-
-    currentTime.value = formatTime(++num)
-  }, 1000)
-
-
-})
+    currentTime.value = formatTime(++num);
+  }, 1000);
+});
 
 const handleIcon = (item) => {
-  if (item.key == 'repairs') {
-    showRepairReason.value = true
-    repairVisible.value = true
-    return
+  if (item.key == "repairs") {
+    showRepairReason.value = true;
+    repairVisible.value = true;
+    return;
   }
-  if (item.key == 'speed') {
-    showSpeed.value = true
+  if (item.key == "speed") {
+    showSpeed.value = true;
   }
-}
-
+};
 
 onUnmounted(() => {
-  window.removeEventListener('resize', checkOrientation)
-  window.removeEventListener('orientationchange', checkOrientation)
-})
+  window.removeEventListener("resize", checkOrientation);
+  window.removeEventListener("orientationchange", checkOrientation);
+});
 
 const handlePopupAction = (type) => {
-  console.log(type)
+  console.log(type);
+  // 退出上报故障
+  if (type == "report") {
+    logoutVisible.value = false
+    repairVisible.value = true;
+    showRepairReason.value = false
+  }
+};
+
+
+
+const isRippleActive = ref(false);
+
+const triggerRipple = () => {
+  // 1. 先移除 active 状态
+  isRippleActive.value = false;
+  
+  // 2. 等待 DOM 更新后，再重新添加 active 状态，从而触发 CSS 动画
+  nextTick(() => {
+    isRippleActive.value = true;
+  });
+};
+
+const set = () => {
+  setVisible.value = true
 }
 
+const logout = () => {
+  logoutVisible.value = true
+}
 </script>
 
 <style lang="scss" scoped>
@@ -188,16 +231,14 @@ const handlePopupAction = (type) => {
   height: 100%;
   box-sizing: border-box;
   position: relative;
-
 }
-
 
 :deep(.custom-popup) {
   border-radius: 8px !important;
 }
 
 .bg {
-  background: red;
+  background: rgba(0, 0, 0, 0.3);
   height: 100%;
   position: relative;
 }
@@ -228,9 +269,6 @@ const handlePopupAction = (type) => {
   }
 }
 
-
-
-
 /* 外层胶囊容器 */
 .status-bar-capsule {
   background: rgba(0, 0, 0, 0.5);
@@ -244,7 +282,6 @@ const handlePopupAction = (type) => {
   /* 优化：提供合适的上下和左右内边距 */
   box-sizing: border-box;
   white-space: nowrap;
-
 
   /* 内部内容区域：使用 flex 和 gap 实现等间距 */
   .flex {
@@ -278,11 +315,11 @@ const handlePopupAction = (type) => {
     /* 优化：稍微调大一点，2px 在屏幕上可能看不清 */
     height: 2px;
     border-radius: 50%;
-    background: #09FF77;
+    background: #09ff77;
   }
 
   /* 电池及电量文字组合 */
-  .flex>div:nth-child(2) {
+  .flex > div:nth-child(2) {
     display: flex;
     align-items: center;
     gap: 2px;
@@ -302,12 +339,11 @@ const handlePopupAction = (type) => {
   .time-text {
     font-family: PingFangSC, PingFang SC;
     font-weight: 400;
-    color: #FFFFFF;
+    color: #ffffff;
     font-size: 6px;
     line-height: 1;
   }
 }
-
 
 // 在 style 中定义
 .mini-forbidden {
@@ -320,7 +356,7 @@ const handlePopupAction = (type) => {
 
   // 中间的斜杠
   &::after {
-    content: '';
+    content: "";
     position: absolute;
     top: 50%;
     left: 50%;
@@ -330,25 +366,36 @@ const handlePopupAction = (type) => {
     transform: translate(-50%, -50%) rotate(45deg);
   }
 }
+.side-menu-icon {
+  position: fixed;
+  top: 20px;
+  right: 30px;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  align-items: center;
+  img {
+    display: block;
+    width: 10px;
+    height: 10px;
+  }
 
+}
 .side-menu {
   // 1. 整体容器样式
   position: fixed;
   top: 18px;
   right: 7px;
-
   z-index: 2;
-
   display: flex;
   flex-direction: column;
-  gap: 2px; // 每个菜单项之间的间距
-
-  // 胶囊背景效果
-  background: rgba(20, 20, 20, 0.75); // 深灰色半透明背景
-  backdrop-filter: blur(10px); // 毛玻璃模糊效果
-  border-radius: 20px; // 大圆角形成胶囊状
-  padding: 5px 1px; // 内部留白
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3); // 轻微阴影增加层次感
+  gap: 2px;
+  background: rgba(20, 20, 20, 0.75);
+  backdrop-filter: blur(10px);
+  border-radius: 20px;
+  padding: 5px 1px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
 }
 
 .menu-item {
@@ -371,7 +418,7 @@ const handlePopupAction = (type) => {
     font-family: PingFangSC, PingFang SC;
     font-weight: 400;
     font-size: 5px;
-    color: #FFFFFF;
+    color: #ffffff;
     white-space: nowrap; // 防止文字换行
     text-align: center;
   }
@@ -380,9 +427,9 @@ const handlePopupAction = (type) => {
 .slider {
   position: absolute;
   z-index: 1;
-  top:105px;
-  right:24px;
-  width:50px;
+  top: 105px;
+  right: 24px;
+  width: 50px;
 }
 
 .custom-button-slider {
@@ -391,7 +438,7 @@ const handlePopupAction = (type) => {
   font-size: 5px;
   line-height: 6px;
   text-align: center;
-  background-color: #FFC838;
+  background-color: #ffc838;
   border-radius: 1px;
 }
 </style>
