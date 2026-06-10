@@ -1,11 +1,9 @@
 <template>
   <van-popup v-model:show="visible" :close-on-click-overlay="false" position="right" teleport="body" round
     class="custom-popup-right" :style="{ width: '60%', height: '100%' }">
-
     <div class="cont">
       <div class="left">
         <div class="group" v-if="selectedIndex == 0">
-
           <div class="group-item">
             <p class="tit">视频清晰度</p>
             <div class="flex">
@@ -52,21 +50,136 @@
                 </div>
               </div>
             </div>
-
           </div>
 
+          <div class="group-item pr">
+            <div class="flex fj">
+              <span class="tit">方向反向操作</span>
+              <van-switch v-model="dir1Oper" size="15px" active-color="#f5c542" inactive-color="#dcdee0" />
+            </div>
 
-
+            <div class="flex fj">
+              <span class="tit">进退反向操作</span>
+              <van-switch v-model="dir2Oper" size="15px" active-color="#f5c542" inactive-color="#dcdee0" />
+            </div>
+          </div>
         </div>
 
+        <div class="group" v-if="selectedIndex == 1">
+          <div class="group-item">
+            <p class="tit" @click="add">方向中位微调</p>
+            <div class="section">
+              <!-- 减少按钮 -->
+              <div class="reduce">
+                <img src="@/assets/images/icon_reduce@2x.webp" alt="" />
+              </div>
 
+              <!-- 滑块区域（占据主要空间） -->
+              <div class="slider-wrapper">
+                <div class="slider-label">
+                  <div class="num" :style="{ left: dirMiddle + '%' }">{{   (500 + (dirMiddle - 1) * 45.45).toFixed(0) }}</div>
+                </div>
+                <van-slider v-model="dirMiddle" :min="1" :max="100" active-color="#f5c542">
+                  <template #button>
+                    <div class="custom-sider-img">
+                      <img src="@/assets/images/icon_sider@2x.webp" alt="滑块" />
+                    </div>
+                  </template>
+                </van-slider>
+                <div class="slider-label-bottom">
+                  <div class="num-text num-left"> 500 </div>
+                  <div class="num-text num-right"> 5000 </div>
+                </div>
+              </div>
+
+              <!-- 增加按钮 -->
+              <div class="add" @click="add(1)">
+                <img src="@/assets/images/icon_add@2x.webp" alt="" />
+              </div>
+
+              <!-- 保存按钮 -->
+              <div class="btn">保存</div>
+            </div>
+          </div>
+
+          <div class="group-item">
+            <p class="tit">方向力度微调</p>
+             <div class="section">
+              <!-- 减少按钮 -->
+              <div class="reduce">
+                <img src="@/assets/images/icon_reduce@2x.webp" alt="" />
+              </div>
+
+              <!-- 滑块区域（占据主要空间） -->
+              <div class="slider-wrapper">
+                <div class="slider-label">
+                  <div class="num" :style="{ left: dirTurn + '%' }">{{ dirTurn }}</div>
+                </div>
+                <van-slider v-model="dirTurn" :min="1" :max="100" active-color="#f5c542">
+                  <template #button>
+                    <div class="custom-sider-img">
+                      <img src="@/assets/images/icon_sider@2x.webp" alt="" />
+                    </div>
+                  </template>
+                </van-slider>
+                <div class="slider-label-bottom">
+                  <div class="num-text num-left"> 1 </div>
+                  <div class="num-text num-right"> 100 </div>
+                </div>
+              </div>
+
+              <!-- 增加按钮 -->
+              <div class="add" @click="add(2)">
+                <img src="@/assets/images/icon_add@2x.webp" alt="" />
+              </div>
+
+              <!-- 保存按钮 -->
+              <div class="btn">保存</div>
+            </div>
+          </div>
+
+          <div class="group-item">
+            <p class="tit">油门力度微调</p>
+             <div class="section">
+              <!-- 减少按钮 -->
+              <div class="reduce">
+                <img src="@/assets/images/icon_reduce@2x.webp" alt="" />
+              </div>
+
+              <!-- 滑块区域（占据主要空间） -->
+              <div class="slider-wrapper">
+                <div class="slider-label">
+                  <div class="num" :style="{ left: throttle + '%' }">{{ throttle }}</div>
+                </div>
+                <van-slider v-model="throttle" :min="1" :max="50" active-color="#f5c542">
+                  <template #button>
+                    <div class="custom-sider-img">
+                      <img src="@/assets/images/icon_sider@2x.webp" alt="" />
+                    </div>
+                  </template>
+                </van-slider>
+                <div class="slider-label-bottom">
+                  <div class="num-text num-left"> 1 </div>
+                  <div class="num-text num-right"> 50 </div>
+                </div>
+              </div>
+
+              <!-- 增加按钮 -->
+              <div class="add" @click="add(3)">
+                <img src="@/assets/images/icon_add@2x.webp" alt="" />
+              </div>
+
+              <!-- 保存按钮 -->
+              <div class="btn">保存</div>
+            </div>
+          </div>
+        </div>
       </div>
       <div class="right">
-
         <div class="settings-bar">
           <div class="text-area">设置</div>
           <div class="close-btn" @click="close">
-            <img src="@/assets/images/icon_close@2x.webp" alt="">
+            <img src="@/assets/images/icon_close@2x.webp" alt="" />
           </div>
         </div>
         <div class="setting-group" v-for="(item, index) in setGroup" :key="index">
@@ -77,64 +190,56 @@
         </div>
       </div>
     </div>
-
   </van-popup>
 </template>
 
 <script setup>
-import { computed, ref } from 'vue'
-import {
-  arrowUp,
-  arrowDown,
-  arrowLeft,
-  arrowRight
-} from "../img.js"
+import { computed, ref } from "vue";
+import { arrowUp, arrowDown, arrowLeft, arrowRight } from "../img.js";
 const props = defineProps({
   show: { type: Boolean, default: false },
-
-})
+});
 
 const setGroup = ref([
-  { name: '通用设置', key: 0 },
-  { name: '车辆微调', key: 1 },
-  { name: '遥控模式', key: 2 }
+  { name: "通用设置", key: 0 },
+  { name: "车辆微调", key: 1 },
+  { name: "遥控模式", key: 2 },
 ]);
-const selectedIndex = ref(0)
+const selectedIndex = ref(1);
 
-const emit = defineEmits(['update:show', 'action'])
+const emit = defineEmits(["update:show", "action"]);
 
 const visible = computed({
   get: () => props.show,
-  set: (val) => emit('update:show', val)
-})
+  set: (val) => emit("update:show", val),
+});
 
 const close = () => {
-  visible.value = false
-}
+  visible.value = false;
+};
 const handleItem = (index) => {
   selectedIndex.value = index;
 };
 
-
 const qualityList = [
-  { label: '超清', value: '1' }, // 默认选中项
-  { label: '高清', value: '2' },
-  { label: '标清', value: '3' }
+  { label: "超清", value: "1" }, // 默认选中项
+  { label: "高清", value: "2" },
+  { label: "标清", value: "3" },
 ];
 
-const currentQuality = ref('1');
+const currentQuality = ref("1");
 
 // 3. 处理点击事件
 const handleSelect = (value) => {
   currentQuality.value = value;
 };
 
-const selectedMode = ref('mode1');
+const selectedMode = ref("mode1");
 
 // 定义两种模式的配置数据
 const steeringModes = [
-  { id: 'mode1', isReverse: false }, // 正常布局
-  { id: 'mode2', isReverse: true },  // 反转布局
+  { id: "mode1", isReverse: false }, // 正常布局
+  { id: "mode2", isReverse: true }, // 反转布局
 ];
 
 // 点击切换逻辑
@@ -142,18 +247,30 @@ const handleSetSelect = (id) => {
   selectedMode.value = id;
 };
 
-
 const iconConfig = {
-  width: '12px',
-  height: '12px',
-  style: 'object-fit: contain;'
+  width: "12px",
+  height: "12px",
+  style: "object-fit: contain;",
 };
-const IconArrowUp = () => h('img', { src: arrowUp, ...iconConfig });
-const IconArrowDown = () => h('img', { src: arrowDown, ...iconConfig });
-const IconArrowLeft = () => h('img', { src: arrowLeft, ...iconConfig });
-const IconArrowRight = () => h('img', { src: arrowRight, ...iconConfig });
+const IconArrowUp = () => h("img", { src: arrowUp, ...iconConfig });
+const IconArrowDown = () => h("img", { src: arrowDown, ...iconConfig });
+const IconArrowLeft = () => h("img", { src: arrowLeft, ...iconConfig });
+const IconArrowRight = () => h("img", { src: arrowRight, ...iconConfig });
 
-import { h } from 'vue';
+import { h } from "vue";
+
+const dir1Oper = ref(false);
+const dir2Oper = ref(false);
+const dirMiddle = ref(1);
+const dirTurn = ref(1)
+const throttle = ref(1)
+const add = () => {
+  dirMiddle.value += 1;
+};
+const reduceIcon = () => {
+  dirMiddle.value += 1;
+};
+
 
 </script>
 
@@ -199,7 +316,7 @@ import { h } from 'vue';
       font-weight: 500;
       font-size: 7px;
       letter-spacing: 2;
-      color: #FFFFFF;
+      color: #ffffff;
     }
 
     .close-btn {
@@ -208,14 +325,12 @@ import { h } from 'vue';
       justify-content: center;
     }
 
-
     .close-btn img {
       display: block;
       width: 12px;
       height: 12px;
     }
   }
-
 
   .setting-group {
     border-bottom: 1px solid #87878766;
@@ -233,7 +348,7 @@ import { h } from 'vue';
     }
 
     .active {
-      color: #FFC838;
+      color: #ffc838;
     }
 
     .gradient-line {
@@ -267,13 +382,13 @@ import { h } from 'vue';
   padding: 5px;
 
   .group-item {
-    margin-bottom: 8px;
+    margin-bottom: 2px;
 
     .tit {
       font-family: PingFangSC, PingFang SC;
       font-weight: 400;
       font-size: 7px;
-      color: #FFFFFF;
+      color: #ffffff;
     }
   }
 
@@ -281,6 +396,14 @@ import { h } from 'vue';
     display: flex;
     gap: 12px;
     padding-top: 5px;
+  }
+
+  .fj {
+    justify-content: space-between;
+  }
+
+  .pr {
+    padding-right: 15px;
   }
 
   .btn-quality {
@@ -305,7 +428,7 @@ import { h } from 'vue';
   .option-card {
     position: relative;
     width: 65px;
-    height: 35px;
+    height: 36px;
     border: 0.25px solid rgba(255, 255, 255, 0.3);
     border-radius: 3px;
     background-color: rgba(0, 0, 0, 0.4);
@@ -375,6 +498,12 @@ import { h } from 'vue';
     display: flex;
     gap: 2px;
     margin-bottom: 1px;
+    height: 18px;
+
+    img {
+      width: 10px;
+      width: 10px;
+    }
   }
 
   .icon-row.vertical {
@@ -386,19 +515,108 @@ import { h } from 'vue';
   }
 
   .label {
-    font-size: 3px;
+    font-size: 6px;
     color: #ccc;
-    margin-top: 1px;
+    margin-top: 2px;
   }
 
   .is-active .label {
     color: #fff;
   }
 }
+
+.section {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.slider-wrapper {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  height: 40px;
+
+}
+
+.num {
+  position: absolute;
+  top: 5px;
+  transform: translateX(-50%);
+  /* 关键：让标签的中心点对齐 left 值，实现完美居中 */
+  color: #fff;
+  font-size: 6px;
+  white-space: nowrap;
+  /* 防止数字换行 */
+  pointer-events: none;
+  /* 防止标签拦截鼠标的拖拽事件 */
+}
+
+.slider-label {
+  position: relative;
+  height: 15px;
+}
+
+.slider-label-bottom {
+
+  display: flex;
+  justify-content: space-between;
+  margin-top: 2px;
+
+  .num-text {
+    color: #fff;
+    font-size: 6px;
+
+  }
+
+  .num-left {
+    margin-left: -4px;
+  }
+
+  .num-right {
+    margin-right: -4px;
+  }
+}
+
+.reduce,
+.add,
+.btn {
+  flex-shrink: 0;
+
+}
+
+.btn {
+
+  border-radius: 2px;
+  font-family: PingFangSC, PingFang SC;
+  font-weight: 400;
+  font-size: 6px;
+  color: #1A1A1A;
+  padding: 2px 4px;
+  background: #FFC838;
+
+}
+
+.reduce img,
+.add img {
+  width: 12px;
+  height: 12px;
+  display: block;
+}
+
+// :deep(.van-slider__bar) {
+//   min-width: 5px !important;
+// }
 </style>
 
 <style>
 .custom-popup-right {
   border-radius: 0px !important;
+}
+
+.custom-sider-img {
+  width: 10px;
+  height: 10px;
 }
 </style>
