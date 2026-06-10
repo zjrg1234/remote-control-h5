@@ -77,7 +77,8 @@
               <!-- 滑块区域（占据主要空间） -->
               <div class="slider-wrapper">
                 <div class="slider-label">
-                  <div class="num" :style="{ left: dirMiddle + '%' }">{{   (500 + (dirMiddle - 1) * 45.45).toFixed(0) }}</div>
+                  <div class="num" :style="{ left: dirMiddle + '%' }">{{ (500 + (dirMiddle - 1) * 45.45).toFixed(0) }}
+                  </div>
                 </div>
                 <van-slider v-model="dirMiddle" :min="1" :max="100" active-color="#f5c542">
                   <template #button>
@@ -104,7 +105,7 @@
 
           <div class="group-item">
             <p class="tit">方向力度微调</p>
-             <div class="section">
+            <div class="section">
               <!-- 减少按钮 -->
               <div class="reduce">
                 <img src="@/assets/images/icon_reduce@2x.webp" alt="" />
@@ -140,7 +141,7 @@
 
           <div class="group-item">
             <p class="tit">油门力度微调</p>
-             <div class="section">
+            <div class="section">
               <!-- 减少按钮 -->
               <div class="reduce">
                 <img src="@/assets/images/icon_reduce@2x.webp" alt="" />
@@ -174,6 +175,8 @@
             </div>
           </div>
         </div>
+
+
       </div>
       <div class="right">
         <div class="settings-bar">
@@ -202,8 +205,7 @@ const props = defineProps({
 
 const setGroup = ref([
   { name: "通用设置", key: 0 },
-  { name: "车辆微调", key: 1 },
-  { name: "遥控模式", key: 2 },
+  { name: "车辆微调", key: 1 }
 ]);
 const selectedIndex = ref(1);
 
