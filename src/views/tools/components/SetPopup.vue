@@ -21,11 +21,7 @@
                 :class="{ 'is-active': selectedMode === mode.id }" @click="handleSetSelect(mode.id)">
                 <!-- 右上角的黄色对勾 (仅当选中时显示) -->
                 <div v-if="selectedMode === mode.id" class="check-mark">
-                  <svg viewBox="0 0 1024 1024" width="16" height="16">
-                    <path
-                      d="M406.666667 805.333333l-256-256 60.330666-60.330666L406.666667 684.373333l406.997333-406.997333 60.330667 60.330667z"
-                      fill="#f5c542"></path>
-                  </svg>
+                  <img src="@/assets/images/icon_selected@2x.png" alt="">
                 </div>
 
                 <!-- 布局区域：根据配置交换左右顺序 -->
@@ -67,10 +63,10 @@
 
         <div class="group" v-if="selectedIndex == 1">
           <div class="group-item">
-            <p class="tit" @click="add">方向中位微调</p>
+            <p class="tit">方向中位微调</p>
             <div class="section">
               <!-- 减少按钮 -->
-              <div class="reduce">
+              <div class="reduce" @click="handleReduce(1)">
                 <img src="@/assets/images/icon_reduce@2x.webp" alt="" />
               </div>
 
@@ -94,12 +90,12 @@
               </div>
 
               <!-- 增加按钮 -->
-              <div class="add" @click="add(1)">
+              <div class="add" @click="handleAdd(1)">
                 <img src="@/assets/images/icon_add@2x.webp" alt="" />
               </div>
 
               <!-- 保存按钮 -->
-              <div class="btn">保存</div>
+              <div class="btn" @click="save(1)">保存</div>
             </div>
           </div>
 
@@ -107,7 +103,7 @@
             <p class="tit">方向力度微调</p>
             <div class="section">
               <!-- 减少按钮 -->
-              <div class="reduce">
+              <div class="reduce" @click="handleReduce(2)">
                 <img src="@/assets/images/icon_reduce@2x.webp" alt="" />
               </div>
 
@@ -130,12 +126,12 @@
               </div>
 
               <!-- 增加按钮 -->
-              <div class="add" @click="add(2)">
+              <div class="add" @click="handleAdd(2)">
                 <img src="@/assets/images/icon_add@2x.webp" alt="" />
               </div>
 
               <!-- 保存按钮 -->
-              <div class="btn">保存</div>
+              <div class="btn" @click="save(2)">保存</div>
             </div>
           </div>
 
@@ -143,7 +139,7 @@
             <p class="tit">油门力度微调</p>
             <div class="section">
               <!-- 减少按钮 -->
-              <div class="reduce">
+              <div class="reduce" @click="handleReduce(3)">
                 <img src="@/assets/images/icon_reduce@2x.webp" alt="" />
               </div>
 
@@ -166,12 +162,12 @@
               </div>
 
               <!-- 增加按钮 -->
-              <div class="add" @click="add(3)">
+              <div class="add" @click="handleAdd(3)">
                 <img src="@/assets/images/icon_add@2x.webp" alt="" />
               </div>
 
               <!-- 保存按钮 -->
-              <div class="btn">保存</div>
+              <div class="btn" @click="save(3)">保存</div>
             </div>
           </div>
         </div>
@@ -266,12 +262,29 @@ const dir2Oper = ref(false);
 const dirMiddle = ref(1);
 const dirTurn = ref(1)
 const throttle = ref(1)
-const add = () => {
-  dirMiddle.value += 1;
+const valueMap = {
+  1: dirMiddle,
+  2: dirTurn,
+  3: throttle
 };
-const reduceIcon = () => {
-  dirMiddle.value += 1;
+
+// 2. 统一的加减处理函数
+const handleValueChange = (type, step) => {
+  const target = valueMap[type];
+  if (!target) return; // 如果 type 不匹配，直接返回
+
+  // 计算新值
+  const newValue = target.value + step;
+
+  // 3. 边界保护（假设范围是 0 ~ 100，请根据实际业务修改）
+  target.value = Math.max(0, Math.min(100, newValue));
 };
+
+// 4. 调用时只需传入 type 和 步长（1 为加，-1 为减）
+const handleAdd = (type) => handleValueChange(type, 1);
+const handleReduce = (type) => handleValueChange(type, -1);
+
+
 
 
 </script>
@@ -454,25 +467,26 @@ const reduceIcon = () => {
     position: absolute;
     top: -0.25px;
     right: -0.25px;
-    width: 0;
-    height: 0;
-    border: none;
-    width: 0;
-    height: 0;
-    border-style: solid;
-    border-width: 0 7.5px 7.5px 0;
-    border-color: transparent #f5c542 transparent transparent;
+    width: 10px; // 修改：稍微增大宽度，避免挤压
+    height: 10px; // 修改：稍微增大高度
+    // border: none;
+    // border-style: solid;
+    // border-width: 0 7.5px 7.5px 0;
+    // border-color: transparent #f5c542 transparent transparent;
     display: flex;
     align-items: flex-start;
     justify-content: flex-end;
     overflow: hidden;
   }
 
-  .check-mark svg {
+  .check-mark img {
     position: absolute;
-    top: 0.5px;
-    right: 0.5px;
+    top: 0; // 修改：修正顶部偏移，贴边显示
+    right: 0; // 修改：修正右侧偏移，贴边显示
+    width: 8px;
+    height: 8px;
     transform: rotate(0deg);
+    display: block;
   }
 
   .content-layout {

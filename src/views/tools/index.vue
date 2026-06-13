@@ -39,17 +39,12 @@
 
         <img src="@/assets/images/icon_sound_close@2x.png" v-if="!showSound" @click="showSound = true" alt="" />
         <img src="@/assets/images/icon_sound_open@2x.png" v-if="showSound" @click="showSound = false" alt="" />
-     
+
       </div>
       <div class="side-menu">
         <!-- 菜单项列表 -->
-        <div
-          class="menu-item"
-          v-for="(item, index) in menuList"
-          :key="index"
-          @click="handleIcon(item)"
-        >
-          <img class="img" :src="item.icon" mode="scaleToFill" />
+        <div class="menu-item" v-for="(item, index) in menuList" :key="index" @click="handleIcon(item)">
+          <img class="img" mode="scaleToFill" :src="activeKey.includes(item.key) ? item.iconSelect : item.icon" />
           <span class="label">{{ item.name }}</span>
         </div>
       </div>
@@ -63,23 +58,9 @@
         </div>
       </div>
 
-      <ALLPopup
-        v-model:show="tipVisible"
-        type="tip"
-        :count="count"
-        @action="handlePopupAction"
-      />
-      <ALLPopup
-        v-model:show="logoutVisible"
-        type="logout"
-        @action="handlePopupAction"
-      />
-      <ALLPopup
-        v-model:show="repairVisible"
-        type="repair"
-        :isShow="showRepairReason"
-        @action="handlePopupAction"
-      />
+      <ALLPopup v-model:show="tipVisible" type="tip" :count="count" @action="handlePopupAction" />
+      <ALLPopup v-model:show="logoutVisible" type="logout" @action="handlePopupAction" />
+      <ALLPopup v-model:show="repairVisible" type="repair" :isShow="showRepairReason" @action="handlePopupAction" />
       <SetPopup v-model:show="setVisible" @action="handlePopupAction" />
     </div>
   </div>
@@ -91,7 +72,16 @@ import ALLPopup from "./components/ALLPopup.vue";
 import SetPopup from "./components/SetPopup.vue";
 import Ripple from "./components/Ripple.vue";
 import { formatTime } from "@/utils/utils";
-import { ch1, speeds, cSpeeds, repairs } from "./img.js";
+import {
+  ch1, speeds, cSpeeds, repairs, ch_selected,
+  speeds_selected, cSpeeds_selected, after_diff,
+  after_diff_selected,
+  before_diff,
+  before_diff_selected,
+  light,
+  light_selected
+} from "./img.js";
+
 
 const isLandscape = ref(true);
 const tipVisible = ref(false);
@@ -113,12 +103,13 @@ const checkOrientation = () => {
 
 
 const menuList = ref([
-  { name: "报修", icon: repairs, key: "repairs" },
-  { name: "前差" },
-  { name: "后差" },
-  { name: "CH4", icon: ch1 },
-  { name: "高低速", icon: speeds, key: "highLowSpeed" },
-  { name: "定速", icon: cSpeeds, key: "speed" },
+  { name: "报修", icon: repairs, key: "repairs", iconSelect: repairs,  type: 1 },
+  { name: "前差", icon: before_diff, key: "chBefore", iconSelect: before_diff_selected, type: 1 },
+  { name: "后差", icon: after_diff, key: "chAfter", iconSelect: after_diff_selected, type: 1 },
+  { name: "CH4", icon: ch1, key: "ch", iconSelect: ch_selected, type: 1 },
+  { name: "高低速", icon: speeds, key: "highLowSpeed", iconSelect: speeds_selected, type: 1 },
+  { name: "定速", icon: cSpeeds, key: "speed", iconSelect: cSpeeds_selected, type: 1 },
+  { name: "", icon: light, key: "light", iconSelect: light_selected, type: 2 },
 ]);
 
 onMounted(() => {
@@ -142,15 +133,41 @@ onMounted(() => {
   }, 1000);
 });
 
+const activeKey = ref([]);
+
 const handleIcon = (item) => {
+  console.log(item.key, activeKey.value)
+
+  if (activeKey.value.includes(item.key)) {
+    const index = activeKey.value.indexOf(item.key);
+
+    // 如果定速 消失
+    if (activeKey.value.includes('speed')) {
+      showSpeed.value = false;
+    }
+
+    if (index > -1) {
+      activeKey.value.splice(index, 1);
+    }
+
+  } else {
+    activeKey.value.push(item.key);
+
+    // 如果点击定速
+    if (item.key == "speed") {
+      showSpeed.value = true;
+    }
+
+  }
+
+
   if (item.key == "repairs") {
     showRepairReason.value = true;
     repairVisible.value = true;
     return;
   }
-  if (item.key == "speed") {
-    showSpeed.value = true;
-  }
+
+
 };
 
 onUnmounted(() => {
@@ -175,7 +192,7 @@ const isRippleActive = ref(false);
 const triggerRipple = () => {
   // 1. 先移除 active 状态
   isRippleActive.value = false;
-  
+
   // 2. 等待 DOM 更新后，再重新添加 active 状态，从而触发 CSS 动画
   nextTick(() => {
     isRippleActive.value = true;
@@ -319,7 +336,7 @@ const logout = () => {
   }
 
   /* 电池及电量文字组合 */
-  .flex > div:nth-child(2) {
+  .flex>div:nth-child(2) {
     display: flex;
     align-items: center;
     gap: 2px;
@@ -366,6 +383,7 @@ const logout = () => {
     transform: translate(-50%, -50%) rotate(45deg);
   }
 }
+
 .side-menu-icon {
   position: fixed;
   top: 20px;
@@ -375,6 +393,7 @@ const logout = () => {
   flex-direction: column;
   gap: 2px;
   align-items: center;
+
   img {
     display: block;
     width: 10px;
@@ -382,6 +401,7 @@ const logout = () => {
   }
 
 }
+
 .side-menu {
   // 1. 整体容器样式
   position: fixed;
