@@ -58,10 +58,15 @@
         </div>
       </div>
 
+      <div class="time">
+        <img src="@/assets/images/icon_time@2x.webp" alt="">
+        <TimeClock></TimeClock>
+      </div>
+
       <ALLPopup v-model:show="tipVisible" type="tip" :count="count" @action="handlePopupAction" />
       <ALLPopup v-model:show="logoutVisible" type="logout" @action="handlePopupAction" />
       <ALLPopup v-model:show="repairVisible" type="repair" :isShow="showRepairReason" @action="handlePopupAction" />
-      <SetPopup v-model:show="setVisible" @action="handlePopupAction" />
+      <SetPopup v-model:show="setVisible" :type="carType" @action="handlePopupAction" />
     </div>
   </div>
 </template>
@@ -71,6 +76,7 @@ import { ref, onMounted, onUnmounted, nextTick } from "vue";
 import ALLPopup from "./components/ALLPopup.vue";
 import SetPopup from "./components/SetPopup.vue";
 import Ripple from "./components/Ripple.vue";
+import TimeClock from './components/TimeClock.vue';
 import { formatTime } from "@/utils/utils";
 import {
   ch1, speeds, cSpeeds, repairs, ch_selected,
@@ -94,7 +100,10 @@ const showRepairReason = ref(false);
 const count = ref(15);
 const value = ref(5);
 const setVisible = ref(false);
-const showSound = ref(false)
+const showSound = ref(false);
+
+const carType = ref('2')
+const currentDate = ref()
 // 检测屏幕方向
 const checkOrientation = () => {
   isLandscape.value = window.innerWidth > window.innerHeight;
@@ -362,6 +371,7 @@ const logout = () => {
   }
 }
 
+
 // 在 style 中定义
 .mini-forbidden {
   display: inline-block;
@@ -460,5 +470,20 @@ const logout = () => {
   text-align: center;
   background-color: #ffc838;
   border-radius: 1px;
+}
+
+.time {
+  position: absolute;
+  font-size: 6px;
+  bottom: 5px;
+  left: 10px;
+  display: flex;
+  align-items: center;
+  img {
+    display: block;
+    width: 5px;
+    height: 5px;
+    margin-right: 2px;
+  }
 }
 </style>

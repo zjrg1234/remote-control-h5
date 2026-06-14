@@ -3,7 +3,7 @@
     class="custom-popup-right" :style="{ width: '60%', height: '100%' }">
     <div class="cont">
       <div class="left">
-        <div class="group" v-if="selectedIndex == 0">
+        <div class="group" v-if="selectedIndex == 0 && type == '1'" >
           <div class="group-item">
             <p class="tit">视频清晰度</p>
             <div class="flex">
@@ -51,12 +51,53 @@
           <div class="group-item pr">
             <div class="flex fj">
               <span class="tit">方向反向操作</span>
-              <van-switch v-model="dir1Oper" size="15px" active-color="#f5c542" inactive-color="#dcdee0" />
+              <van-switch v-model="dir1Oper" @change="handleOper(1,$event)" size="15px" active-color="#f5c542" inactive-color="#dcdee0" />
             </div>
 
             <div class="flex fj">
               <span class="tit">进退反向操作</span>
-              <van-switch v-model="dir2Oper" size="15px" active-color="#f5c542" inactive-color="#dcdee0" />
+              <van-switch v-model="dir2Oper" @change="handleOper(2, $event)" size="15px" active-color="#f5c542" inactive-color="#dcdee0" />
+            </div>
+          </div>
+        </div>
+
+
+        <div class="group" v-if="selectedIndex == 0 && type == '2'">
+          <div class="group-item">
+            <p class="tit">视频清晰度</p>
+            <div class="flex">
+              <span v-for="(item, index) in qualityList" :key="index" class="btn-quality"
+                :class="{ active: currentQuality === item.value }" @click="handleSelect(item.value)">
+                {{ item.label }}
+              </span>
+            </div>
+          </div>
+
+          <div class="group-item">
+            <p class="tit">操作设置</p>
+            <div class="flex">
+              <div v-for="(mode, index) in steeringModes" :key="index" class="option-card"
+                :class="{ 'is-active': selectedMode === mode.id }" @click="handleSetSelect(mode.id)">
+                  <img v-if="selectedMode === mode.id && index == 0" src="@/assets/images/icon_ev_dir1_selected@2x.png" alt="">
+                  <img v-if="selectedMode !== mode.id && index == 0" src="@/assets/images/icon_ev_dir1@2x.png" alt="">
+                   <img v-if="selectedMode === mode.id && index == 1" src="@/assets/images/icon_ev_dir2_selected@2x.png" alt="">
+                  <img v-if="selectedMode !== mode.id && index == 1" src="@/assets/images/icon_ev_dir2@2x.png" alt="">
+                  
+
+              
+              </div>
+            </div>
+          </div>
+
+          <div class="group-item pr">
+            <div class="flex fj">
+              <span class="tit">进退反向操作</span>
+              <van-switch v-model="dir1Oper" @change="handleOper(3, $event)" size="15px" active-color="#f5c542" inactive-color="#dcdee0" />
+            </div>
+
+            <div class="flex fj">
+              <span class="tit">旋转反向操作</span>
+              <van-switch v-model="dir2Oper" @change="handleOper(4, $event)" size="15px" active-color="#f5c542" inactive-color="#dcdee0" />
             </div>
           </div>
         </div>
@@ -173,6 +214,9 @@
         </div>
 
 
+
+
+
       </div>
       <div class="right">
         <div class="settings-bar">
@@ -197,6 +241,7 @@ import { computed, ref } from "vue";
 import { arrowUp, arrowDown, arrowLeft, arrowRight } from "../img.js";
 const props = defineProps({
   show: { type: Boolean, default: false },
+  type: { type: String, default: '1' },
 });
 
 const setGroup = ref([
@@ -245,11 +290,13 @@ const handleSetSelect = (id) => {
   selectedMode.value = id;
 };
 
+
 const iconConfig = {
   width: "12px",
   height: "12px",
   style: "object-fit: contain;",
 };
+
 const IconArrowUp = () => h("img", { src: arrowUp, ...iconConfig });
 const IconArrowDown = () => h("img", { src: arrowDown, ...iconConfig });
 const IconArrowLeft = () => h("img", { src: arrowLeft, ...iconConfig });
@@ -284,7 +331,10 @@ const handleValueChange = (type, step) => {
 const handleAdd = (type) => handleValueChange(type, 1);
 const handleReduce = (type) => handleValueChange(type, -1);
 
-
+// 操作不同的类型
+const handleOper = (type, val) => {
+  console.log(type, val)
+}
 
 
 </script>
