@@ -28,14 +28,14 @@ export default defineConfig(({ mode }) => {
       // vant 组件自动按需引入
       Components({
         dts: "src/typings/components.d.ts",
-        resolvers: [VantResolver()]
+        resolvers: [VantResolver()],
       }),
       // svg icon
       createSvgIconsPlugin({
         // 指定图标文件夹
         iconDirs: [path.resolve(root, "src/icons/svg")],
         // 指定 symbolId 格式
-        symbolId: "icon-[dir]-[name]"
+        symbolId: "icon-[dir]-[name]",
       }),
       // 允许 setup 语法糖上添加组件名属性
       vueSetupExtend(),
@@ -45,36 +45,38 @@ export default defineConfig(({ mode }) => {
       createHtmlPlugin({
         inject: {
           data: {
-            ENABLE_ERUDA: env.VITE_ENABLE_ERUDA || "false"
-          }
-        }
+            ENABLE_ERUDA: env.VITE_ENABLE_ERUDA || "false",
+          },
+        },
       }),
       // 生产环境默认不启用 CDN 加速
-      enableCDN(env.VITE_CDN_DEPS)
+      enableCDN(env.VITE_CDN_DEPS),
     ],
     resolve: {
       alias: {
-        "@": fileURLToPath(new URL("./src", import.meta.url))
-      }
+        "@": fileURLToPath(new URL("./src", import.meta.url)),
+      },
     },
     server: {
       host: true,
       // 仅在 proxy 中配置的代理前缀， mock-dev-server 才会拦截并 mock
       // doc: https://github.com/pengzhanbo/vite-plugin-mock-dev-server
       proxy: {
-        "^/dev-api": {
-          target: ""
-        }
-      }
+        "/api": {
+          target: "https://api.zksjyk.cn", // 目标接口
+          changeOrigin: true, // 是否换源
+          rewrite: (path) => path.replace(/^\/api/, ""),
+        },
+      },
     },
     build: {
       rollupOptions: {
         output: {
           chunkFileNames: "static/js/[name]-[hash].js",
           entryFileNames: "static/js/[name]-[hash].js",
-          assetFileNames: "static/[ext]/[name]-[hash].[ext]"
-        }
-      }
-    }
+          assetFileNames: "static/[ext]/[name]-[hash].[ext]",
+        },
+      },
+    },
   };
 });

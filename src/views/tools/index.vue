@@ -18,8 +18,10 @@
             </div>
           </div>
           <div>
-            <img src="@/assets/images/icon_battery@2x.png" alt="" />
-            <span class="battery-text">{{ batteryPercentage }}%</span>
+             <!-- <img src="@/assets/images/icon_battery@2x.png" alt="" />
+             <div class="icon-wrapper" v-html="mySvgIcon"></div>
+            <span class="battery-text">{{ batteryPercentage }}%</span>  -->
+            <battery :percent="40" ></battery>
           </div>
           <div>
             <span class="time-text">|</span>
@@ -77,6 +79,7 @@ import ALLPopup from "./components/ALLPopup.vue";
 import SetPopup from "./components/SetPopup.vue";
 import Ripple from "./components/Ripple.vue";
 import TimeClock from './components/TimeClock.vue';
+import battery from './components/battery.vue';
 import { formatTime } from "@/utils/utils";
 import {
   ch1, speeds, cSpeeds, repairs, ch_selected,
@@ -87,7 +90,7 @@ import {
   light,
   light_selected
 } from "./img.js";
-
+import mySvgIcon from '@/assets/icon_battery.svg?raw';
 
 const isLandscape = ref(true);
 const tipVisible = ref(false);
@@ -485,5 +488,12 @@ const logout = () => {
     height: 5px;
     margin-right: 2px;
   }
+}
+
+
+.icon-wrapper :deep(svg) {
+  width: 8px;
+  height: 8px;
+  fill: #fff; /* Vant 4 的主题色 */
 }
 </style>

@@ -50,15 +50,12 @@ class Http {
     this.axiosInstance.interceptors.response.use(
       (response: AxiosResponse) => {
         NProgress.done();
-        const { code, message, result } = response.data;
-        const isSuccess =
-          result !== undefined &&
-          Reflect.has(response.data, "code") &&
-          code === ResultEnum.SUCCESS;
-        if (isSuccess) {
-          return result;
+        const { code, msg } = response.data;
+        
+        if (code != undefined) {
+          return response.data;
         } else {
-          showFailToast(message || "请求失败");
+          showFailToast(msg || "请求失败");
           return Promise.reject(response.data);
         }
       },
@@ -172,6 +169,13 @@ class Http {
 
 const http = new Http(configDefault);
 
-export const { get, post, put, delete: del, upload, request } = http;
+// export const { get, post, put, delete: del, upload, request } = http;
+
+export const get = http.get.bind(http);
+export const post = http.post.bind(http);
+export const put = http.put.bind(http);
+export const del = http.delete.bind(http); // 注意：delete 是保留字，导出时命名为 del
+export const upload = http.upload.bind(http);
+export const request = http.request.bind(http);
 
 export default http;
