@@ -2,7 +2,7 @@
   <div class="container">
     <!-- 顶部 Banner -->
     <div class="banner-section">
-      <img :src="imgUrl" class="banner-img" alt="Banner" />
+      <img :src="imgUrl" class="banner-img" alt="" />
     </div>
 
     <!-- 分类导航栏 -->
@@ -33,8 +33,8 @@
         <van-empty description="暂无相关数据" />
       </div>
 
-      <!-- 单列卡片列表 -->
-      <div v-else class="list-container">
+ 
+      <div class="list-container" v-if="list.length !=0 ">
         <div
           v-for="(item, index) in list"
           :key="index"
@@ -138,7 +138,7 @@ onMounted(async () => {
     console.log(tabRes,"---")
     // imgUrl.value = bannerRes.data[0]?.image;
     categories.value = [...categories.value, ...tabRes.data];
-    debugger
+    fetchData()
   } catch (err) {
     showToast("页面初始化失败");
   }
@@ -171,7 +171,6 @@ onMounted(async () => {
   :deep(.van-tabs__nav) {
     background-color: #fff;
     border-radius: 20px 20px 0 0;
-    margin-top: -5px;
     box-shadow: 0px -2px 10px rgba(0, 0, 0, 0.1);
   }
 }

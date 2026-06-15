@@ -30,5 +30,7 @@
     "errorBtn": "Failed Request",
     "reqOK": "Request Successful",
     "reqErr": "Request Failed"
-  }
+  },
+   "my":"mine",
+   "我的":"mine"
 }
