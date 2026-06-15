@@ -11,7 +11,7 @@
         <van-field
           v-model="form.phone"
           type="tel"
-          label="+86"
+          label="手机号"
           placeholder="请输入手机号"
         />
 
@@ -19,20 +19,9 @@
           v-model="form.password"
           type="password"
           maxlength="6"
+          label="密码"
           placeholder="请输入密码"
         />
-        <!-- 手机号 -->
-        <van-cell-group inset>
-          <van-field
-            v-model="form.phone"
-            type="number"
-            maxlength="11"
-            label="+86"
-            placeholder="请输入手机号"
-            :rules="[{ required: true, message: '请输入手机号' }]"
-          />
-          <!-- 密码 -->
-        </van-cell-group>
 
         <!-- 忘记密码 / 验证码登录 -->
         <div class="row-link">
@@ -65,8 +54,8 @@
     <div class="agreement">
       <van-checkbox
         v-model="agree"
-        shape="square"
-        icon-size="18px"
+        shape="round"
+        icon-size="16px"
         checked-color="#ffc838"
       />
       <span class="text">
@@ -97,6 +86,20 @@ const agree = ref(true);
 
 // 登录逻辑
 const handleLogin = async () => {
+  if (!form.value.phone) {
+    showToast({
+      title: "请输入手机号",
+      icon: "none",
+    });
+    return;
+  }
+  if (!form.value.password) {
+    showToast({
+      title: "请输入密码",
+      icon: "none",
+    });
+    return;
+  }
   if (!agree.value) {
     showToast("请先同意用户协议和隐私条款");
     return;
@@ -141,7 +144,10 @@ const goto = (url) => router.push(url);
 .avatar-wrap {
   text-align: center;
   margin-bottom: 30px;
-
+  display: flex;
+  flex-direction: column; /* 让内部元素垂直排列 */
+  align-items: center; /* 垂直居中 */
+  justify-content: center; /* 水平居中 */
   .avatar {
     width: 60px;
     height: 60px;

@@ -1,292 +1,209 @@
 <template>
-	<view class="page">
-		<!-- 头像 -->
-		<view class="avatar-wrap">
-			<image class="avatar" src="/static/logo.png" mode="aspectFill" />
-		</view>
+  <div class="page">
+    <!-- 头像 -->
+    <div class="avatar-wrap">
+      <img class="avatar" src="@/assets/logo.png" alt="logo" />
+    </div>
 
-		<!-- 表单 -->
-		<view class="form">
-			<!-- 手机号 -->
-			<view class="input-item">
-				<text class="prefix">+86</text>
-				<input class="input" type="number" maxlength="11" placeholder="请输入手机号" v-model="form.phone" />
-			</view>
+    <!-- 表单 -->
+    <div class="form">
+      <!-- 手机号 -->
+      <van-field
+        v-model="form.phone"
+        type="number"
+        maxlength="11"
+        label="手机号"
+        placeholder="请输入手机号"
+        class="custom-field"
+      />
 
-			<VerifyCodeInput v-model="form.code" :phone="form.phone" />
+      <!-- 验证码 -->
+      <VerifyCodeInput v-model="form.code" :phone="form.phone" />
 
-	<!-- 忘记密码 / 验证码登录 -->
-	<view class="row-link">
+      <!-- 忘记密码 / 验证码登录 -->
+      <div class="row-link">
+        <span class="link" @click="goLogin">密码登录</span>
+      </div>
 
-		<text class="link" @click="goLogin">密码登录</text>
-	</view>
-			<!-- 登录按钮 -->
-			<view class="login-btn" @click="handleLogin">登录</view>
+      <!-- 登录按钮 -->
+      <div class="btn-wrap">
+        <van-button
+          round
+          block
+          type="primary"
+          class="login-btn"
+          color="linear-gradient(90deg, #FFC838 0%, #FFC838 100%)"
+          text-color="#1A1A1A"
+          @click="handleLogin"
+        >
+          登录
+        </van-button>
+      </div>
 
-			<!-- 注册账号 -->
-			<view class="register-link" @click="goRegister">
-				<text>注册帐号</text>
-			</view>
-		</view>
-		
-		<!-- 协议勾选 -->
-			<view class="agreement">
-				<view class="checkbox" :class="{ checked: agree }" @click="agree = !agree">
-					<image class="check-icon" src="/static/images/login/checked@2x.png" mode="aspectFill" v-if="agree" />
-					<image class="un-check-icon" src="/static/images/login/circle@2x.png" mode="aspectFill" v-if="!agree" />
-				</view>
-				<text class="text">
-					我已同意<text class="highlight"
-					 @click="goto('/pages/set/userPolicy')">用户协议</text> 和 
-					 <text @click="goto('/pages/set/privacy')" class="highlight">隐私条款</text>
-				</text>
-			</view>
-		
-	</view>
+      <!-- 注册账号 -->
+      <div class="register-link" @click="goRegister">
+        <span>注册帐号</span>
+      </div>
+    </div>
+
+    <!-- 协议勾选 -->
+    <div class="agreement">
+      <van-checkbox
+        v-model="agree"
+        shape="square"
+        icon-size="18px"
+        checked-color="#FFC838"
+      />
+      <span class="text">
+        我已同意
+        <span class="highlight" @click="goto('/userPolicy')">用户协议</span>
+        和
+        <span class="highlight" @click="goto('/privacy')">隐私条款</span>
+      </span>
+    </div>
+  </div>
 </template>
 
 <script setup>
-	import {
-		ref
-	} from 'vue'
-	import {Login, GetUserInfo } from "@/axios/index.js"
-		import VerifyCodeInput from '@/components/verify-code/verify-code.vue';
-	import {
-		useUserStore
-	} from '@/store/modules/user'
-	const form = ref({
-		phone: '',
-		code: ''
-	})
+import { ref } from "vue";
+import { useRouter } from "vue-router";
+import { showToast } from "vant";
+import { Login, GetUserInfo } from "@/api/index";
+import VerifyCodeInput from "@/components/VerifyCode/index.vue";
+import { useUserStore } from "@/store/modules/user";
 
-	const agree = ref(true)
-	const userStore = useUserStore()
-	// 登录
-	const handleLogin = () => {
-		if (!form.value.phone) {
-			uni.showToast({
-				title: '请输入手机号',
-				icon: 'none'
-			})
-			return
-		}
-		if (!form.value.code) {
-			uni.showToast({
-				title: '请输入验证码',
-				icon: 'none'
-			})
-			return
-		}
-		if (!agree.value) {
-			uni.showToast({
-				title: '请先同意用户协议和隐私条款',
-				icon: 'none'
-			})
-			return
-		}
+const router = useRouter();
+const userStore = useUserStore();
 
-		Login({
-			...form.value,
-			type: 1
-		}).then(res => {
-			console.log(res)
-			if (res.code == 200) {
-					userStore.setToken(res.data.session_key)
-					GetUserInfo({uid: res.data.id}).then(res => {
-						
-						userStore.setUser(res.data)
-						
-						uni.switchTab({
-							url: "/pages/index/index"
-						})
-					}).catch()
-				}
-		}).catch()
-		// 这里写你的登录接口
-	
+const form = ref({
+  phone: "",
+  code: "",
+});
 
-		
-	}
+const agree = ref(true);
 
+// 登录逻辑
+const handleLogin = async () => {
+  if (!form.value.phone) {
+    showToast({ title: "请输入手机号", icon: "none" });
+    return;
+  }
+  if (!form.value.code) {
+    showToast({ title: "请输入验证码", icon: "none" });
+    return;
+  }
+  if (!agree.value) {
+    showToast({ title: "请先同意用户协议和隐私条款", icon: "none" });
+    return;
+  }
 
+  try {
+    const res = await Login({ ...form.value, type: 1 });
+    if (res.code === 200) {
+      userStore.setToken(res.data.session_key);
 
-	const goLogin = () => {
-		uni.navigateTo({
-			url: '/pages/login/login'
-		})
-	}
+      const userRes = await GetUserInfo({ uid: res.data.id });
+      userStore.setUser(userRes.data);
+      router.replace("/home");
+    }
+  } catch (error) {
+    console.error("登录失败", error);
+  }
+};
 
-	const goRegister = () => {
-		uni.navigateTo({
-			url: '/pages/login/register'
-		})
-	}
-	
-	const goto = (url) => {
-		uni.navigateTo({
-			url
-		})
-	}
+// 路由跳转封装
+const goLogin = () => router.push("/login");
+const goRegister = () => router.push("/register");
+const goto = (url) => router.push(url);
 </script>
 
 <style lang="scss" scoped>
-	page {
-		background-color: #fff;
-	}
+.page {
+  padding: 60px 16px 20px;
+  box-sizing: border-box;
+  min-height: 100vh;
+  background-color: #fff;
+  position: relative;
+}
 
-	.page {
-		padding: 138rpx 32rpx 40rpx;
-		box-sizing: border-box;
-		position: relative;
-		height: 100vh;
-		background-color: #fff;
-	}
+/* 头像 */
+.avatar-wrap {
+  text-align: center;
+  margin-bottom: 30px;
+  display: flex;
+  flex-direction: column; /* 让内部元素垂直排列 */
+  align-items: center; /* 垂直居中 */
+  justify-content: center; /* 水平居中 */
+  .avatar {
+    width: 60px;
+    height: 60px;
+    border-radius: 8px;
+  }
+}
 
-	/* 头像 */
-	.avatar-wrap {
-		text-align: center;
-		margin-bottom: 60rpx;
+/* 表单 */
+.form {
+  width: 100%;
+}
 
-		.avatar {
-			width: 120rpx;
-			height: 120rpx;
-			border-radius: 16rpx;
-		}
-	}
+/* 自定义输入框背景 */
+.custom-field {
 
-	/* 表单 */
-	.form {
-		width: 100%;
-	}
+  margin-bottom: 10px;
+}
 
-	.input-item {
-		display: flex;
-		align-items: center;
-		background-color: #f7f7f7;
-		border-radius: 12rpx;
-		padding: 0 24rpx;
-		height: 96rpx;
-		margin-bottom: 24rpx;
+.row-link {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 25px;
+  padding: 0 16px;
 
-		.prefix {
-			font-size: 28rpx;
-			color: #333;
-			margin-right: 16rpx;
-		}
+  .link {
+    font-size: 13px;
+    color: #999;
+    cursor: pointer;
+  }
+}
 
-		.input {
-			flex: 1;
-			font-size: 28rpx;
-			background: transparent;
-		}
-	}
+/* 按钮区域 */
+.btn-wrap {
+  margin-bottom: 25px;
 
-	.row-link {
-		display: flex;
-		justify-content: flex-end;
-		margin-bottom: 50rpx;
+  .login-btn {
+    height: 48px;
+    font-size: 16px;
+    font-weight: 400;
+  }
+}
 
-		.link {
-			font-size: 26rpx;
-			color: #999;
-		}
-	}
+.register-link {
+  text-align: center;
+  font-size: 14px;
+  color: #999;
+  margin-bottom: 30px;
+  cursor: pointer;
+}
 
-	.login-btn {
-		background: linear-gradient(90deg, #FFC838 0%, #FFC838 100%);
-		border-radius: 24rpx;
-		font-family: PingFangSC, PingFang SC;
-		font-weight: 400;
-		font-size: 32rpx;
-		color: #1A1A1A;
-		text-align: center;
-		margin-bottom: 50rpx;
-		padding: 25rpx 0;
-	}
+/* 协议区域 */
+.agreement {
+  position: absolute;
+  bottom: calc(20px + env(safe-area-inset-bottom));
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
 
-	.register-link {
-		text-align: center;
-		font-size: 28rpx;
-		color: #999;
-		margin-bottom: 60rpx;
-	}
+  .text {
+    font-size: 12px;
+    color: #29220a;
+    margin-left: 6px;
 
-	.other-login {
-		display: flex;
-		align-items: center;
-		margin-bottom: 40rpx;
-
-		.line {
-			flex: 1;
-			height: 1rpx;
-			background-color: #eee;
-		}
-
-		.text {
-			font-size: 26rpx;
-			color: #999;
-			margin: 0 20rpx;
-		}
-	}
-
-	.third-list {
-		display: flex;
-		justify-content: center;
-		gap: 60rpx;
-		margin-bottom: 80rpx;
-
-		.third-item {
-			width: 72rpx;
-			height: 72rpx;
-			border-radius: 50%;
-			overflow: hidden;
-
-			.icon {
-				width: 100%;
-				height: 100%;
-			}
-		}
-	}
-
-	.agreement {
-		position: absolute;
-		bottom:  env(safe-area-inset-bottom);
-		left: 50%;
-		width: 100%;
-		transform: translatex(-50%);
-		display: flex;
-		align-items: center;
-		justify-content: center;
-
-		.checkbox {
-			width: 46rpx;
-			height: 46rpx;
-			border-radius: 4rpx;
-			margin-right: 12rpx;
-			display: flex;
-			align-items: center;
-			justify-content: center;
-
-			.check-icon {
-				width: 40rpx;
-				height: 40rpx;
-			}
-
-			.un-check-icon {
-				width: 46rpx;
-				height: 46rpx;
-			}
-		}
-
-		.text {
-			font-family: PingFangSC, PingFang SC;
-			font-weight: 400;
-			font-size: 24rpx;
-			color: #29220A;
-
-			.highlight {
-				color: #FFC838;
-			}
-		}
-	}
+    .highlight {
+      color: #ffc838;
+      cursor: pointer;
+    }
+  }
+}
 </style>

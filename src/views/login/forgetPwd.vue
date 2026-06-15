@@ -1,279 +1,162 @@
 <template>
-	<view class="page">
+  <div class="page">
+    <!-- 页面标题区域 -->
+    <div class="header">
+      <h2 class="title">重置密码</h2>
+    </div>
 
-		<!-- 表单 -->
-		<view class="form">
-			<!-- 手机号 -->
-			<view class="input-item">
-				<text class="prefix">+86</text>
-				<input class="input" type="number" maxlength="11" placeholder="请输入手机号" v-model="form.phone" />
-			</view>
-			<VerifyCodeInput v-model="form.code" :phone="form.phone" />
-			<!-- 密码 -->
-			<view class="input-item">
-				<input class="input" type="password" maxlength="6" placeholder="请输入密码" v-model="form.password" />
-			</view>
-			<view class="input-item">
-				<input class="input" type="password" maxlength="6" placeholder="请再次输入密码" v-model="form.passwordAgain" />
-			</view>
-			<view class="login-btn" @click="handleLogin">完成</view>
-		</view>
-	</view>
+    <!-- 表单 -->
+    <div class="form">
+      <!-- <van-form @submit="handleLogin">
+       
+      </van-form> -->
+
+
+	   <!-- 输入框组 -->
+        <div class="form-card">
+          <!-- 手机号 -->
+
+		  <van-cell-group inset>
+          <van-field
+            v-model="form.phone"
+            type="number"
+            maxlength="11"
+            label="+86"
+            placeholder="请输入手机号"
+           
+          />
+
+          <!-- 验证码 -->
+          <VerifyCodeInput 
+            v-model="form.code" 
+            :phone="form.phone" 
+          />
+
+          <!-- 密码 -->
+          <van-field
+            v-model="form.password"
+            type="password"
+            maxlength="6"
+            placeholder="请输入新密码"
+            
+          />
+
+          <!-- 确认密码 -->
+          <van-field
+            v-model="form.passwordAgain"
+            type="password"
+            maxlength="6"
+            placeholder="请再次输入新密码"
+           
+          />
+
+		  </van-cell-group>
+        </div>
+
+        <!-- 提交按钮 -->
+        <div class="btn-wrap">
+          <van-button 
+            round 
+            block 
+            type="primary" 
+            native-type="submit"
+            class="submit-btn"
+            color="linear-gradient(90deg, #FFC838 0%, #FFC838 100%)"
+            text-color="#1A1A1A"
+          >
+            确认修改
+          </van-button>
+        </div>
+    </div>
+  </div>
 </template>
 
 <script setup>
-import {
-	ref
-} from 'vue'
-import {
-	UserChangePwd
-} from "@/axios/index.js"
-import {
-	useUserStore
-} from '@/store/modules/user'
-import VerifyCodeInput from '@/components/verify-code/verify-code.vue';
+import { ref } from 'vue';
+import { useRouter } from 'vue-router';
+import { showToast } from 'vant';
+import { UserChangePwd } from '@/api/index';
+import VerifyCodeInput from '@/components/VerifyCode/index.vue';
+
+const router = useRouter();
+
 const form = ref({
-	phone: '',
-	password: '',
-	code: '',
-	passwordAgain: ''
-})
+  phone: '',
+  password: '',
+  code: '',
+  passwordAgain: ''
+});
 
-const agree = ref(true)
-const userStore = useUserStore()
-// 登录
-const handleLogin = () => {
+// 自定义校验：密码长度
+const validatePassword = (val) => {
+  return val ? val.length >= 6 : false;
+};
 
-	if (!form.value.phone || form.value.phone.length !== 11) {
-		uni.showToast({
-			title: '请输入手机号',
-			icon: 'none'
-		});
-		return;
-	}
-	if (!form.value.code) {
-		uni.showToast({
-			title: '请输入验证码',
-			icon: 'none'
-		});
-		return;
-	}
-	if (!form.value.password || form.value.password.length < 6) {
-		uni.showToast({
-			title: '密码至少6位',
-			icon: 'none'
-		});
-		return;
-	}
-	if (form.value.password !== form.value.passwordAgain) {
-		uni.showToast({
-			title: '两次密码输入不一致',
-			icon: 'none'
-		});
-		return;
-	}
+// 自定义校验：两次密码一致性
+const validatePasswordAgain = (val) => {
+  return val === form.value.password;
+};
 
-	UserChangePwd({
-		...form.value,
-	}).then(res => {
-		console.log(res)
-		if (res.code == 200) {
-
-			uni.switchTab({
-				url: "/pages/login/login"
-			})
-
-		}
-	}).catch()
-
-}
-
-// 跳转
-const goForgetPwd = () => {
-	uni.navigateTo({
-		url: '/pages/login/forget-pwd'
-	})
-}
-
-const goCodeLogin = () => {
-	uni.navigateTo({
-		url: '/pages/login/code-login'
-	})
-}
-
-const goRegister = () => {
-	uni.navigateTo({
-		url: '/pages/login/register'
-	})
-}
-
-const goto = (url) => {
-	uni.navigateTo({
-		url
-	})
-}
+// 表单提交（Vant 会自动校验，校验失败不会触发此函数）
+const handleLogin = async () => {
+  try {
+    const res = await UserChangePwd(form.value);
+    if (res.code === 200) {
+      showToast('密码修改成功');
+      // 跳转到登录页
+      router.replace('/login');
+    }
+  } catch (error) {
+    console.error('修改密码失败', error);
+  }
+};
 </script>
 
 <style lang="scss" scoped>
-page {
-	background-color: #fff;
-}
-
 .page {
-	padding: 10rpx 32rpx 40rpx;
-	box-sizing: border-box;
-	position: relative;
-	height: 100vh;
-	background-color: #fff;
+  padding: 40px 16px;
+  box-sizing: border-box;
+  min-height: 100vh;
+  background-color: #f7f8fa; /* 浅灰色背景，突出表单卡片 */
 }
 
-/* 头像 */
-.avatar-wrap {
-	text-align: center;
-	margin-bottom: 60rpx;
+/* 页面头部 */
+.header {
+  margin-bottom: 30px;
+  padding-left: 8px;
 
-	.avatar {
-		width: 120rpx;
-		height: 120rpx;
-		border-radius: 16rpx;
-	}
+  .title {
+    font-size: 24px;
+    font-weight: 600;
+    color: #1a1a1a;
+    margin: 0 0 8px 0;
+  }
+
+  .subtitle {
+    font-size: 14px;
+    color: #999;
+    margin: 0;
+  }
 }
 
-/* 表单 */
-.form {
-	width: 100%;
+/* 表单卡片区域 */
+.form-card {
+  background-color: #fff;
+  border-radius: 12px;
+  overflow: hidden; /* 确保内部输入框的圆角不溢出 */
+  padding-bottom: 2px;
 }
 
-.input-item {
-	display: flex;
-	align-items: center;
-	background-color: #f7f7f7;
-	border-radius: 12rpx;
-	padding: 0 24rpx;
-	height: 96rpx;
-	margin-bottom: 24rpx;
+/* 按钮区域 */
+.btn-wrap {
+  margin: 40px 0 20px;
 
-	.prefix {
-		font-size: 28rpx;
-		color: #333;
-		margin-right: 16rpx;
-	}
-
-	.input {
-		flex: 1;
-		font-size: 28rpx;
-		background: transparent;
-		height: 96rpx;
-
-	}
-}
-
-.row-link {
-	display: flex;
-	justify-content: space-between;
-	margin-bottom: 50rpx;
-
-	.link {
-		font-size: 26rpx;
-		color: #999;
-	}
-}
-
-.login-btn {
-	background: linear-gradient(90deg, #FFC838 0%, #FFC838 100%);
-	border-radius: 24rpx;
-	font-family: PingFangSC, PingFang SC;
-	font-weight: 400;
-	font-size: 32rpx;
-	color: #1A1A1A;
-	text-align: center;
-	margin-bottom: 50rpx;
-	padding: 25rpx 0;
-}
-
-.register-link {
-	text-align: center;
-	font-size: 28rpx;
-	color: #999;
-	margin-bottom: 60rpx;
-}
-
-.other-login {
-	display: flex;
-	align-items: center;
-	margin-bottom: 40rpx;
-
-	.line {
-		flex: 1;
-		height: 1rpx;
-		background-color: #eee;
-	}
-
-	.text {
-		font-size: 26rpx;
-		color: #999;
-		margin: 0 20rpx;
-	}
-}
-
-.third-list {
-	display: flex;
-	justify-content: center;
-	gap: 60rpx;
-	margin-bottom: 80rpx;
-
-	.third-item {
-		width: 72rpx;
-		height: 72rpx;
-		border-radius: 50%;
-		overflow: hidden;
-
-		.icon {
-			width: 100%;
-			height: 100%;
-		}
-	}
-}
-
-.agreement {
-	position: absolute;
-	bottom: env(safe-area-inset-bottom);
-	left: 50%;
-	width: 100%;
-	transform: translatex(-50%);
-	display: flex;
-	align-items: center;
-	justify-content: center;
-
-	.checkbox {
-		width: 46rpx;
-		height: 46rpx;
-		border-radius: 4rpx;
-		margin-right: 12rpx;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-
-		.check-icon {
-			width: 40rpx;
-			height: 40rpx;
-		}
-
-		.un-check-icon {
-			width: 46rpx;
-			height: 46rpx;
-		}
-	}
-
-	.text {
-		font-family: PingFangSC, PingFang SC;
-		font-weight: 400;
-		font-size: 24rpx;
-		color: #29220A;
-
-		.highlight {
-			color: #FFC838;
-		}
-	}
+  .submit-btn {
+    height: 48px;
+    font-size: 16px;
+    font-weight: 500;
+    /* 增加按钮的立体感 */
+    box-shadow: 0 4px 10px rgba(255, 200, 56, 0.4);
+  }
 }
 </style>

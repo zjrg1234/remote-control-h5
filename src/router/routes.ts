@@ -15,8 +15,10 @@ const routes: Array<RouteRecordRaw> = [
         component: Home,
         meta: {
           title: "首页",
-          noAuth: true
-        }
+          noAuth: true,
+
+          hiddenNavBar: false,
+        },
       },
       {
         path: "tools",
@@ -24,9 +26,9 @@ const routes: Array<RouteRecordRaw> = [
         component: () => import("@/views/tools/index.vue"),
         meta: {
           title: "工具",
-          hiddenNavBar: true,
-          noAuth: true
-        }
+
+          noAuth: true,
+        },
       },
       {
         path: "mine",
@@ -35,8 +37,9 @@ const routes: Array<RouteRecordRaw> = [
         meta: {
           title: "我的",
           noCache: true,
-          noAuth: true
-        }
+          noAuth: true,
+          hiddenNavBar: false,
+        },
       },
       {
         path: "login",
@@ -45,11 +48,41 @@ const routes: Array<RouteRecordRaw> = [
         meta: {
           title: "登录",
           noCache: true,
-          noAuth: true
-        }
-      }
-    ]
-  }
+
+          noAuth: true,
+        },
+      },
+      {
+        path: "forgetPwd",
+        name: "ForgetPwd",
+        component: () => import("@/views/login/forgetPwd.vue"),
+        meta: {
+          title: "忘记密码",
+          noCache: true,
+          noAuth: true,
+        },
+      },
+      {
+        path: "loginCode",
+        name: "LoginCode",
+        component: () => import("@/views/login/loginCode.vue"),
+        meta: {
+          title: "验证码登录",
+          noCache: true,
+          noAuth: true,
+        },
+      },{
+        path: "register",
+        name: "Register",
+        component: () => import("@/views/register/index.vue"),
+        meta: {
+          title: "注册",
+          noCache: true,
+          noAuth: true,
+        },
+      },
+    ],
+  },
 ];
 
 export default routes;
