@@ -61,6 +61,8 @@
 
       <UpDown></UpDown>
 
+      <LeftRight></LeftRight>
+
 
       <div class="time">
         <img src="@/assets/images/icon_time@2x.webp" alt="">
@@ -83,6 +85,7 @@ import Ripple from "./components/Ripple.vue";
 import TimeClock from './components/TimeClock.vue';
 import battery from './components/battery.vue';
 import UpDown from './components/UpDown.vue';
+import LeftRight from './components/LeftRight.vue';
 import { formatTime } from "@/utils/utils";
 import {
   ch1, speeds, cSpeeds, repairs, ch_selected,
