@@ -220,7 +220,7 @@ onMounted(() => {
   currentBoxY = window.innerHeight / 2 - BOX_HEIGHT / 2;
   
   // 初始化 DOM 位置
-  // boxRef.value.style.transform = `translate3d(${currentBoxX}px, ${currentBoxY}px, 0)`;
+  boxRef.value.style.transform = `translate3d(${currentBoxX}px, ${currentBoxY}px, 0)`;
 });
 
 onBeforeUnmount(() => {
@@ -236,8 +236,8 @@ onBeforeUnmount(() => {
 <style scoped>
 .control-box {
   position: fixed;
-  bottom: 40px;
-  right: 40px;
+  top: 0;
+  left: 0;
   width: 90px;
   height: 50px;
   display: flex;
