@@ -123,9 +123,20 @@ const processMove = () => {
     const maxX = window.innerWidth - BOX_WIDTH;
     const maxY = window.innerHeight - BOX_HEIGHT;
 
-    currentBoxX = Math.max(0, Math.min(maxX, newX));
+    console.log(maxX, maxY, newX, newY)
+    currentBoxX = Math.max(440, Math.min(maxX, newX));
     currentBoxY = Math.max(0, Math.min(maxY, newY));
+    console.log(currentBoxX, currentBoxY)
+    if (currentBoxY > 280) {
+      currentBoxY = 280
+    }
+    if (currentBoxY < 100) {
+      currentBoxY = 100
+    }
     
+    if (currentBoxX > 600) {
+      currentBoxX = 600
+    }
     // 直接操作 DOM，绕过 Vue 的 Virtual DOM 和响应式系统
     boxRef.value.style.transform = `translate3d(${currentBoxX}px, ${currentBoxY}px, 0)`;
   } else {
@@ -216,8 +227,8 @@ const handleEnd = () => {
 
 // --- 生命周期 ---
 onMounted(() => {
-  currentBoxX = window.innerWidth / 2 - BOX_WIDTH / 2;
-  currentBoxY = window.innerHeight / 2 - BOX_HEIGHT / 2;
+  currentBoxX = window.innerWidth / 2 + 130;
+  currentBoxY = window.innerHeight / 2 - 10;
   
   // 初始化 DOM 位置
   boxRef.value.style.transform = `translate3d(${currentBoxX}px, ${currentBoxY}px, 0)`;
