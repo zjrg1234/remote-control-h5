@@ -18,9 +18,6 @@
             </div>
           </div>
           <div>
-             <!-- <img src="@/assets/images/icon_battery@2x.png" alt="" />
-             <div class="icon-wrapper" v-html="mySvgIcon"></div>
-            <span class="battery-text">{{ batteryPercentage }}%</span>  -->
             <battery :percent="40" ></battery>
           </div>
           <div>
@@ -60,6 +57,11 @@
         </div>
       </div>
 
+
+
+      <UpDown></UpDown>
+
+
       <div class="time">
         <img src="@/assets/images/icon_time@2x.webp" alt="">
         <TimeClock></TimeClock>
@@ -80,6 +82,7 @@ import SetPopup from "./components/SetPopup.vue";
 import Ripple from "./components/Ripple.vue";
 import TimeClock from './components/TimeClock.vue';
 import battery from './components/battery.vue';
+import UpDown from './components/UpDown.vue';
 import { formatTime } from "@/utils/utils";
 import {
   ch1, speeds, cSpeeds, repairs, ch_selected,
@@ -90,7 +93,7 @@ import {
   light,
   light_selected
 } from "./img.js";
-import mySvgIcon from '@/assets/icon_battery.svg?raw';
+
 
 const isLandscape = ref(true);
 const tipVisible = ref(false);
@@ -478,10 +481,11 @@ const logout = () => {
 .time {
   position: absolute;
   font-size: 6px;
-  bottom: 5px;
+  bottom: 3px;
   left: 10px;
   display: flex;
   align-items: center;
+  opacity: 0.8;
   img {
     display: block;
     width: 5px;
