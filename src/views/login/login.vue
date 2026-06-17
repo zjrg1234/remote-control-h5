@@ -107,7 +107,6 @@ const handleLogin = async () => {
 
   try {
     const res = await Login({ ...form.value, type: 1 });
-
     if (res.code === 200) {
       userStore.setToken(res.data.session_key);
       userStore.setAreaId(res.data.special_area);
@@ -117,7 +116,7 @@ const handleLogin = async () => {
       userStore.setUser(userRes.data);
 
       // 替换 uni.switchTab，跳转到首页
-      router.replace("/home");
+      router.replace("/index");
     }
   } catch (error) {
     console.error("登录失败", error);

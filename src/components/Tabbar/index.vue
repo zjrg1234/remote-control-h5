@@ -22,7 +22,7 @@ const tabbarData = reactive([
     icon: "wap-home-o",
     title: computed(() => $t("demo.tabbar.home")),
     to: {
-      name: "Demo"
+      name: "Home"
     }
   },
   {
@@ -36,7 +36,7 @@ const tabbarData = reactive([
     icon: "user-o",
     title: computed(() => $t("我的")),
     to: {
-      name: "我的"
+      name: "Mine"
     }
   }
 ]);

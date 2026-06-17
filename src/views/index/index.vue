@@ -6,61 +6,52 @@
     </div>
 
     <!-- 分类导航栏 -->
-    <van-tabs 
-      v-model:active="currentTabIndex" 
-      sticky 
+
+    <van-tabs
+      v-model:active="currentTabIndex"
+      sticky
       offset-top="0"
       @click-tab="handleCategoryClick"
       class="sticky-nav"
     >
-      <van-tab 
-        v-for="(item, index) in categories" 
-        :key="index" 
-        :title="item.name" 
-        :name="item.id" 
+      <van-tab
+        v-for="(item, index) in categories"
+        :key="index"
+        :title="item.name"
+        :name="item.id"
       />
     </van-tabs>
 
-    <!-- 列表区域 -->
-    <van-list
-      v-model:loading="loading"
-      :finished="noMore"
-      finished-text="没有更多了"
-      @load="fetchData"
-    >
-      <!-- 空状态 -->
-      <div v-if="list.length === 0 && !loading" class="empty-state">
-        <van-empty description="暂无相关数据" />
-      </div>
+    <div v-if="list.length === 0 && !loading" class="empty-state">
+      <van-empty description="暂无相关数据" />
+    </div>
 
- 
-      <div class="list-container" v-if="list.length !=0 ">
-        <div
-          v-for="(item, index) in list"
-          :key="index"
-          class="card-item"
-          @click="handleCar(item)"
-        >
-          <img :src="item.image || item.venue_image?.[0]" class="card-img" />
-          <div class="meta">
-            <span class="status online"></span>
-            <span>在线{{ item.online }}</span>
-            <span class="divider">|</span>
-            <span>驾驶{{ item.drivers || item.driving }}</span>
+    <div class="list-container" v-if="list.length != 0">
+      <div
+        v-for="(item, index) in list"
+        :key="index"
+        class="card-item"
+        @click="handleCar(item)"
+      >
+        <img :src="item.image || item.venue_image?.[0]" class="card-img" />
+        <div class="meta">
+          <span class="status online"></span>
+          <span>在线{{ item.online }}</span>
+          <span class="divider">|</span>
+          <span>驾驶{{ item.drivers || item.driving }}</span>
+        </div>
+        <div class="card-info">
+          <div class="title-tags">
+            <span class="title">{{ item.title || item.venue_name }}</span>
+            <span class="tag">{{ item.tag || item.labels }}</span>
           </div>
-          <div class="card-info">
-            <div class="title-tags">
-              <span class="title">{{ item.title || item.venue_name }}</span>
-              <span class="tag">{{ item.tag || item.labels }}</span>
-            </div>
-            <div class="num">
-              <img src="@/assets/images/common/icon_queue@2x.png" class="icon" />
-              <span class="text">{{ item.online || item.queue }}人排队</span>
-            </div>
+          <div class="num">
+            <img src="@/assets/images/common/icon_queue@2x.png" class="icon" />
+            <span class="text">{{ item.online || item.queue }}人排队</span>
           </div>
         </div>
       </div>
-    </van-list>
+    </div>
   </div>
 </template>
 
@@ -85,12 +76,16 @@ const imgUrl = ref("");
 
 // --- 核心请求逻辑 ---
 const fetchData = async () => {
-  if (loading.value || noMore.value) return;
-
-  loading.value = true;
+  if (noMore.value) {
+    loading.value = false;
+    return;
+  }
   try {
-    const { code, data: { venueList } } = await GetHomeDataList({
-      type: currentCategoryId.value
+    const {
+      code,
+      data: { venueList },
+    } = await GetHomeDataList({
+      type: currentCategoryId.value,
     });
 
     if (code == 200 && venueList.length) {
@@ -100,7 +95,7 @@ const fetchData = async () => {
       noMore.value = true;
     }
   } catch (error) {
-    console.error("获取数据失败", error);
+ 
     noMore.value = true;
   } finally {
     loading.value = false;
@@ -109,49 +104,44 @@ const fetchData = async () => {
 
 // --- 事件处理 ---
 const handleCategoryClick = ({ name }) => {
-  const item = categories.value.find(cat => cat.id === name);
+  noMore.value = false;
+  loading.value = true
+  const item = categories.value.find((cat) => cat.id === name);
   if (item && currentCategoryId.value !== item.id) {
     currentCategoryId.value = item.id;
     // 切换分类时清空列表并重新加载
     list.value = [];
-    noMore.value = false;
+   
     fetchData();
   }
 };
 
 const handleCar = (item) => {
-  localStorage.setItem('carTitle', item.venue_name || item.title);
+  localStorage.setItem("carTitle", item.venue_name || item.title);
   router.push(`/car/details?id=${item.id}`);
 };
 
 // --- 生命周期 ---
 onMounted(async () => {
   categories.value = [{ name: "全部", id: "" }];
-  console.log(123)
   try {
-    // const [bannerRes, tabRes] = await Promise.all([
-    
-    // ]);
-
-   const bannerRes = await   GetHomeBanner()
-    const tabRes = await  GetHomeTabTitle()
-    console.log(tabRes,"---")
-    // imgUrl.value = bannerRes.data[0]?.image;
-    categories.value = [...categories.value, ...tabRes.data];
-    fetchData()
+    const res = await GetHomeBanner();
+    const res1 = await GetHomeTabTitle();
+    imgUrl.value = res.data[0]?.image;
+    categories.value = [...categories.value, ...res1.data];
   } catch (err) {
     showToast("页面初始化失败");
+    console.log(err, "---");
   }
-
   fetchData();
 });
 </script>
 
 <style lang="scss" scoped>
 .container {
-  min-height: 100vh;
-  background-color: #f5f6fa;
-  padding-bottom: 40px;
+  // min-height: 100vh;
+  // background-color: #f5f6fa;
+  // padding-bottom: 40px;
 }
 
 .banner-section {
@@ -177,8 +167,8 @@ onMounted(async () => {
 
 /* 【修改】：单列列表布局 */
 .list-container {
-  display: flex;
-  flex-direction: column;
+   display: grid; 
+grid-template-columns: repeat(2, 1fr);
   padding: 10px;
   gap: 10px;
   background-color: #fff;
@@ -231,8 +221,16 @@ onMounted(async () => {
     .num {
       display: flex;
       align-items: center;
-      .icon { width: 12px; height: 12px; display: block; }
-      .text { font-size: 12px; color: #ffc838; margin-left: 4px; }
+      .icon {
+        width: 12px;
+        height: 12px;
+        display: block;
+      }
+      .text {
+        font-size: 12px;
+        color: #ffc838;
+        margin-left: 4px;
+      }
     }
   }
 
@@ -249,12 +247,16 @@ onMounted(async () => {
     padding: 2px 8px;
 
     .online {
-      width: 6px; height: 6px;
+      width: 6px;
+      height: 6px;
       border-radius: 50%;
       margin-right: 4px;
       background: #15cb50;
     }
-    .divider { margin: 0 6px; color: #ddd; }
+    .divider {
+      margin: 0 6px;
+      color: #ddd;
+    }
   }
 }
 

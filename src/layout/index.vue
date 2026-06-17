@@ -26,7 +26,7 @@ const showNavBar = ref(false)
 watch(
   () => route.meta,
   (meta) => {
-    showNavBar.value = !!meta.hiddenNavBar
+    showNavBar.value = meta.hiddenNavBar === false
     console.log(12223)
   },
   { immediate: true }

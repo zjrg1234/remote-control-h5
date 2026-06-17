@@ -1,66 +1,67 @@
-// stores/user.js
 import { defineStore } from 'pinia'
+import router from '@/router' // 1. 直接导入路由实例，避免在 actions 中动态 import 带来的性能开销
 
+// 2. 定义 State 接口，规范数据类型
+export interface UserState {
+  token: string
+  id: string
+  userInfo: Record<string, any> // 避免使用空对象 {}，使用 Record 更严谨
+  areaId: string
+}
 
 export const useUserStore = defineStore('user', {
-  // 1. 状态定义（无需手动从 storage 读取，插件会自动恢复）
-  state: () => ({
+  state: (): UserState => ({
     token: '',
     id: '',
     userInfo: {},
     areaId: ''
   }),
 
-  // 2. 开启持久化配置
+  // 3. 开启持久化配置
   persist: {
-    key: 'user-store', // 自定义本地存储的 key
-    storage: localStorage, // 默认存到 localStorage，也可改为 sessionStorage
-    paths: ['token', 'id', 'userInfo', 'areaId'] // 指定需要持久化的字段，避免存储冗余
+    key: 'user-store',
+    storage: localStorage,
+    paths: ['token', 'id', 'userInfo', 'areaId'] // 仅持久化必要字段
+  },
+
+  getters: {
+    // 4. 使用 getters 替代普通的 get 方法，支持响应式追踪
+    getLoginId: (state) => state.id,
+    getUserInfo: (state) => state.userInfo,
+    getToken: (state) => state.token
   },
 
   actions: {
     // 登录保存信息
-    setUser(data) {
+    setUser(data: Record<string, any>) {
       this.userInfo = data
-      this.id = data.id
-      // 注意：这里无需再手动调用 setStorageSync，插件会自动处理
+      this.id = data.id || ''
     },
-    
-    setToken(token) {
+
+    setToken(token: string) {
       this.token = token
     },
-    
-    setAreaId(areaId) {
+
+    setAreaId(areaId: string) {
       this.areaId = areaId
     },
-    
-    setId(id) {
+
+    setId(id: string) {
       this.id = id
     },
 
     // 退出登录
     logout() {
-      // 1. 重置状态
-      this.$reset() 
-      
-      // 2. 清除本地存储（如果项目中还有其他非 Pinia 管理的缓存）
-      localStorage.clear() 
-      
-      // 3. Vue 3 路由跳转（替代 uni.reLaunch）
-      // 假设您使用的是 vue-router
-      import('@/router').then(router => {
-        router.default.push('/login') 
-      })
-    },
+      // 1. 重置 Pinia 状态（注意：$reset 仅在 Option Store 中可用）
+      this.$reset()
 
-    // 获取登录 ID
-    getLoginId() {
-      return this.id
-    },
+      // 2. 清除本地存储（兜底清理）
+      localStorage.clear()
 
-    // 获取用户信息
-    getUserInfo() {
-      return this.userInfo
+      // 3. 路由跳转优化：防止在登录页重复触发导致死循环或报错
+      if (router.currentRoute.value.path !== '/login') {
+        router.replace('/login') // 使用 replace 而不是 push，避免用户点击浏览器后退按钮又回到已注销的页面
+      }
     }
   }
 })
