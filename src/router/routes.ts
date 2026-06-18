@@ -91,6 +91,26 @@ const routes: Array<RouteRecordRaw> = [
           noAuth: true,
         },
       },
+      {
+        path: "reservation",
+        name: "Reservation",
+        component: () => import("@/views/mine/reservation.vue"),
+        meta: {
+          title: "预约列表",
+          noCache: true,
+          noAuth: true,
+        },
+      },
+      {
+        path: "appeal",
+        name: "Appeal",
+        component: () => import("@/views/mine/appeal.vue"),
+        meta: {
+          title: "我的申诉",
+          noCache: true,
+          noAuth: true,
+        },
+      }
     ],
   },
 ];

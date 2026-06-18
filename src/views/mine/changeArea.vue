@@ -63,8 +63,6 @@ import { showSuccessToast, showFailToast } from "vant";
 import { GetSpecialList, ChangeSpecialList } from "@/api/mine";
 import { useUserStore } from "@/store/modules/user";
 import NavBar from "@/components/CustomNavBar/index.vue";
-// Vant 4 组件按需引入（如果你使用了 unplugin-vue-components 自动导入，可删除以下 import）
-// import { Loading as VanLoading, Empty as VanEmpty, Button as VanButton, Dialog as VanDialog } from 'vant';
 
 const userStore = useUserStore();
 
@@ -127,8 +125,6 @@ onUnmounted(() => {
 
 // 确认按钮点击
 const confirm = () => {
-  showSuccessToast("更换专区成功");
-
   if (userStore.areaId == selected.value) return;
   const obj = list.value.find((item) => item.id == selected.value);
   if (!obj) return;
@@ -172,7 +168,7 @@ const handleConfirm = async () => {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 5px;
-  padding: 5px 10px;
+  padding: 10px 10px;
 }
 
 .grid-item {
