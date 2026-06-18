@@ -51,7 +51,7 @@
 
             <div class="info-line">
               <span class="label">预约时间：</span>
-              <span class="value">{{ dateTime(item.time) }}</span>
+              <span class="value">{{ formatDate(item.time) }}</span>
             </div>
 
             <div class="info-line">
@@ -71,7 +71,7 @@
 import { ref } from "vue";
 import { showToast } from "vant";
 import { GetAppealList } from "@/api/mine"; // 请根据实际路径调整
-import { dateTime , copyToClipboard} from "@/utils/utils"; // 请根据实际路径调整
+import { formatDate , copyToClipboard} from "@/utils/utils"; // 请根据实际路径调整
 import NavBar from "@/components/CustomNavBar/index.vue";
 
 

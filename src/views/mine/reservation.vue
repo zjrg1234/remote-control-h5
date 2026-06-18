@@ -70,7 +70,7 @@
 
           <div class="info-row">
             <span class="label">预约时间：</span>
-            <span class="value">{{ dateTime(item.order_time) }}</span>
+            <span class="value">{{ formatDate(item.order_time) }}</span>
           </div>
 
           <!-- 操作按钮区域 -->
@@ -113,7 +113,7 @@ import { showToast, showFailToast } from "vant";
 import NavBar from "@/components/CustomNavBar/index.vue";
 
 import { GetReservationList } from "@/api/mine"; // 假设你的 api 路径
-import { dateTime, copyToClipboard } from "@/utils/utils";
+import { formatDate, copyToClipboard } from "@/utils/utils";
 import icon_wait from "@/assets/images/reservation/icon_waiting@2x.png";
 import icon_canceled from "@/assets/images/reservation/icon_canceled@2x.png";
 import icon_driving from "@/assets/images/reservation/icon_driving@2x.png";

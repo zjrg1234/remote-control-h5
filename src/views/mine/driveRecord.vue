@@ -1,200 +1,181 @@
 <template>
-  <view class="page">
-    <!-- 列表 -->
-    <view class="list">
-      <view
-        class="item"
+  <div class="page-container">
+    <!-- 使用 van-list 实现滚动加载 -->
+    <van-list
+      v-model:loading="loading"
+      :finished="finished"
+      :finished-text="list.length > 0 ? '没有更多了' : ''"
+      @load="onLoad"
+    >
+      <!-- 空状态提示 -->
+      <van-empty
+        v-if="!loading && list.length === 0"
+        description="暂无驾驶记录"
+        image="search"
+      />
+
+      <!-- 列表项 -->
+      <div
+        class="order-item"
         v-for="(item, index) in list"
-        :key="index"
+        :key="item.id || index"
       >
         <!-- 头像 + 用户名 -->
-        <view class="header">
-          <image class="avatar" :src="item.head_shot" mode="aspectFill" />
-          <text class="username">{{ item.user_name }}</text>
-        </view>
+        <div class="header">
+          <img class="avatar" :src="item.head_shot" alt="avatar" />
+          <span class="username">{{ item.user_name }}</span>
+        </div>
 
         <!-- 信息列表 -->
-        <view class="info-list">
-          <view class="info-item">
-            <text class="label">预约编号：</text>
-            <text class="value">{{ item.order_no }}</text>
-          </view>
-          <view class="info-item">
-            <text class="label">驾驶场地：</text>
-            <text class="value">{{ item.venue_name }}</text>
-          </view>
-          <view class="info-item">
-            <text class="label">驾驶车辆：</text>
-            <text class="value">{{ item.vehicle_name }}</text>
-          </view>
-          <view class="info-item">
-            <text class="label">预约类型：</text>
-            <text class="value">{{ billingMethod(item.billing_method) }}</text>
-          </view>
-          <view class="info-item">
-            <text class="label">预约时间：</text>
-            <text class="value">{{ formatTime(item.order_time) }}</text>
-          </view>
-          <view class="info-item">
-            <text class="label">驾驶时长：</text>
-            <text class="value">{{ compareTimestamp(item.start_time, item.end_time).text }}</text>
-          </view>
-          <view class="info-item">
-            <text class="label">消费电池：</text>
-            <text class="value">{{ paymentType(item.payment_type) }} {{item.payment_amount}}</text>
-          </view>
-          <view class="info-item">
-            <text class="label">开始时间：</text>
-            <text class="value">{{ formatTime(item.start_time)  }}</text>
-          </view>
-          <view class="info-item">
-            <text class="label">结束时间：</text>
-            <text class="value">{{ formatTime(item.end_time) }}</text>
-          </view>
-        </view>
-      </view>
-    </view>
-  </view>
+        <div class="info-list">
+          <div class="info-item">
+            <span class="label">预约编号：</span>
+            <span class="value text-ellipsis">{{ item.order_no }}</span>
+          </div>
+          <div class="info-item">
+            <span class="label">驾驶场地：</span>
+            <span class="value text-ellipsis">{{ item.venue_name }}</span>
+          </div>
+          <div class="info-item">
+            <span class="label">驾驶车辆：</span>
+            <span class="value text-ellipsis">{{ item.vehicle_name }}</span>
+          </div>
+          <div class="info-item">
+            <span class="label">预约类型：</span>
+            <span class="value">{{ billingMethod(item.billing_method) }}</span>
+          </div>
+          <div class="info-item">
+            <span class="label">预约时间：</span>
+            <span class="value">{{ formatDate(item.order_time) }}</span>
+          </div>
+          <div class="info-item">
+            <span class="label">驾驶时长：</span>
+            <span class="value">{{ compareTimestamp(item.start_time, item.end_time).text }}</span>
+          </div>
+          <div class="info-item">
+            <span class="label">消费电池：</span>
+            <span class="value">{{ paymentType(item.payment_type) }} {{ item.payment_amount }}</span>
+          </div>
+          <div class="info-item">
+            <span class="label">开始时间：</span>
+            <span class="value">{{ formatDate(item.start_time) }}</span>
+          </div>
+          <div class="info-item">
+            <span class="label">结束时间：</span>
+            <span class="value">{{ formatDate(item.end_time) }}</span>
+          </div>
+        </div>
+      </div>
+    </van-list>
+  </div>
 </template>
 
 <script setup>
-import { ref } from 'vue'
-import { onLoad, onReachBottom, } from "@dcloudio/uni-app"
-import {GetDrivingRecordlList} from "@/axios/mine.js"
-import {reservationStatus, billingMethod, paymentType} from "@/utils/filter.js"
-import {formatTime, compareTimestamp} from "@/utils/date.js"
+import { ref } from "vue";
+import { GetDrivingRecordlList } from "@/api/mine"; // 请根据实际路径调整
+import { billingMethod, paymentType } from "@/utils/filter"; // 请根据实际路径调整
+import { formatTime, compareTimestamp , formatDate } from "@/utils/utils"; // 请根据实际路径调整
+
 // ==================== 核心变量 ====================
-const list = ref([])        // 列表数据
-const page = ref(1)         // 当前页码
-const pageSize = ref(10)    // 每页条数
-const loading = ref(false)  // 加载锁（节流，防止重复触发）
-const noMore = ref(false)    // 是否没有更多数据
+const list = ref([]); // 列表数据
+const loading = ref(false); // 控制 van-list 加载状态
+const finished = ref(false); // 控制是否加载完毕
+const page = ref(1); // 当前页码
+const pageSize = 10; // 每页条数
 
-// ==================== 模拟接口请求 ====================
-const getList = async () => {
-  // 节流：正在加载 或 没有更多 → 直接return
-  if (loading.value || noMore.value) return
+// ==================== 核心加载逻辑 (van-list 触底触发) ====================
+const onLoad = async () => {
+  try {
+    // 调用真实接口
+    const res = await GetDrivingRecordlList({
+      page: page.value,
+      pageSize: pageSize,
+    });
 
-  loading.value = true
+    const content = res.data?.content || [];
 
-  // 模拟请求
-  setTimeout(() => {
-    // 模拟后端返回数据
-    const res = Array(10).fill(0).map((_, i) => ({
-      head_shot: "/static/logo.png",
-       "id": 1,
-				"user_name": "大笆斗", //用户名称
-				"vehicle_name": "飞车21111",//车辆名称
-				"vehicle_id": 12,
-				"order_no": "aaacasd13213121", //预约号
-				"billing_method": 0, //计费方式 0按时间 1按次
-				"venue_id": 1,
-				payment_type: 2,
-				"venue_name": "测试", //场地名称
-				"payment_amount": 8, //金额｜能量｜电池
-				"appeal_status": 0,//申诉状态 0未申请 1待处理 2已处理
-				"reservation_status": 3, //状态 1已预约 2待使用 3使用中 4已完成 5已取消
-				"order_time": 1766671601, //订单时间
-				"start_time": 1766671612, //开始时间
-				"end_time": 1766671618 //结束时间1766671618
+    // 追加数据
+    list.value = [...list.value, ...content];
 
-    }))
-
-    // 第一页 → 覆盖
-    if (page.value === 1) {
-      list.value = res
+    // 判断是否还有下一页
+    if (content.length < pageSize) {
+      finished.value = true;
     } else {
-      // 后续页 → 追加
-      list.value.push(...res)
+      page.value++;
     }
-
-    // 如果返回数据不足一页 → 没有更多
-    if (res.length < pageSize.value) {
-      noMore.value = true
-    }
-
-    page.value++
-    loading.value = false
-  }, 800)
-}
-
-// ==================== 上拉触底加载（核心） ====================
-onReachBottom(() => {
-  console.log("触底了")
-  getList()
-})
-
-// ==================== 页面加载 ====================
-onLoad(() => {
-  getList()
-})
+  } catch (error) {
+    console.error("加载失败:", error);
+  } finally {
+    loading.value = false;
+  }
+};
 </script>
+
 <style lang="scss" scoped>
-
-.page {
- background: #F8F8F8;
+.page-container {
+  min-height: 100vh;
+  background: #f8f8f8;
+  padding: 10px;
+  box-sizing: border-box;
 }
 
-.list {
-  display: flex;
-  flex-direction: column;
-  gap: 20rpx;
-	padding: 20rpx;
-}
+.order-item {
+  background: #ffffff;
+  border-radius: 8px;
+  padding: 10px 10px 15px 10px;
+  margin-bottom: 10px;
 
-.item {
-  background: #FFFFFF;
-  border-radius: 16rpx;
-  padding: 20rpx 20rpx 30rpx 20rpx;
-}
-
-.header {
-  display: flex;
-  align-items: center;
-  margin-bottom: 20rpx;
-
-  .avatar {
-    width: 60rpx;
-    height: 60rpx;
-    border-radius: 50%;
-    margin-right: 20rpx;
-  }
-
-  .username {
-    font-family: PingFangSC, PingFang SC;
-    font-weight: 600;
-    font-size: 28rpx;
-    color: #1A1A1A;
-		line-height: 40rpx;
-		text-align: left;
-		font-style: normal;
-  }
-}
-
-.info-list {
-  .info-item {
+  .header {
     display: flex;
-    margin-bottom: 16rpx;
-    font-size: 0;
+    align-items: center;
+    margin-bottom: 10px;
 
-    .label {
-			font-family: PingFangSC, PingFang SC;
-			font-weight: 400;
-			font-size: 24rpx;
-			color: #777777;
-		
-			text-align: left;
-      white-space: nowrap;
+    .avatar {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      margin-right: 10px;
+      object-fit: cover;
     }
-    .value {
-      font-family: PingFangSC, PingFang SC;
-      font-weight: 400;
-      font-size: 24rpx;
-      color: #1A1A1A;
 
-      text-align: left;
-      font-style: normal;
-      margin-left: 10rpx;
+    .username {
+      font-weight: 600;
+      font-size: 14px;
+      color: #1a1a1a;
+      line-height: 20px;
+    }
+  }
+
+  .info-list {
+    .info-item {
+      display: flex;
+      align-items: center;
+      margin-bottom: 8px;
+      font-size: 12px;
+
+      &:last-child {
+        margin-bottom: 0;
+      }
+
+      .label {
+        font-weight: 400;
+        color: #777777;
+        white-space: nowrap;
+        flex-shrink: 0;
+      }
+
+      .value {
+        font-weight: 400;
+        color: #1a1a1a;
+        margin-left: 5px;
+        flex: 1;
+      }
+
+      .text-ellipsis {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
     }
   }
 }
