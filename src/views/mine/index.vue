@@ -71,7 +71,7 @@
       title="在线客服"
       :content="serviceTip"
       cancel-text="拒绝"
-      confirm-text="允许"
+      confirm-text="确认"
       @confirm="openService"
     />
   </div>
@@ -175,15 +175,7 @@ const handleClick = (item) => {
 // --- 客服逻辑（H5 / App 通用） ---
 const openService = () => {
   // 微信小程序环境判断
-  const isWxMini =
-    typeof wx !== "undefined" &&
-    typeof wx.openCustomerServiceSession === "function";
-  if (isWxMini) {
-    wx.openCustomerServiceSession({
-      fail: () => showToast({ message: "客服暂时不可用", type: "fail" }),
-    });
-    return;
-  }
+  
 
   // H5 / App → 复制微信号
   copyToClipboard("we1731747901")
