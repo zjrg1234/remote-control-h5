@@ -29,6 +29,7 @@ export default defineConfig(({ mode }) => {
       Components({
         dts: "src/typings/components.d.ts",
         resolvers: [VantResolver()],
+        style: true,
       }),
       // svg icon
       createSvgIconsPlugin({

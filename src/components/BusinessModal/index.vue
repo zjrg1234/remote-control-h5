@@ -42,10 +42,9 @@
 </template>
 
 <script setup>
-import { showToast, copyText } from 'vant'
-import 'vant/es/toast/style'
-import 'vant/es/popup/style'
-import 'vant/es/button/style'
+import { showToast } from 'vant'
+
+import {copyToClipboard} from "@/utils/utils";
 
 // 图片资源（Vite 项目推荐写法）
 const wechatIcon = new URL('@/assets/images/common/icon_wechat@2x.png', import.meta.url).href
@@ -67,7 +66,7 @@ const close = () => {
 
 const handleCopy = async (text) => {
   try {
-    await copyText(text)
+    await copyToClipboard(text)
     showToast({ message: '已复制', type: 'success' })
   } catch {
     showToast({ message: '复制失败，请手动复制', type: 'fail' })

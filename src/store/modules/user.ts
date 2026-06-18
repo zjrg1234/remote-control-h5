@@ -27,7 +27,6 @@ export const useUserStore = defineStore('user', {
   getters: {
     // 4. 使用 getters 替代普通的 get 方法，支持响应式追踪
     getLoginId: (state) => state.id,
-    getUserInfo: (state) => state.userInfo,
     getToken: (state) => state.token
   },
 
@@ -48,6 +47,10 @@ export const useUserStore = defineStore('user', {
 
     setId(id: string) {
       this.id = id
+    },
+
+    getUserInfo () {
+      return this.userInfo
     },
 
     // 退出登录

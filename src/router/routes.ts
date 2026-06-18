@@ -81,6 +81,16 @@ const routes: Array<RouteRecordRaw> = [
           noAuth: true,
         },
       },
+      {
+        path: "changeArea",
+        name: "ChangeArea",
+        component: () => import("@/views/mine/changeArea.vue"),
+        meta: {
+          title: "变更专区",
+          noCache: true,
+          noAuth: true,
+        },
+      },
     ],
   },
 ];
