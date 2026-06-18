@@ -1,72 +1,82 @@
 <template>
   <div class="page-container">
     <!-- 使用 van-list 实现滚动加载 -->
-    <van-list
-      v-model:loading="loading"
-      :finished="finished"
-      :finished-text="list.length > 0 ? '没有更多了' : ''"
-      @load="onLoad"
-    >
-      <!-- 空状态提示 -->
-      <van-empty
-        v-if="!loading && list.length === 0"
-        description="暂无驾驶记录"
-        image="search"
-      />
-
-      <!-- 列表项 -->
-      <div
-        class="order-item"
-        v-for="(item, index) in list"
-        :key="item.id || index"
+    <NavBar title="驾驶记录" />
+    <div class="cont">
+      <van-list
+        v-model:loading="loading"
+        :finished="finished"
+        :finished-text="list.length > 0 ? '没有更多了' : ''"
+        @load="onLoad"
       >
-        <!-- 头像 + 用户名 -->
-        <div class="header">
-          <img class="avatar" :src="item.head_shot" alt="avatar" />
-          <span class="username">{{ item.user_name }}</span>
-        </div>
+        <!-- 空状态提示 -->
+        <van-empty
+          v-if="!loading && list.length === 0"
+          description="暂无驾驶记录"
+          image="search"
+        />
 
-        <!-- 信息列表 -->
-        <div class="info-list">
-          <div class="info-item">
-            <span class="label">预约编号：</span>
-            <span class="value text-ellipsis">{{ item.order_no }}</span>
+        <!-- 列表项 -->
+        <div
+          class="order-item"
+          v-for="(item, index) in list"
+          :key="item.id || index"
+        >
+          <!-- 头像 + 用户名 -->
+          <div class="header">
+            <img class="avatar" :src="item.head_shot" alt="avatar" />
+            <span class="username">{{ item.user_name }}</span>
           </div>
-          <div class="info-item">
-            <span class="label">驾驶场地：</span>
-            <span class="value text-ellipsis">{{ item.venue_name }}</span>
-          </div>
-          <div class="info-item">
-            <span class="label">驾驶车辆：</span>
-            <span class="value text-ellipsis">{{ item.vehicle_name }}</span>
-          </div>
-          <div class="info-item">
-            <span class="label">预约类型：</span>
-            <span class="value">{{ billingMethod(item.billing_method) }}</span>
-          </div>
-          <div class="info-item">
-            <span class="label">预约时间：</span>
-            <span class="value">{{ formatDate(item.order_time) }}</span>
-          </div>
-          <div class="info-item">
-            <span class="label">驾驶时长：</span>
-            <span class="value">{{ compareTimestamp(item.start_time, item.end_time).text }}</span>
-          </div>
-          <div class="info-item">
-            <span class="label">消费电池：</span>
-            <span class="value">{{ paymentType(item.payment_type) }} {{ item.payment_amount }}</span>
-          </div>
-          <div class="info-item">
-            <span class="label">开始时间：</span>
-            <span class="value">{{ formatDate(item.start_time) }}</span>
-          </div>
-          <div class="info-item">
-            <span class="label">结束时间：</span>
-            <span class="value">{{ formatDate(item.end_time) }}</span>
+
+          <!-- 信息列表 -->
+          <div class="info-list">
+            <div class="info-item">
+              <span class="label">预约编号：</span>
+              <span class="value text-ellipsis">{{ item.order_no }}</span>
+            </div>
+            <div class="info-item">
+              <span class="label">驾驶场地：</span>
+              <span class="value text-ellipsis">{{ item.venue_name }}</span>
+            </div>
+            <div class="info-item">
+              <span class="label">驾驶车辆：</span>
+              <span class="value text-ellipsis">{{ item.vehicle_name }}</span>
+            </div>
+            <div class="info-item">
+              <span class="label">预约类型：</span>
+              <span class="value">{{
+                billingMethod(item.billing_method)
+              }}</span>
+            </div>
+            <div class="info-item">
+              <span class="label">预约时间：</span>
+              <span class="value">{{ formatDate(item.order_time) }}</span>
+            </div>
+            <div class="info-item">
+              <span class="label">驾驶时长：</span>
+              <span class="value">{{
+                compareTimestamp(item.start_time, item.end_time).text
+              }}</span>
+            </div>
+            <div class="info-item">
+              <span class="label">消费电池：</span>
+              <span class="value"
+                >{{ paymentType(item.payment_type) }}
+                {{ item.payment_amount }}</span
+              >
+            </div>
+            <div class="info-item">
+              <span class="label">开始时间：</span>
+              <span class="value">{{ formatDate(item.start_time) }}</span>
+            </div>
+            <div class="info-item">
+              <span class="label">结束时间：</span>
+              <span class="value">{{ formatDate(item.end_time) }}</span>
+            </div>
           </div>
         </div>
-      </div>
-    </van-list>
+      </van-list>
+    </div>
   </div>
 </template>
 
@@ -74,7 +84,8 @@
 import { ref } from "vue";
 import { GetDrivingRecordlList } from "@/api/mine"; // 请根据实际路径调整
 import { billingMethod, paymentType } from "@/utils/filter"; // 请根据实际路径调整
-import { formatTime, compareTimestamp , formatDate } from "@/utils/utils"; // 请根据实际路径调整
+import { formatTime, compareTimestamp, formatDate } from "@/utils/utils"; // 请根据实际路径调整
+import NavBar from "@/components/CustomNavBar/index.vue";
 
 // ==================== 核心变量 ====================
 const list = ref([]); // 列表数据
@@ -93,10 +104,8 @@ const onLoad = async () => {
     });
 
     const content = res.data?.content || [];
-
     // 追加数据
     list.value = [...list.value, ...content];
-
     // 判断是否还有下一页
     if (content.length < pageSize) {
       finished.value = true;
@@ -114,15 +123,20 @@ const onLoad = async () => {
 <style lang="scss" scoped>
 .page-container {
   min-height: 100vh;
-  background: #f8f8f8;
-  padding: 10px;
+
+  background: #fff;
+
   box-sizing: border-box;
 }
-
+.cont {
+  background: #f2f4f7;
+  padding: 10px;
+  height: 100vh;
+}
 .order-item {
-  background: #ffffff;
+  background-color: #FFF;
   border-radius: 8px;
-  padding: 10px 10px 15px 10px;
+  padding: 15px;
   margin-bottom: 10px;
 
   .header {

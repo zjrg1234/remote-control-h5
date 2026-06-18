@@ -120,6 +120,26 @@ const routes: Array<RouteRecordRaw> = [
           noCache: true,
           noAuth: true,
         },
+      },
+      {
+        path: "recharge",
+        name: "Recharge",
+        component: () => import("@/views/mine/recharge.vue"),
+        meta: {
+          title: "充值",
+          noCache: true,
+          noAuth: true,
+        },
+      },
+      {
+        path: "battery",
+        name: "Battery",
+        component: () => import("@/views/mine/battery.vue"),
+        meta: {
+          title: "我的电池",
+          noCache: true,
+          noAuth: true,
+        },
       }
     ],
   },

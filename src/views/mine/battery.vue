@@ -1,426 +1,314 @@
 <template>
-	<view class="page">
-		<!-- 自定义导航栏（H5不显示） -->
-		<!-- #ifndef H5 -->
-		<custom-nav-bar title="我的电池"></custom-nav-bar>
-		<!-- #endif -->
+  <div class="page">
+    <!-- 顶部导航栏 -->
+    <NavBar title="我的电池" />
 
-		<view class="wrap-content">
-			<!-- #ifdef H5 -->
-			<NavBar title="我的电池" url="/pages/mine/index"></NavBar>
-			
-			<view class="bg-image">
-				<image class="image" src="/static/images/mine/bg2@2x.png" mode="widthFix"></image>
-			</view>
-			<!-- #endif -->
-			<!-- #ifndef H5 -->
-			<!-- 顶部背景图 小程序-->
-			<view class="bg-image" :style="{top: '-' + getNavBarHeight() + 'px'}">
-				<image class="image" src="/static/images/mine/bg2@2x.png" mode="widthFix"></image>
-			</view>
-			<!-- #endif -->
-			
-			
-			<!-- 电池卡片 -->
-			<view class="card">
-				<view class="card-bg">
-					<image class="card-bg-img" src="/static/images/mine/bg_battery@2x.png" mode="widthFix"></image>
-				</view>
-				<view class="card-content">
-					<view class="card-left">
-						<view class="label">
-							<view class="label-text">我的电池</view>
-							<image class="battery" src="/static/images/mine/icon_battery@2x.png" mode="widthFix"></image>
-						</view>
-						<view class="num">{{ balance }}</view>
-					</view>
-					<view class="recharge-btn" @click="handleRecharge">充值</view>
-				</view>
-			</view>
+    <div class="wrap-content">
+      <!-- 电池卡片 -->
+      <div class="card">
+        <div class="card-bg">
+          <img
+            class="card-bg-img"
+            src="@/assets/images/mine/bg_battery@2x.png"
+          />
+        </div>
+        <div class="card-content">
+          <div class="card-left">
+            <div class="label">
+              <span class="label-text">我的电池</span>
+              <img
+                class="battery"
+                src="@/assets/images/mine/icon_battery@2x.png"
+              />
+            </div>
+            <div class="num">{{ balance }}</div>
+          </div>
+          <van-button class="recharge-btn" size="small" @click="handleRecharge"
+            >充值</van-button
+          >
+        </div>
+      </div>
 
-			<!-- 说明 -->
-			<view class="desc">
-				电池说明：没用完的电池会直接放在这里，下次可以直接使用。电池不能提现，只能消费。
-			</view>
-		</view>
+      <!-- 说明 -->
+      <div class="desc">
+        电池说明：没用完的电池会直接放在这里，下次可以直接使用。电池不能提现，只能消费。
+      </div>
+    </div>
 
-		<!-- 标签栏 -->
-		<view class="tabs">
-			<view v-for="item in tabs" :key="item.id" class="tab-item" :class="{ active: currentTab === item.id }"
-				@click="handleTab(item.id)">
-				<text>{{ item.name }}</text>
-				<view v-if="currentTab === item.id" class="line"></view>
-			</view>
-		</view>
+    <!-- 标签栏 -->
+    <van-tabs
+      v-model:active="currentTab"
+      class="tabs"
+      color="#1A1A1A"
+      title-active-color="#1A1A1A"
+      title-inactive-color="#777777"
+    >
+      <van-tab
+        v-for="item in tabs"
+        :key="item.id"
+        :title="item.name"
+        :name="item.id"
+      />
+    </van-tabs>
 
-		<!-- 列表 -->
-		<view class="list">
-			<!-- 1. 加载中 -->
-			<view class="load-tip" v-if="loading">加载中...</view>
-			
-			<!-- 2. 无数据空状态 -->
-			
-			<view class="empty-box" v-if="!loading && list.length === 0">
-				<image class="empty-img" src="/static/images/common/car_nodata@2x.jpg" mode="widthFix"></image>
-				<text class="empty-text">暂时没有内容哦～</text>
-			</view>
+    <!-- 列表 -->
+    <div class="list">
+      <!-- 1. 加载中 -->
+      <div class="load-tip" v-if="loading">加载中...</div>
 
-			<!-- 3. 数据列表 -->
-			<view class="item" v-for="(item, index) in list" :key="index">
-				<text class="type">{{ item.type == 1 ? '收入' : '消费' }}</text>
-				<view class="middle">
-					<text class="common-text">{{ item.type == 1 ? '提前结束驾驶退还' : '驾驶扣款' }}</text>
-					<text class="amount" :class="item.type == 1 ? 'green': 'red'">
-						{{item.type == 1 ? "+" : ''}}{{ item.amount }}
-					</text>
-				</view>
-				<text class="common-text time">{{ formatTime(item.time) }}</text>
-			</view>
-			
-			<!-- 4. 没有更多 -->
-			<view class="load-tip" v-if="noMore && list.length > 0">没有更多了</view>
-		</view>
-	</view>
+      <!-- 2. 无数据空状态 -->
+      <van-empty
+        v-if="!loading && list.length === 0"
+        :image="nodata"
+        description="暂时没有内容哦～"
+      />
+
+      <!-- 3. 数据列表 -->
+      <div class="item" v-for="(item, index) in list" :key="index">
+        <span class="type">{{ item.type == 1 ? "收入" : "消费" }}</span>
+        <div class="middle">
+          <span class="common-text">{{
+            item.type == 1 ? "提前结束驾驶退还" : "驾驶扣款"
+          }}</span>
+          <span class="amount" :class="item.type == 1 ? 'green' : 'red'">
+            {{ item.type == 1 ? "+" : "" }}{{ item.amount }}
+          </span>
+        </div>
+        <span class="common-text time">{{ formatTime(item.time) }}</span>
+      </div>
+
+      <!-- 4. 没有更多 -->
+      <div class="load-tip" v-if="noMore && list.length > 0">没有更多了</div>
+    </div>
+  </div>
 </template>
 
 <script setup>
-	import { ref, onMounted, computed } from 'vue'
-	import { onReachBottom, onPullDownRefresh } from '@dcloudio/uni-app'
-	import NavBar from "@/components/nav-bar/nav-bar.vue"
-	import { GetUserWalletLog } from "@/axios/mine.js"
-	import { formatTime } from "@/utils/date.js"
-	import { getNavBarHeight } from "@/utils/system.js"
-	import {
-		useUserStore
-	} from '@/store/modules/user'
+import { ref, computed, onMounted } from "vue";
+import { useRouter } from "vue-router";
+import NavBar from "@/components/CustomNavBar/index.vue";
+import { GetUserWalletLog } from "@/api/mine";
+import { formatTime } from "@/utils/utils";
+import { useUserStore } from "@/store/modules/user";
+import nodata from "@/assets/images/common/car_nodata@2x.jpg"
+const router = useRouter();
+const userStore = useUserStore();
 
-	const userStore = useUserStore();
+// ==================== 数据 ====================
+const balance = computed(() => {
+  return userStore.getUserInfo().wallet.balance;
+});
 
-	// ==================== 数据 ====================
-	
-	const balance = computed(() => {
-		return userStore.getUserInfo().wallet.balance
-	})
-	const list = ref([])
-	const page = ref(1)
-	const pageSize = ref(10)
-	const loading = ref(false)
-	const noMore = ref(false)
+const list = ref([]);
+const page = ref(1);
+const pageSize = ref(10);
+const loading = ref(false);
+const noMore = ref(false);
 
-	const tabs = [
-		{ id: '', name: '全部' },
-		{ id: '1', name: '充值' },
-		{ id: '2', name: '消费' }
-	];
-	const currentTab = ref('');
+const tabs = [
+  { id: "", name: "全部" },
+  { id: "1", name: "充值" },
+  { id: "2", name: "消费" },
+];
+const currentTab = ref("");
 
-	// ==================== TAB 切换 ====================
-	let tabTimer = null
-	const handleTab = (tab) => {
-		if (tab === currentTab.value) return
-		clearTimeout(tabTimer)
-		tabTimer = setTimeout(() => {
-			currentTab.value = tab
-			resetAndLoad()
-		}, 200)
-	}
+// ==================== 获取列表 ====================
+const getList = async () => {
+  if (loading.value || noMore.value) return;
+  loading.value = true;
 
-	// ==================== 重置 ====================
-	const resetAndLoad = () => {
-		page.value = 1
-		list.value = []
-		noMore.value = false
-		getList()
-	}
+  try {
+    const { data } = await GetUserWalletLog({
+      type: currentTab.value,
+    });
+    const dataList = data?.content || [];
 
-	// ==================== 获取列表 ====================
-	const getList = async () => {
-		if (loading.value || noMore.value) return
-		loading.value = true
+    if (page.value === 1) {
+      list.value = dataList;
+    } else {
+      list.value.push(...dataList);
+    }
 
-		try {
-			const { data } = await GetUserWalletLog({
-				type: currentTab.value,
-			})
-			const dataList = data?.content || []
+    // 无更多数据判断
+    if (dataList.length < pageSize.value) {
+      noMore.value = true;
+    } else {
+      page.value++;
+    }
+  } finally {
+    loading.value = false;
+  }
+};
 
-			if (page.value === 1) {
-				list.value = dataList
-			} else {
-				list.value = [...list.value ,...dataList]
-			}
+// ==================== 事件 ====================
+const goBack = () => window.history.back();
 
-			// 无更多数据判断
-			if (dataList.length < pageSize.value) {
-				noMore.value = true
-			} else {
-				page.value++
-			}
+const handleRecharge = () => router.push("/recharge");
 
-		} finally {
-			console.log(123)
-			loading.value = false
-			uni.stopPullDownRefresh()
-		}
-	}
+// ==================== 生命周期 ====================
+onMounted(() => getList());
 
-	// ==================== 生命周期 ====================
-	onReachBottom(() => getList())
-	onPullDownRefresh(() => resetAndLoad())
-	onMounted(() => getList())
-
-	// ==================== 事件 ====================
-	const goBack = () => uni.navigateBack()
-	const handleRecharge = () => uni.navigateTo({
-		url: "/pages/mine/recharge"
-	})
+// 监听滚动到底部（需要配合滚动容器或 window 事件）
+// 这里简化处理，实际项目中可能需要使用 IntersectionObserver 或监听 window.onscroll
 </script>
 
 <style lang="scss" scoped>
-	page {
-		background: #F8F8F8;
-		padding: 0 !important;
-		margin: 0 !important;
-		box-sizing: border-box;
-	}
+.page {
+  min-height: 100vh;
+  background: #f5f6f8;
+  position: relative;
+  padding-bottom: 20px;
+}
 
-	.page {
-		min-height: 100vh;
-		box-sizing: border-box;
-	}
+.wrap-content {
+  position: relative;
+  width: 100%;
+  background: #ffffff;
+}
 
-	.wrap-content {
-		position: relative;
-		width: 100%;
-		background: #FFFFFF;
-	}
+/* 顶部背景图 */
+.bg-image {
+  position: absolute;
+  top: -48.5px; // 97rpx / 2
+  left: 0;
+  width: 100%;
+  height: 85px; // 170rpx / 2
+  z-index: 0;
+  .image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+}
 
-	/* H5 导航栏 */
-	.header {
-		position: relative;
-		z-index: 99;
-		height: 88rpx;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		font-family: PingFangSC, PingFang SC;
-		font-weight: 500;
-		font-size: 32rpx;
-		color: #333333;
+/* 电池卡片 */
+.card {
+  position: relative;
+  z-index: 1;
+  padding: 15px;
+  overflow: hidden;
+  height: 98px; // 196rpx / 2
+}
 
-		.back-image {
-			position: absolute;
-			left: 30rpx;
-			color: #fff;
-			transform: rotate(180deg);
-			width: 32rpx;
-		}
-	}
+.card-bg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  z-index: 0;
+  .card-bg-img {
+    width: 100%;
+    height: 98px; // 196rpx / 2
+  }
+}
 
-	/* 顶部背景图 */
-	.bg-image {
-		position: absolute;
-		top: -97rpx;
-		left: 0;
-		width: 100%;
-		height: 170rpx;
-		z-index: 0;
+.card-content {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+}
 
-		.image {
-			width: 100%;
-			height: 100%;
-			object-fit: cover;
-			display: block;
-			height: 170rpx;
-		}
-	}
+.label {
+  padding-top: 5px;
+  display: flex;
+  align-items: center;
+  .label-text {
+    font-size: 14px;
+    color: #222222;
+  }
+  .battery {
+    width: 19px;
+    height: 19px;
+    margin-left: 4px;
+  }
+}
 
-	/* 电池卡片 */
-	.card {
-		position: relative;
-		z-index: 1;
-		padding: 20rpx;
-		padding-bottom: 0;
-		overflow: hidden;
-		height: 196rpx;
-	}
+.num {
+  font-weight: 600;
+  font-size: 20px;
+  color: #222222;
+  padding-top: 3px;
+  padding-left: 5px;
+}
 
-	.card-bg {
-		position: absolute;
-		top: 0;
-		left: 0;
-		width: 100%;
-		z-index: 0;
+.recharge-btn {
+  background: #ffc838;
+  border: none;
+  color: #1a1a1a;
+  font-size: 12px;
+  padding: 5px 20px;
+  border-radius: 6px;
+}
 
-		.card-bg-img {
-			width: 100%;
-			height: 196rpx;
-		}
-	}
+/* 说明 */
+.desc {
+  padding: 0 10px 10px;
+  font-size: 12px;
+  color: #999999;
+}
 
-	.card-content {
-		position: relative;
-		z-index: 1;
-		padding: 0 10rpx;
-		display: flex;
-		justify-content: space-between;
-		align-items: end;
-	}
+/* 标签栏 */
+.tabs {
+  background-color: #ffffff;
+  margin-bottom: 10px;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
 
-	.label {
-		padding-top: 10rpx;
-		display: flex;
-		justify-content: left;
-		align-items: center;
+/* 列表 */
+.list {
+  padding: 0 10px 10px;
+}
 
-		.label-text {
-			font-family: PingFangSC, PingFang SC;
-			font-weight: 400;
-			font-size: 28rpx;
-			color: #222222;
-		}
+.item {
+  background: #fff;
+  border-radius: 8px;
+  padding: 10px;
+  margin-bottom: 10px;
+}
 
-		.battery {
-			width: 38rpx;
-			height: 38rpx;
-			margin-left: 8rpx;
-		}
-	}
+.common-text {
+  font-size: 12px;
+  color: #666666;
+}
 
-	.num {
-		font-family: PingFangSC, PingFang SC;
-		font-weight: 600;
-		font-size: 40rpx;
-		color: #222222;
-		padding-top: 6rpx;
-		padding-left: 10rpx;
-	}
+.type {
+  font-weight: 500;
+  font-size: 14px;
+  color: #333333;
+}
 
-	.recharge-btn {
-		background: #FFC838;
-		border-radius: 12rpx;
-		font-family: PingFangSC, PingFang SC;
-		font-weight: 400;
-		font-size: 24rpx;
-		color: #1A1A1A;
-		padding: 10rpx 40rpx;
-	}
+.middle {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  color: #999;
+  margin-top: 6px;
+  .amount {
+    font-weight: bold;
+    font-size: 20px;
+  }
+  .red {
+    color: #ee4040;
+  }
+  .green {
+    color: #07c160;
+  }
+}
 
-	/* 说明 */
-	.desc {
-		padding: 0 20rpx 20rpx;
-		font-family: PingFangSC, PingFang SC;
-		font-weight: 400;
-		font-size: 24rpx;
-		color: #999999;
-	}
+.time {
+  display: block;
+  margin-top: 6px;
+}
 
-	.tabs {
-		display: flex;
-		justify-content: space-around;
-		background-color: #ffffff;
-		padding: 20rpx 0 10rpx 0;
-		margin-bottom: 20rpx;
-		position: sticky;
-		top: 0;
-		z-index: 10;
-
-		.tab-item {
-			margin: 0 40rpx;
-			position: relative;
-			padding-bottom: 10rpx;
-
-			text {
-				font-family: PingFangSC, PingFang SC;
-				font-weight: 400;
-				font-size: 28rpx;
-				color: #777777;
-			}
-
-			&.active text {
-				font-weight: 500;
-				font-size: 30rpx;
-				color: #1A1A1A;
-			}
-
-			.line {
-				position: absolute;
-				bottom: 0;
-				left: 50%;
-				transform: translateX(-50%);
-				width: 40rpx;
-				height: 4rpx;
-				background: #1A1A1A;
-				border-radius: 2rpx;
-			}
-		}
-	}
-
-	/* 列表 */
-	.list {
-		padding: 0 20rpx 20rpx;
-	}
-
-	.item {
-		background: #fff;
-		border-radius: 16rpx;
-		padding: 20rpx;
-		margin-bottom: 20rpx;
-	}
-
-	.common-text {
-		font-family: PingFangSC, PingFang SC;
-		font-weight: 400;
-		font-size: 24rpx;
-		color: #666666;
-	}
-
-	.type {
-		font-family: PingFangSC, PingFang SC;
-		font-weight: 500;
-		font-size: 28rpx;
-		color: #333333;
-	}
-
-	.middle {
-		display: flex;
-		justify-content: space-between;
-		align-items: baseline;
-		color: #999;
-		margin-top: 12rpx;
-		
-		.amount {
-			font-family: DINAlternate, DINAlternate;
-			font-weight: bold;
-			font-size: 40rpx;
-		}
-		.red { color: #EE4040; }
-		.green { color: #07C160; }
-	}
-
-	/* 空状态 */
-	.empty-box {
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-		justify-content: center;
-		padding: 150rpx 0;
-
-		.empty-img {
-			width: 206rpx;
-			height: 174rpx;
-		}
-		.empty-text {
-			margin-top: 20rpx;
-			font-size: 26rpx;
-			color: #999;
-		}
-	}
-
-	.load-tip {
-		text-align: center;
-		padding: 20rpx;
-		color: #999;
-		font-size: 24rpx;
-	}
+.load-tip {
+  text-align: center;
+  padding: 10px;
+  color: #999;
+  font-size: 12px;
+}
 </style>

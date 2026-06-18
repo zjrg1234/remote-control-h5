@@ -1,809 +1,493 @@
 <template>
-	<view class="page">
+  <div class="page">
+    <!-- 顶部导航栏 -->
+    <NavBar title="我的电池" />
 
-		<!-- 自定义导航栏（H5不显示） -->
-		<!-- #ifndef H5 -->
-		<custom-nav-bar title="我的电池"></custom-nav-bar>
-		<!-- #endif -->
-		<view class="wrap-content">
-			<!-- #ifdef H5 -->
+    <div class="wrap-content">
+     
+      <!-- 电池卡片 -->
+      <div class="card">
+        <div class="card-bg">
+          <img
+            class="card-bg-img"
+            src="@/assets/images/mine/bg_battery@2x.png"
+          />
+        </div>
+        <div class="card-content">
+          <div class="card-left">
+            <div class="label">
+              <span class="label-text">我的电池</span>
+              <img
+                class="battery"
+                src="@/assets/images/mine/icon_battery@2x.png"
+              />
+            </div>
+            <div class="num">{{ balance }}</div>
+          </div>
+        </div>
+      </div>
 
-			<NavBar title="我的电池" url="/pages/mine/index"></NavBar>
+      <!-- 标签切换 -->
+      <van-tabs
+        v-model:active="activeTab"
+        class="tabs"
+        color="#1A1A1A"
+        title-active-color="#1A1A1A"
+        title-inactive-color="#777777"
+      >
+        <van-tab
+          v-for="item in tabs"
+          :key="item.id"
+          :title="item.name"
+          :name="item.id"
+        />
+      </van-tabs>
 
-			<view class="bg-image">
-				<image class="image" src="/static/images/mine/bg2@2x.png" mode="widthFix"></image>
-			</view>
-			<!-- #endif -->
-			<!-- #ifndef H5 -->
-			<!-- 顶部背景图 小程序-->
-			<view class="bg-image" :style="{top: '-' + getNavBarHeight() + 'px'}">
-				<image class="image" src="/static/images/mine/bg2@2x.png" mode="widthFix"></image>
-			</view>
-			<!-- #endif -->
+      <!-- 充值套餐 -->
+      <div class="section">
+        <span class="section-title">充值套餐</span>
+        <div class="package-list">
+          <div
+            class="package-item"
+            :class="{
+              active:
+                selectedPackage ===
+                (activeTab === 'normal' ? item.amount : item.payment_amount),
+            }"
+            v-for="item in activeTab === 'normal'
+              ? packageList
+              : packageFirstList"
+            :key="item.amount || item.payment_amount"
+            @click="selectedPackageIndex(activeTab, item)"
+          >
+            <div class="num">
+              <span>{{
+                activeTab === "normal" ? item.amount : item.payment_amount
+              }}</span>
+              <img
+                class="icon"
+                src="@/assets/images/common/icon_battery@2x.png"
+              />
+            </div>
+            <div v-if="activeTab === 'first'" class="energy">
+              送{{ item.send_energy }}能量
+            </div>
+            <div class="price">
+              ¥{{
+                (activeTab === "normal"
+                  ? item.amount
+                  : item.payment_amount
+                ).toFixed(2)
+              }}
+            </div>
+          </div>
+        </div>
+      </div>
 
+      <!-- 自定义充值 -->
+      <div class="section">
+        <span class="section-title">自定义数量充值</span>
+        <input
+          class="custom-input"
+          type="number"
+          placeholder="请输入电池数量（不低于3个）"
+          v-model.number="customNum"
+        />
+      </div>
 
-			<!-- 电池卡片 -->
-			<view class="card">
-				<view class="card-bg">
-					<image class="card-bg-img" src="/static/images/mine/bg_battery@2x.png" mode="widthFix"></image>
-				</view>
-				<view class="card-content">
-					<view class="card-left">
-						<view class="label">
-							<view class="label-text">
-								我的电池
-							</view>
-							<image class="battery" src="/static/images/mine/icon_battery@2x.png" mode="widthFix">
-							</image>
-						</view>
-						<view class="num">{{ balance }}</view>
-					</view>
+      <!-- 支付方式 -->
+      <div class="section">
+        <span class="section-title">支付方式</span>
+        <van-radio-group
+          v-model="payType"
+          direction="horizontal"
+          class="pay-list"
+        >
+          <van-radio name="alipay" class="pay-item">
+            <img
+              class="pay-icon"
+              src="@/assets/images/common/icon_zfb@2x.png"
+            />
+            <span>支付宝支付</span>
+          </van-radio>
+          <van-radio name="wechat" class="pay-item">
+            <img class="pay-icon" src="@/assets/images/common/icon_wx@2x.png" />
+            <span>微信支付</span>
+          </van-radio>
+        </van-radio-group>
+      </div>
 
-				</view>
-			</view>
-		</view>
-		<!-- 标签切换 -->
-		<!-- <view class="tabs">
-			<text class="tab" :class="{ active: tab === 'normal' }" @click="handleSelect('normal')">普通充值</text>
-			<text class="tab" :class="{ active: tab === 'first' }" @click="handleSelect('first')">首充优惠</text>
-		</view> -->
+      <!-- 说明文字 -->
+      <div class="desc">
+        <span class="desc-title">充值说明：</span>
+        <div class="desc-item">1. 如您未满18岁，请在监护人陪同下操作；</div>
+        <div class="desc-item">2. 如对充值有其它疑问，请联系客服。</div>
+      </div>
 
-		<view class="tabs">
-			<view v-for="item in tabs" :key="item.id" class="tab-item" :class="{ active: tab === item.id }"
-				@click="handleSelect(item.id)">
-				<text>{{ item.name }}</text>
-				<!-- 底部激活横线 -->
-				<view v-if="tab === item.id" class="line"></view>
-			</view>
-		</view>
-
-		<!-- 充值套餐 -->
-		<view class="section">
-			<text class="section-title">充值套餐</text>
-			<view class="package-list" v-if="tab == 'normal'">
-				<view class="package-item" :class="{ active: selectedPackage === item.amount }" v-for="item in packageList"
-					:key="item.amount" @click="selectedPackageIndex(1, item.amount)">
-					<view class="num">
-						<text> {{ item.amount }} </text>
-						<image class="icon" src="/static/images/common/icon_battery@2x.png" />
-					</view>
-					<view class="price">¥{{ item.amount.toFixed(2) }}</view>
-				</view>
-			</view>
-			<view class="package-list" v-if="tab == 'first'">
-				<view class="package-item" :class="{ active: selectedPackage === item.payment_amount }"
-					v-for="item in packageFirstList" :key="item.payment_amount"
-					@click="selectedPackageIndex(2, item)">
-					<view class="num">
-						<text> {{ item.payment_amount }} </text>
-						<image class="icon" src="/static/images/common/icon_battery@2x.png" />
-					</view>
-					<view class="energy">送{{item.send_energy}}能量</view>
-					<view class="price">¥{{ item.payment_amount.toFixed(2) }}</view>
-				</view>
-			</view>
-
-		</view>
-
-		<!-- 自定义充值 -->
-		<view class="section">
-			<text class="section-title">自定义数量充值</text>
-			<input class="custom-input" type="number" placeholder="请输入电池数量（不低于3个）" v-model.number="customNum" />
-		</view>
-
-		<!-- 支付方式 -->
-		<view class="section">
-			<text class="section-title">支付方式</text>
-			<view class="pay-list">
-				<view class="pay-item" :class="{ active: payType === 'alipay' }" @click="payType = 'alipay'">
-					<image class="pay-icon" src="/static/images/common/icon_zfb@2x.png" />
-					<text>支付宝支付</text>
-				</view>
-				<view class="pay-item" :class="{ active: payType === 'wechat' }" @click="payType = 'wechat'">
-					<image class="pay-icon" src="/static/images/common/icon_wx@2x.png" />
-					<text>微信支付</text>
-				</view>
-			</view>
-		</view>
-
-		<!-- 说明文字 -->
-		<view class="desc">
-			<text class="desc-title">充值说明：</text>
-			<view class="desc-item">1. 如您未满18岁，请在监护人陪同下操作；</view>
-			<view class="desc-item">2. 如对充值有其它疑问，请联系客服。</view>
-		</view>
-
-		<!-- 确定按钮 -->
-		<button class="submit-btn" @click="handleSubmit">确定</button>
-	</view>
+      <!-- 确定按钮 -->
+      <van-button class="submit-btn" type="primary" @click="handleSubmit"
+        >确定</van-button
+      >
+    </div>
+  </div>
 </template>
 
 <script setup>
-	import {
-		ref,
-		onMounted,
-		computed,
-		watch
-	} from 'vue'
-	import {
-		onReachBottom,
-		onPullDownRefresh
-	} from '@dcloudio/uni-app'
+import { ref, computed, watch } from "vue";
+import { useRouter } from "vue-router";
+import { showToast } from "vant";
+import NavBar from "@/components/CustomNavBar/index.vue";
+import {
+  GetDepositList,
+  GetFirstDepositList,
+  AlipayDeposit,
+  WechatDeposit,
+} from "@/api/recharge";
+import { useUserStore } from "@/store/modules/user";
 
-	import NavBar from "@/components/nav-bar/nav-bar.vue"
-	import {
-		GetUserWalletLog
-	} from "@/axios/mine.js"
-	import {
-		GetDepositList,
-		GetFirstDepositList,
-		AlipayDeposit,
-		WechatDeposit
-	} from "@/axios/recharge.js"
-	import {
-		formatTime
-	} from "@/utils/date.js"
-	import {
-		getNavBarHeight
-	} from "@/utils/system.js"
+const router = useRouter();
+const userStore = useUserStore();
 
-	import {
-		useUserStore
-	} from '@/store/modules/user'
+// 余额
+const balance = computed(() => {
+  return userStore.getUserInfo().wallet.balance;
+});
 
-	const userStore = useUserStore();
+// 当前选中标签
+const activeTab = ref("normal");
+const tabs = [
+  { id: "normal", name: "普通充值" },
+  { id: "first", name: "首充优惠" },
+];
 
-	const balance = computed(() => {
-		return userStore.getUserInfo().wallet.balance
-	})
-		// 当前选中标签
-	const tab = ref('normal')
+// 套餐列表
+const packageList = ref([]);
+const packageFirstList = ref([]);
+const activityId = ref(undefined);
 
-	// 选中的套餐
-	const selectedPackage = ref(null)
+// 选中的套餐
+const selectedPackage = ref(null);
 
-	const packageFirstList = ref(null)
+// 自定义充值数量
+const customNum = ref(null);
 
-	const activityId = ref(null)
+// 支付方式
+const payType = ref("alipay");
 
-	const tabs = [{
-			id: 'normal',
-			name: '普通充值'
-		},
-		{
-			id: 'first',
-			name: '首充优惠'
-		}
-	];
+// 获取套餐列表
+const getDepositList = () => {
+  GetDepositList({ uid: userStore.getUserInfo().id })
+    .then((res) => {
+      packageList.value = res.data;
+    })
+    .catch(() => {
+      showToast("获取套餐列表失败");
+    });
+};
 
-	onMounted(() => {
-		getDepositList()
-		getFirstDepositList()
-	})
+// 获取首充套餐列表
+const getFirstDepositList = () => {
+  GetFirstDepositList({ uid: userStore.getUserInfo().id })
+    .then((res) => {
+      packageFirstList.value = res.data;
+    })
+    .catch(() => {
+      showToast("获取首充套餐列表失败");
+    });
+};
 
-	const getDepositList = () => {
-		GetDepositList({
-			uid: userStore.getUserInfo().id
-		}).then(res => {
-			console.log(res)
-			packageList.value = res.data
-		}).catch()
-	}
+// 监听自定义数量变化
+watch(customNum, (newValue) => {
+  if (newValue) {
+    selectedPackage.value = -1;
+  }
+});
 
+// 选择套餐
+const selectedPackageIndex = (type, item) => {
+  if (type === "normal") {
+    selectedPackage.value = item.amount;
+  } else {
+    selectedPackage.value = item.payment_amount;
+    activityId.value = item.activity_id;
+  }
+  customNum.value = "";
+};
 
-	const getFirstDepositList = () => {
-		GetFirstDepositList({
-			uid: userStore.getUserInfo().id
-		}).then(res => {
-			console.log(res)
-			packageFirstList.value = res.data
-		}).catch()
-	}
+// 提交
+const handleSubmit = async () => {
+  let amount = 0;
+  if (selectedPackage.value && selectedPackage.value !== -1) {
+    amount = selectedPackage.value;
+  } else if (customNum.value && customNum.value >= 3) {
+    amount = customNum.value;
+  } else {
+    showToast({ message: "请选择或输入充值数量", icon: "none" });
+    return;
+  }
 
-	// 自定义充值数量
-	const customNum = ref(null)
+  const obj = {
+    uid: userStore.getUserInfo().id,
+    amount: selectedPackage.value || customNum.value,
+    activity_id: activityId.value || undefined,
+  };
 
-	watch(customNum, (newValue, oldValue) => {
-		if (newValue) {
-			selectedPackage.value = -1;
-		}
-	});
+  if (payType.value === "alipay") {
+    try {
+      const {
+        code,
+        data: { order_str },
+      } = await AlipayDeposit(obj);
+      const payUrl = "https://mapi.alipay.com/gateway.do?" + order_str;
+      const encodedUrl = encodeURIComponent(payUrl);
+      const scheme = `alipays://platformapi/startapp?appId=20000067&url=${encodedUrl}`;
 
-	// 支付方式
-	const payType = ref('alipay')
+      // 尝试唤起App
+      window.location.href = scheme;
 
-	// 套餐列表
-	const packageList = ref()
+      // 若未安装，3秒后跳转H5收银台
+      setTimeout(() => {
+        window.location.href = payUrl;
+      }, 3000);
+    } catch (error) {
+      showToast("支付请求失败");
+    }
+  } else {
+    try {
+      await WechatDeposit(obj);
+      showToast("微信支付功能待实现");
+    } catch (error) {
+      showToast("支付请求失败");
+    }
+  }
+};
 
-	const selectedPackageIndex = (type, item) => {
-		selectedPackage.value = item
-		customNum.value = ""
-		activityId.value = undefined
-		// 首充
-		if (type == 2) {
-			selectedPackage.value = item.payment_amount
-			activityId.value = item.activity_id
-		}
-	}
-	const handleSelect = (val) => {
-		tab.value = val
-		customNum.value = ""
-	}
-	// 返回
-	const goBack = () => {
-		uni.navigateBack()
-	}
-
-	// 提交
-	const handleSubmit = async () => {
-
-		let amount = 0
-		if (selectedPackage.value && selectedPackage.value != -1) {
-			amount = selectedPackage.value
-		} else if (customNum.value && customNum.value >= 3) {
-			amount = customNum.value
-		} else {
-			uni.showToast({
-				title: '请选择或输入充值数量',
-				icon: 'none'
-			})
-			return
-		}
-		let res;
-		let obj = {
-			uid: userStore.getUserInfo().id,
-			amount: selectedPackage.value || customNum.value,
-			activity_id: activityId.value || undefined
-		}
-		if (payType.value == 'alipay') {
-			const {
-				code,
-				data: {
-					order_str
-				}
-			} = await AlipayDeposit(obj)
-			const payUrl = "https://mapi.alipay.com/gateway.do?" + order_str;
-			window.location.href = payUrl;
-
-			const rawPayUrl = "https://mapi.alipay.com/gateway.do?" + order_str;
-			const encodedUrl = encodeURIComponent(rawPayUrl);
-			const scheme = `alipays://platformapi/startapp?appId=20000067&url=${encodedUrl}`;
-
-			// 尝试唤起App
-			window.location.href = scheme;
-
-			// 若未安装，3秒后跳转H5收银台
-			setTimeout(() => {
-				window.location.href = rawPayUrl;
-			}, 3000);
-
-		} else {
-			res = await WechatDeposit(obj)
-		}
-
-		console.log(res)
-
-
-	}
+// 初始化
+getDepositList();
+getFirstDepositList();
 </script>
 
 <style lang="scss" scoped>
-	page {
-		background: #f5f6f8;
-	}
-
-	.page {
-		min-height: 100vh;
-		padding-bottom: 80rpx;
-		position: relative;
-	}
-
-	/* 顶部导航 */
-	.header {
-		background: #ffc832;
-		height: 88rpx;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		position: relative;
-
-		.back {
-			position: absolute;
-			left: 30rpx;
-			font-size: 32rpx;
-		}
-
-		.title {
-			font-size: 34rpx;
-			font-weight: 500;
-		}
-	}
-
-	/* 余额卡片 */
-	.balance-card {
-		background: linear-gradient(to right, #fff9e6, #fff);
-		margin: 20rpx 30rpx;
-		border-radius: 16rpx;
-		padding: 30rpx;
-
-		.label {
-			font-size: 30rpx;
-			display: flex;
-			align-items: center;
-
-			.icon {
-				width: 32rpx;
-				height: 32rpx;
-				margin-left: 8rpx;
-			}
-		}
-
-		.num {
-			font-size: 48rpx;
-			font-weight: bold;
-			margin-top: 10rpx;
-		}
-	}
-
-	/* 标签切换 */
-
-	.tabs {
-		display: flex;
-		justify-content: space-around;
-		background-color: #ffffff;
-		padding: 20rpx 0 10rpx 0;
-		margin-bottom: 20rpx;
-		position: sticky;
-		top: 0;
-		z-index: 10;
-
-		.tab-item {
-			margin: 0 40rpx;
-			position: relative;
-			padding-bottom: 10rpx;
-
-			text {
-				font-family: PingFangSC, PingFang SC;
-				font-weight: 400;
-				font-size: 28rpx;
-				color: #777777;
-			}
-
-			/* 激活状态样式 */
-			&.active text {
-
-				font-weight: 500;
-				font-size: 30rpx;
-				color: #1A1A1A;
-			}
-
-			.line {
-				position: absolute;
-				bottom: 0;
-				left: 50%;
-				transform: translateX(-50%);
-				width: 40rpx;
-				height: 4rpx;
-
-				background: #1A1A1A;
-				border-radius: 2rpx;
-			}
-		}
-	}
-
-
-	/* 通用 section */
-	.section {
-		background: #fff;
-		margin: 20rpx 10rpx 0;
-		border-radius: 16rpx;
-		padding: 20rpx;
-
-		.section-title {
-			font-size: 30rpx;
-			font-weight: 500;
-			margin-bottom: 20rpx;
-			display: block;
-		}
-	}
-
-	/* 套餐列表 */
-	.package-list {
-		display: grid;
-		grid-template-columns: repeat(3, auto);
-		/* 3行，高度自适应 */
-		gap: 20rpx;
-		/* 间距 */
-		height: 100%;
-
-		.package-item {
-			// width: calc((100% - 40rpx) / 3);
-			border: 1rpx solid #eee;
-			border-radius: 12rpx;
-			padding: 24rpx 10rpx;
-			text-align: center;
-
-			.num {
-				font-size: 40rpx;
-				font-weight: bold;
-				color: #333;
-				display: flex;
-
-				align-items: baseline;
-				justify-content: center;
-
-				.icon {
-					width: 28rpx;
-					height: 28rpx;
-					margin-left: 6rpx;
-				}
-			}
-
-			.price {
-				font-size: 26rpx;
-				color: #999;
-				margin-top: 10rpx;
-			}
-
-			.energy {
-				font-size: 26rpx;
-				color: #999;
-			}
-
-			&.active {
-				border-color: #ffc832;
-				background: #fff9e6;
-
-				.num {
-					color: #FF8500;
-				}
-
-				.price {
-					color: #FF8500;
-				}
-			}
-		}
-	}
-
-	/* 自定义输入框 */
-	.custom-input {
-
-		height: 80rpx;
-		background: #f8f8f8;
-		border-radius: 12rpx;
-		padding: 0 10rpx;
-		font-size: 28rpx;
-	}
-
-	/* 支付方式 */
-	.pay-list {
-		display: flex;
-		gap: 20rpx;
-
-		.pay-item {
-			flex: 1;
-			border: 1rpx solid #eee;
-			border-radius: 12rpx;
-			padding: 24rpx;
-			display: flex;
-			align-items: center;
-			justify-content: center;
-			gap: 10rpx;
-			font-size: 28rpx;
-
-			font-family: PingFangSC, PingFang SC;
-			font-weight: 400;
-			font-size: 30rpx;
-			color: #1A1A1A;
-
-			.pay-icon {
-				width: 40rpx;
-				height: 40rpx;
-			}
-
-			&.active {
-				background: #FFC838;
-				border-radius: 12rpx;
-				border: 1rpx solid #FFC838;
-				color: #1A1A1A;
-			}
-		}
-	}
-
-	/* 说明文字 */
-	.desc {
-		margin: 20rpx 30rpx;
-		font-family: PingFangSC, PingFang SC;
-		font-weight: 500;
-		font-size: 24rpx;
-		color: #999999;
-	}
-
-	/* 提交按钮 */
-	.submit-btn {
-		position: fixed;
-		bottom: env(safe-area-inset-bottom);
-		margin: 20rpx;
-		padding: 10rpx 320rpx;
-		background: #ffc832;
-		border: none;
-		border-radius: 16rpx;
-		font-family: PingFangSC, PingFang SC;
-		font-weight: 500;
-		font-size: 32rpx;
-		color: #1A1A1A;
-
-	}
-
-	/* 电池卡片 */
-	.card {
-		position: relative;
-		z-index: 1;
-		padding: 20rpx;
-		padding-bottom: 0;
-		overflow: hidden;
-		padding-left: 30rpx;
-		height: 196rpx;
-	}
-
-	.card-bg {
-		position: absolute;
-		top: 0;
-		left: 0;
-		width: 100%;
-		z-index: 0;
-
-		.card-bg-img {
-			width: 100%;
-			height: 196rpx;
-
-		}
-	}
-
-	.card-content {
-		position: relative;
-		z-index: 1;
-		padding: 0 0;
-		display: flex;
-		justify-content: space-between;
-		align-items: end;
-	}
-
-	.label {
-
-		padding-top: 10rpx;
-
-		display: flex;
-		justify-content: left;
-		align-items: center;
-
-		.label-text {
-			font-family: PingFangSC, PingFang SC;
-			font-weight: 400;
-			font-size: 28rpx;
-			color: #222222;
-		}
-
-		.battery {
-			width: 38rpx;
-			height: 38rpx;
-		}
-	}
-
-	.num {
-		font-family: PingFangSC, PingFang SC;
-		font-weight: 600;
-		font-size: 40rpx;
-		color: #222222;
-		padding-top: 6rpx;
-		padding-left: 10rpx;
-	}
-
-	page {
-		background: #F8F8F8;
-		padding: 0 !important;
-		margin: 0 !important;
-		box-sizing: border-box;
-	}
-
-	.page {
-		min-height: 100vh;
-		box-sizing: border-box;
-	}
-
-	.wrap-content {
-		position: relative;
-		width: 100%;
-		background: #FFFFFF;
-	}
-
-	/* H5 导航栏 */
-	.header {
-		position: relative;
-		z-index: 99;
-		height: 88rpx;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-
-		font-family: PingFangSC, PingFang SC;
-		font-weight: 500;
-		font-size: 32rpx;
-		color: #333333;
-
-		.back-image {
-			position: absolute;
-			left: 30rpx;
-			color: #fff;
-			transform: rotate(180deg);
-			width: 32rpx;
-		}
-	}
-
-	/* 顶部背景图 */
-	.bg-image {
-		position: absolute;
-		top: -97rpx;
-		left: 0;
-		width: 100%;
-		height: 170rpx;
-		z-index: 0;
-
-		.image {
-			width: 100%;
-			height: 100%;
-			object-fit: cover;
-			display: block;
-			height: 170rpx;
-		}
-	}
-
-
-	.label {
-		padding-top: 10rpx;
-		display: flex;
-		justify-content: left;
-		align-items: center;
-
-		.label-text {
-			font-family: PingFangSC, PingFang SC;
-			font-weight: 400;
-			font-size: 28rpx;
-			color: #222222;
-		}
-
-		.battery {
-			width: 38rpx;
-			height: 38rpx;
-		}
-	}
-
-	.num {
-		font-family: PingFangSC, PingFang SC;
-		font-weight: 600;
-		font-size: 40rpx;
-		color: #222222;
-		padding-top: 6rpx;
-		padding-left: 10rpx;
-	}
-
-	.recharge-btn {
-		background: #FFC838;
-		border-radius: 12rpx;
-		font-family: PingFangSC, PingFang SC;
-		font-weight: 400;
-		font-size: 24rpx;
-		color: #1A1A1A;
-		padding: 10rpx 40rpx;
-
-	}
-
-	/* 说明 */
-	.desc {
-		padding: 0 20rpx;
-		font-family: PingFangSC, PingFang SC;
-		font-weight: 400;
-		font-size: 24rpx;
-		color: #999999;
-	}
-
-	.tabs {
-		display: flex;
-		justify-content: space-around;
-		background-color: #ffffff;
-		padding: 20rpx 0 10rpx 0;
-		margin-bottom: 20rpx;
-		position: sticky;
-		top: 0;
-		z-index: 10;
-
-		.tab-item {
-			margin: 0 40rpx;
-			position: relative;
-			padding-bottom: 10rpx;
-
-			text {
-				font-family: PingFangSC, PingFang SC;
-				font-weight: 400;
-				font-size: 28rpx;
-				color: #777777;
-			}
-
-			/* 激活状态样式 */
-			&.active text {
-
-				font-weight: 500;
-				font-size: 30rpx;
-				color: #1A1A1A;
-			}
-
-			.line {
-				position: absolute;
-				bottom: 0;
-				left: 50%;
-				transform: translateX(-50%);
-				width: 40rpx;
-				height: 4rpx;
-
-				background: #1A1A1A;
-				border-radius: 2rpx;
-			}
-		}
-	}
-
-	/* 列表 */
-	.list {
-		padding: 0 20rpx 20rpx;
-	}
-
-	.item {
-		background: #fff;
-		border-radius: 16rpx;
-		padding: 20rpx;
-		margin-bottom: 20rpx;
-	}
-
-	.common-text {
-		font-family: PingFangSC, PingFang SC;
-		font-weight: 400;
-		font-size: 24rpx;
-		color: #666666;
-	}
-
-	.type {
-		font-family: PingFangSC, PingFang SC;
-		font-weight: 500;
-		font-size: 28rpx;
-		color: #333333;
-	}
-
-
-	.middle {
-		display: flex;
-		justify-content: space-between;
-		align-items: baseline;
-		color: #999;
-
-		.amount {
-			font-family: DINAlternate, DINAlternate;
-			font-weight: bold;
-			font-size: 40rpx;
-		}
-
-		.red {
-			color: #EE4040;
-		}
-
-		.green {
-			color: #07C160;
-		}
-	}
-
-
-	.load-tip {
-		text-align: center;
-		padding: 20rpx;
-		color: #999;
-		font-size: 24rpx;
-	}
+.page {
+  min-height: 100vh;
+  background: #f5f6f8;
+  position: relative;
+  padding-bottom: 80px;
+}
+
+.wrap-content {
+  position: relative;
+  width: 100%;
+  background: #ffffff;
+}
+
+/* 顶部背景图 */
+.bg-image {
+  position: absolute;
+  top: -48.5px; // 97rpx / 2
+  left: 0;
+  width: 100%;
+  height: 85px; // 170rpx / 2
+  z-index: 0;
+  .image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+}
+
+/* 电池卡片 */
+.card {
+  position: relative;
+  z-index: 1;
+  padding: 10px 15px 0;
+  overflow: hidden;
+  height: 98px; // 196rpx / 2
+}
+
+.card-bg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  z-index: 0;
+  .card-bg-img {
+    width: 100%;
+    height: 98px; // 196rpx / 2
+  }
+}
+
+.card-content {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+}
+
+.label {
+  padding-top: 5px;
+  display: flex;
+  align-items: center;
+  .label-text {
+    font-size: 14px;
+    color: #222222;
+  }
+  .battery {
+    width: 19px;
+    height: 19px;
+    margin-left: 5px;
+  }
+}
+
+.num {
+  font-weight: 600;
+  font-size: 20px;
+  color: #222222;
+  padding-top: 3px;
+  padding-left: 5px;
+}
+
+/* 标签切换 */
+.tabs {
+  background-color: #ffffff;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+/* 通用 section */
+.section {
+  background: #fff;
+  // margin: 10px 5px 0;
+  border-radius: 8px;
+  padding: 15px;
+  .section-title {
+    font-size: 15px;
+    font-weight: 500;
+    margin-bottom: 10px;
+    display: block;
+  }
+}
+
+/* 套餐列表 */
+.package-list {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  .package-item {
+    border: 1px solid #eee;
+    border-radius: 6px;
+    padding: 12px 5px;
+    text-align: center;
+    .num {
+      font-size: 20px;
+      font-weight: bold;
+      color: #333;
+      display: flex;
+      align-items: baseline;
+      justify-content: center;
+      .icon {
+        width: 14px;
+        height: 14px;
+        margin-left: 3px;
+      }
+    }
+    .price {
+      font-size: 13px;
+      color: #999;
+      margin-top: 5px;
+    }
+    .energy {
+      font-size: 13px;
+      color: #999;
+    }
+    &.active {
+      border-color: #ffc832;
+      background: #fff9e6;
+      .num {
+        color: #ff8500;
+      }
+      .price {
+        color: #ff8500;
+      }
+    }
+  }
+}
+
+/* 自定义输入框 */
+.custom-input {
+  height: 40px;
+  background: #f8f8f8;
+  border-radius: 6px;
+  padding: 0 5px;
+  font-size: 14px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* 支付方式 */
+.pay-list {
+  display: flex;
+  gap: 10px;
+  .pay-item {
+    flex: 1;
+    border: 1px solid #eee;
+    border-radius: 6px;
+    padding: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    font-size: 15px;
+    color: #1a1a1a;
+    .pay-icon {
+      width: 20px;
+      height: 20px;
+    }
+    :deep(.van-radio__label) {
+      display: flex;
+    }
+
+    // &.van-radio--checked {
+    //   background: #ffc838;
+    //   border-color: #ffc838;
+    //   color: #1a1a1a;
+    // }
+
+     :deep(.van-radio__icon--checked .van-icon) {
+      background: #ffc838;
+      border-color: #ffc838;
+  
+     }
+  }
+}
+
+/* 说明文字 */
+.desc {
+  margin: 10px 15px;
+  font-size: 12px;
+  color: #999999;
+  .desc-title {
+    font-weight: 500;
+  }
+  .desc-item {
+    margin-top: 5px;
+  }
+}
+
+/* 提交按钮 */
+.submit-btn {
+  position: fixed;
+  bottom: env(safe-area-inset-bottom);
+  margin: 10px;
+  width: calc(100% - 20px);
+  background: #ffc832;
+  border: none;
+  border-radius: 8px;
+  font-weight: 500;
+  font-size: 16px;
+  color: #1a1a1a;
+}
 </style>
