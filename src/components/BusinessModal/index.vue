@@ -3,8 +3,6 @@
     :show="visible"
     round
     position="center"
-    closeable
-    close-icon-position="top-right"
     @update:show="close"
     @click-overlay="close"
     class="business-modal"
@@ -19,7 +17,12 @@
       </div>
       <div class="line">
         <span class="text">we1731747901</span>
-        <img class="icon copy-btn" :src="copyIcon" alt="复制" @click="handleCopy('we1731747901')" />
+        <img
+          class="icon copy-btn"
+          :src="copyIcon"
+          alt="复制"
+          @click="handleCopy('we1731747901')"
+        />
       </div>
     </div>
 
@@ -31,47 +34,59 @@
       </div>
       <div class="line">
         <span class="text">fuhuanyong@sqzskj.cn</span>
-        <img class="icon copy-btn" :src="copyIcon" alt="复制" @click="handleCopy('fuhuanyong@sqzskj.cn')" />
+        <img
+          class="icon copy-btn"
+          :src="copyIcon"
+          alt="复制"
+          @click="handleCopy('fuhuanyong@sqzskj.cn')"
+        />
       </div>
     </div>
 
-    <van-button type="primary" block round class="confirm-btn" @click="close">
-      确定
-    </van-button>
+    <div class="confirm-btn common-btn" @click="close">确定</div>
   </van-popup>
 </template>
 
 <script setup>
-import { showToast } from 'vant'
+import { showToast } from "vant";
 
-import {copyToClipboard} from "@/utils/utils";
+import { copyToClipboard } from "@/utils/utils";
 
 // 图片资源（Vite 项目推荐写法）
-const wechatIcon = new URL('@/assets/images/common/icon_wechat@2x.png', import.meta.url).href
-const emailIcon = new URL('@/assets/images/common/icon_email@2x.png', import.meta.url).href
-const copyIcon = new URL('@/assets/images/common/icon_copy@2x.png', import.meta.url).href
+const wechatIcon = new URL(
+  "@/assets/images/common/icon_wechat@2x.png",
+  import.meta.url,
+).href;
+const emailIcon = new URL(
+  "@/assets/images/common/icon_email@2x.png",
+  import.meta.url,
+).href;
+const copyIcon = new URL(
+  "@/assets/images/common/icon_copy@2x.png",
+  import.meta.url,
+).href;
 
 defineProps({
   visible: {
     type: Boolean,
     default: false,
   },
-})
+});
 
-const emit = defineEmits(['update:visible'])
+const emit = defineEmits(["update:visible"]);
 
 const close = () => {
-  emit('update:visible', false)
-}
+  emit("update:visible", false);
+};
 
 const handleCopy = async (text) => {
   try {
-    await copyToClipboard(text)
-    showToast({ message: '已复制', type: 'success' })
+    await copyToClipboard(text);
+    showToast({ message: "已复制", type: "success" });
   } catch {
-    showToast({ message: '复制失败，请手动复制', type: 'fail' })
+    showToast({ message: "复制失败，请手动复制", type: "fail" });
   }
-}
+};
 </script>
 
 <style lang="scss" scoped>
@@ -83,7 +98,7 @@ const handleCopy = async (text) => {
 
 .title {
   text-align: center;
-  margin-bottom: 16px;
+  margin-bottom: 15px;
   font-weight: 500;
   font-size: 16px;
   color: #222;
@@ -138,6 +153,12 @@ const handleCopy = async (text) => {
 
 .confirm-btn {
   height: 40px;
-  font-size: 16px;
+  line-height: 1;
+  font-size: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #1a1a1a;
+  margin: 0 auto;
 }
 </style>
