@@ -1,234 +1,182 @@
 <template>
-  <view class="page">
+  <div class="page">
+
+    <NavBar :title="title"></NavBar>
+
     <!-- 1. 顶部背景图与基础信息 -->
-    <view class="header-section">
-      <image class="banner-img" :src="imageUrl" mode="widthFix"></image>
-      <view class="info-box">
-        <view class="title-row">
-          <text class="main-title">{{ detailData.venue_name }}</text>
-          <text class="tag">{{ detailData.labels }}</text>
-        </view>
-        <text class="time-text">营业时间：{{ detailData.start_time }}~{{ detailData.end_time }}</text>
-      </view>
-    </view>
+    <div class="header-section">
+      <img class="banner-img" :src="imageUrl" alt="venue banner" />
+      <div class="info-box">
+        <div class="title-row">
+          <span class="main-title">{{ detailData.venue_name }}</span>
+          <van-tag v-if="detailData.labels" type="primary" size="medium">{{ detailData.labels }}</van-tag>
+        </div>
+        <div class="time-text">营业时间：{{ detailData.start_time }} ~ {{ detailData.end_time }}</div>
+      </div>
+    </div>
 
-    <view class="stats-container">
-      <!-- 项 1 -->
-      <view class="stat-item">
-        <!-- 新增 num-box 包裹数字和单位 -->
-        <view class="num-box">
-          <text class="stat-num">{{ stats.queue }}</text>
-          <text class="stat-unit">人</text>
-        </view>
-        <!-- 原有的标签保留 -->
-        <text class="stat-label">总排队人数</text>
-      </view>
+    <!-- 2. 统计数据 -->
+    <van-cell-group inset class="stats-container">
+      <div class="stat-item">
+        <div class="num-box">
+          <span class="stat-num">{{ stats.queue }}</span>
+          <span class="stat-unit">人</span>
+        </div>
+        <span class="stat-label">总排队人数</span>
+      </div>
+      <van-divider vertical />
+      <div class="stat-item">
+        <div class="num-box">
+          <span class="stat-num">{{ stats.online }}</span>
+          <span class="stat-unit">辆</span>
+        </div>
+        <span class="stat-label">在线车辆</span>
+      </div>
+      <van-divider vertical />
+      <div class="stat-item">
+        <div class="num-box">
+          <span class="stat-num">{{ stats.drive }}</span>
+          <span class="stat-unit">辆</span>
+        </div>
+        <span class="stat-label">驾驶中</span>
+      </div>
+    </van-cell-group>
 
-      <view class="divider"></view>
-
-      <!-- 项 2 -->
-      <view class="stat-item">
-        <view class="num-box">
-          <text class="stat-num">{{ stats.online }}</text>
-          <text class="stat-unit">辆</text>
-        </view>
-        <text class="stat-label">在线车辆</text>
-      </view>
-
-      <view class="divider"></view>
-
-      <!-- 项 3 -->
-      <view class="stat-item">
-        <view class="num-box">
-          <text class="stat-num">{{ stats.drive }}</text>
-          <text class="stat-unit">辆</text>
-        </view>
-        <text class="stat-label">驾驶中</text>
-      </view>
-    </view>
-
-    <view class="text">车辆列表</view>
     <!-- 3. 车辆列表 -->
-    <view class="car-list">
-      <view class="car-card" v-for="car in carList" :key="car.id">
+    <div class="list-title">车辆列表</div>
+    <div class="car-list">
+      <div class="car-card" v-for="car in carList" :key="car.id">
         <!-- 状态标签 -->
-        <view class="status-tag" :class="car.vehicle_state === '1' ? 'tag-green' : 'tag-blue'">
-          {{
-            car.vehicle_state === "1"
-              ? "空闲"
-              : "排队" + car.vehicle_queue + "人"
-          }}
-        </view>
+        <van-tag 
+          :type="car.vehicle_state === '1' ? 'success' : 'primary'" 
+          class="status-tag"
+        >
+          {{ car.vehicle_state === "1" ? "空闲" : "排队" + car.vehicle_queue + "人" }}
+        </van-tag>
 
         <!-- 左侧图片区域 -->
-        <view class="img-wrapper">
-          <image class="car-img" :src="car.vehicle_image" mode="aspectFill"></image>
-          <view class="lock-mask" v-if="car.is_password == 1">
-            <uni-icons type="locked" size="30" color="#ffffff"></uni-icons>
-          </view>
-        </view>
+        <div class="img-wrapper">
+          <img class="car-img" :src="car.vehicle_image" alt="car" />
+          <div class="lock-mask" v-if="car.is_password == 1">
+            <van-icon name="lock" size="30" color="#ffffff" />
+          </div>
+        </div>
 
         <!-- 右侧信息区域 -->
-        <view class="info-wrapper">
-          <view class="top-row">
-            <text class="car-name">{{ car.name }}</text>
-          </view>
-
-          <view class="desc-row">
-            <text class="label">车辆特点：</text>
-            <text class="value">{{ car.vehicle_introduction }}</text>
-          </view>
-
-          <view class="desc-row">
-            <text class="label">最高时速：</text>
-            <text class="value">{{ car.top_speed }}</text>
-          </view>
-
-          <view class="bottom-row">
-            <text class="battery">车辆电量：{{ car.vehicle_battery }}</text>
-            <!-- 按钮：根据状态改变样式 -->
-            <button class="action-btn" :class="{ 'btn-disabled': car.vehicle_state == 2 }"
-              :disabled="car.vehicle_state == 2" @click="handleDrive(car)">
+        <div class="info-wrapper">
+          <div class="top-row">
+            <span class="car-name">{{ car.name }}</span>
+          </div>
+          <div class="desc-row">
+            <span class="label">车辆特点：</span>
+            <span class="value">{{ car.vehicle_introduction }}</span>
+          </div>
+          <div class="desc-row">
+            <span class="label">最高时速：</span>
+            <span class="value">{{ car.top_speed }}</span>
+          </div>
+          <div class="bottom-row">
+            <span class="battery">车辆电量：{{ car.vehicle_battery }}</span>
+            <van-button 
+              size="small" 
+              type="warning" 
+              :disabled="car.vehicle_state == 2"
+              class="action-btn"
+              @click="handleDrive(car)"
+            >
               预约驾驶
-            </button>
-          </view>
-        </view>
-      </view>
-    </view>
+            </van-button>
+          </div>
+        </div>
+      </div>
+    </div>
 
-    <TipModal title="用户驾驶协议" v-model:visible="agree" key="1" @confirm="handleAgree">
-      <template #content>
-        <view class="custom-content">
-          <view class="cont">
-            禁止未成年人充值使用。
-          </view>
-          <view class="cont">
-            用户充值消费驾驶后不支持退余额，充值的金额只能在平台消费，如果排队没玩到车，保留到后面场地有车继续消费。
-          </view>
-          <view class="cont">
-            车辆预约会扣费，如没排队上，预约取消会自动退回账户里。
-          </view>
-          <view class="cont">
-            如有疑问请联系客服。
-          </view>
-        </view>
-      </template>
-    </TipModal>
+    <!-- 4. 弹窗组件 -->
+    
+    <!-- 用户协议弹窗 -->
+    <van-popup v-model:show="agree" position="center" round>
+      <div class="modal-content">
+        <h3>用户驾驶协议</h3>
+        <div class="cont">禁止未成年人充值使用。</div>
+        <div class="cont">用户充值消费驾驶后不支持退余额，充值的金额只能在平台消费，如果排队没玩到车，保留到后面场地有车继续消费。</div>
+        <div class="cont">车辆预约会扣费，如没排队上，预约取消会自动退回账户里。</div>
+        <div class="cont">如有疑问请联系客服。</div>
+        <div class="modal-footer">
+          <van-button block type="primary" @click="handleAgree">我已同意</van-button>
+        </div>
+      </div>
+    </van-popup>
 
-    <TipModal title="输入密码" v-model:visible="pwdVisible" key="2" @confirm="handlePwd">
-      <template #content>
-        <view class="custom-input">
-          <input class="input" type="password" maxlength="6" placeholder="请输入密码" v-model="password" />
-        </view>
-      </template>
-    </TipModal>
+    <!-- 密码输入弹窗 -->
+    <van-popup v-model:show="pwdVisible" position="center" round>
+      <div class="modal-content">
+        <h3>输入密码</h3>
+        <van-field v-model="password" type="password" placeholder="请输入密码" maxlength="6" />
+        <div class="modal-footer">
+          <van-button block type="primary" @click="handlePwd">确认</van-button>
+        </div>
+      </div>
+    </van-popup>
 
-    <TipModal title="车辆预约" v-model:visible="orderVisible" key="2" @confirm="gotoUrl">
-      <template #content>
-        <view class="order-cont">
-          <view class="img">
-            <image class="car-image" :src="selectCar.vehicle_image" mode="aspectFill" />
-          </view>
-          <!-- 注意：请将 src 替换为你实际的图片路径或网络地址 -->
+    <!-- 预约成功弹窗 -->
+    <van-popup v-model:show="orderVisible" position="center" round>
+      <div class="modal-content order-cont">
+        <img class="car-image" :src="selectCar.vehicle_image" alt="car" />
+        <div class="main-status">已成功预约 {{ orderCar.vehicle_name }} 车辆</div>
+        <div class="sub-status">当前还有 {{ orderCar.people_number }} 人排队，请耐心等待</div>
+        
+        <div class="info-card">
+          <div class="info-item">
+            <span class="label">预约类型：</span>
+            <span class="value">按{{ orderCar.billing_method == "0" ? "时间" : "次" }}计费</span>
+          </div>
+          <div class="info-item">
+            <span class="label">预约时间：</span>
+            <span class="value">{{ orderCar.time }}</span>
+          </div>
+        </div>
+        
+        <div class="tip-text">请在【我的-预约订单】中查看</div>
+        <div class="modal-footer">
+          <van-button block type="primary" @click="gotoUrl">查看订单</van-button>
+        </div>
+      </div>
+    </van-popup>
 
-          <!-- 3. 主要状态文本 -->
-          <text class="main-status">已成功预约 {{ orderCar.vehicle_name }} 车辆</text>
-          <text class="sub-status">当前还有 {{ orderCar.people_number }} 人排队，请耐心等待</text>
-
-          <!-- 4. 详情信息卡片 (灰色背景区域) -->
-          <view class="info-card">
-            <view class="info-item">
-              <text class="label">预约类型：</text>
-              <text class="value">按{{
-                orderCar.billing_method == "0" ? "时间" : "次"
-                }}计费</text>
-            </view>
-            <view class="info-item">
-              <text class="label">预约时间：</text>
-              <text class="value">{{ orderCar.time }}</text>
-            </view>
-          </view>
-
-          <!-- 5. 提示语 -->
-          <text class="tip-text">请在【我的-预约订单】中查看</text>
-        </view>
-      </template>
-    </TipModal>
-
+    <!-- 计费方式选择组件 (模拟) -->
     <BillingPopup ref="billingPopupRef" :billData="billingMethod" @confirm="onBillingConfirm" />
-  </view>
+  </div>
 </template>
 
 <script setup>
-import { ref, reactive } from "vue";
-import { onLoad } from "@dcloudio/uni-app";
-import TipModal from "@/components/tip-modal/tip-modal.vue";
-import BillingPopup from "@/components/billing-popup/billing-popup.vue";
-import { GetVenueDetail, OrderCar } from "@/axios/index";
+import { ref, onMounted } from 'vue';
+import { useRouter } from 'vue-router';
+import { showToast } from 'vant';
+import { GetVenueDetail, OrderCar } from '@/api/index'; 
+import BillingPopup from '@/components/BillingPopup/index.vue'; 
 
-const stats = ref({
-  queue: 0,
-  online: 0,
-  drive: 0,
-});
-
+const router = useRouter();
+const stats = ref({ queue: 0, online: 0, drive: 0 });
 const agree = ref(false);
 const pwdVisible = ref(false);
 const orderVisible = ref(false);
 const password = ref("");
 const billingPopupRef = ref(null);
 const imageUrl = ref("");
-const billingMethod = ref();
-const detailData = ref({
-  venue_name: '',
-  labels: '',
-  start_time: '',
-  end_time: '',
-});
-
-const selectCar = ref({
-  vehicle_id: "",
-  vehicle_name: "",
-  venue_id: "",
-  billing_rules: "",
-  venue_name: "",
-  vehicle_image: ''
-});
-
-const orderCar = ref({
-  vehicle_name: "",
-  time: "",
-  payment_type: 1,
-  billing_method: 0,
-  order_no: "",
-  transmitter_id: 0,
-  people_number: 0,
-});
-
-const car = ref({
-  id: "",
-  vehicle_id: "",
-  vehicle_name: "",
-  venue_id: "",
-  billing_rules: "",
-  venue_name: "",
-  vehicle_image: '',
-  password: ''
-});
-
-// 车辆列表数据
+const billingMethod = ref({});
+const detailData = ref({ venue_name: '', labels: '', start_time: '', end_time: '' });
+const selectCar = ref({ vehicle_id: "", vehicle_name: "", venue_id: "", billing_rules: "", venue_name: "", vehicle_image: '' });
+const orderCar = ref({ vehicle_name: "", time: "", payment_type: 1, billing_method: 0, order_no: "", transmitter_id: 0, people_number: 0 });
+const currentCar = ref({}); // 重命名 car 为 currentCar 避免冲突
 const carList = ref([]);
-
-// --- 2. 页面生命周期 ---
-onLoad((options) => {
-  // 这里可以根据 options.id 请求后台获取真实数据
-
-  uni.setNavigationBarTitle({
-    title: uni.getStorageSync("carTitle"),
-  });
-  GetVenueDetail({
-    venue_id: options.id,
-  })
+const title = ref('')
+// 页面加载模拟
+onMounted(() => {
+  // 模拟获取路由参数
+  const options = { id: 1 }; 
+  title.value = localStorage.getItem("carTitle") || "场馆详情";
+  
+  GetVenueDetail({ venue_id: options.id })
     .then((res) => {
       const { code, data } = res;
       detailData.value = { ...data };
@@ -236,66 +184,59 @@ onLoad((options) => {
       stats.value.online = data.online;
       stats.value.drive = data.drive;
       imageUrl.value = data.venue_image?.[0];
-
       carList.value = data.vehicle;
       billingMethod.value = data.venue_config;
       selectCar.value.venue_id = options.id;
       selectCar.value.venue_name = data.venue_name;
     })
-    .catch();
+    .catch(() => {
+      showToast('加载失败');
+    });
 });
 
-// --- 3. 交互逻辑 ---
+// 交互逻辑
 const handleDrive = (item) => {
-  // 用户协议
+  currentCar.value = { ...item };
   agree.value = true;
-  car.value = { ...item }
-  return;
-
 };
 
 const handlePwd = () => {
-  // 输入的密码跟返回的密码
-  if (password.value === car.value.password) {
+  if (password.value === currentCar.value.password) {
     pwdVisible.value = false;
-    selectCar.value.vehicle_id = car.value.id;
-    selectCar.value.vehicle_name = car.value.vehicle_name;
-    selectCar.value.vehicle_image = car.value.vehicle_image;
+    selectCar.value.vehicle_id = currentCar.value.id;
+    selectCar.value.vehicle_name = currentCar.value.vehicle_name;
+    selectCar.value.vehicle_image = currentCar.value.vehicle_image;
     billingPopupRef.value.open();
   } else {
-    uni.showToast({
-      title: "密码不正确",
-      icon: "none",
-    });
+    showToast({ message: "密码不正确", icon: 'none' });
   }
 };
 
 const handleAgree = () => {
   agree.value = false;
-  if (car.value.is_password == 1) {
+  if (currentCar.value.is_password == 1) {
     pwdVisible.value = true;
     return;
   }
-  if (car.vehicle_state === "2") {
-    // 理论上按钮已禁用，这里是双重保险
-    uni.showToast({ title: "该车正在排队中", icon: "none" });
+  if (currentCar.value.vehicle_state === "2") {
+    showToast({ message: "该车正在排队中", icon: "none" });
     return;
   }
-  selectCar.value.vehicle_id = car.value.id;
-  selectCar.value.vehicle_name = car.value.vehicle_name;
-  selectCar.value.vehicle_image = car.value.vehicle_image;
+  selectCar.value.vehicle_id = currentCar.value.id;
+  selectCar.value.vehicle_name = currentCar.value.vehicle_name;
+  selectCar.value.vehicle_image = currentCar.value.vehicle_image;
   billingPopupRef.value.open();
 };
 
 const flag = ref(true);
 const onBillingConfirm = (params) => {
-  if (!flag) {
-    return;
-  }
+  if (!flag.value) return;
   flag.value = false;
-  const min = Math.pow(10, 7); // 10000000
-  const max = Math.pow(10, 8) - 1; // 99999999
+  
+  const min = Math.pow(10, 7);
+  const max = Math.pow(10, 8) - 1;
   const randomNumber = Math.floor(Math.random() * (max - min + 1)) + min;
+  
   OrderCar({
     vehicle_id: selectCar.value.vehicle_id,
     vehicle_name: selectCar.value.vehicle_name,
@@ -306,77 +247,63 @@ const onBillingConfirm = (params) => {
     billing_method: params.selectType == -1 ? 0 : 1,
     app_transmitter_id: randomNumber,
   })
-    .then((res) => {
-      if (res.code === 200) {
-        orderCar.value = {
-          ...res.data,
-        };
-        orderVisible.value = true;
-      }
-    })
-    .catch()
-    .finally(() => {
-      flag.value = true;
-    });
+  .then((res) => {
+    if (res.code === 200) {
+      orderCar.value = { ...res.data };
+      orderVisible.value = true;
+    }
+  })
+  .catch(() => {
+    showToast('预约失败');
+  })
+  .finally(() => {
+    flag.value = true;
+  });
 };
 
 const gotoUrl = () => {
-  orderVisible.value = false
-  uni.navigateTo({ url: '/pages/mine/reservation' })
-}
+  orderVisible.value = false;
+  router.push('/pages/mine/reservation');
+};
 </script>
 
-<style lang="scss" scoped>
+<style scoped>
 /* 全局容器 */
 .page {
   background-color: #f5f5f5;
   min-height: 100vh;
-  padding-bottom: 30rpx;
+  padding-bottom: 30px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Helvetica, sans-serif;
 }
 
 /* 1. 头部样式 */
 .header-section {
   background-color: #ffffff;
-
-  .banner-img {
-    width: 100%;
-    height: 340rpx !important;
-    display: block;
-  }
-
-  .info-box {
-    padding: 20rpx;
-
-    .title-row {
-      display: flex;
-      align-items: center;
-
-      .main-title {
-        font-family: PingFangSC, PingFang SC;
-        font-weight: 500;
-        font-size: 28rpx;
-        color: #1a1a1a;
-        margin-right: 10rpx;
-      }
-
-      .tag {
-        font-family: PingFangSC, PingFang SC;
-        font-weight: 400;
-        font-size: 20rpx;
-        color: #3e77ac;
-        padding: 2rpx 5rpx;
-        background: #c7e0ff;
-        border-radius: 4rpx;
-      }
-    }
-
-    .time-text {
-      font-family: PingFangSC, PingFang SC;
-      font-weight: 400;
-      font-size: 20rpx;
-      color: #666666;
-    }
-  }
+  margin-bottom: 10px;
+}
+.banner-img {
+  width: 100%;
+  height: 170px;
+  object-fit: cover;
+  display: block;
+}
+.info-box {
+  padding: 15px;
+}
+.title-row {
+  display: flex;
+  align-items: center;
+  margin-bottom: 8px;
+}
+.main-title {
+  font-weight: 500;
+  font-size: 18px;
+  color: #1a1a1a;
+  margin-right: 10px;
+}
+.time-text {
+  font-size: 12px;
+  color: #666666;
 }
 
 /* 2. 统计栏样式 */
@@ -386,300 +313,197 @@ const gotoUrl = () => {
   justify-content: space-around;
   align-items: center;
   background-color: #ffffff;
-
-  padding: 10rpx 0 20rpx 0;
-
-  .stat-item {
-    display: flex;
-    flex-direction: column; // 保持上下结构：上面数字，下面文字
-    align-items: center;
-    justify-content: center;
-    flex: 1;
-  }
-
-  // 新增：数字和单位的容器
-  .num-box {
-    display: flex;
-    flex-direction: row; // 数字和单位横向排列
-    align-items: baseline; // 关键：让数字和单位底部对齐，视觉更整齐
-  }
-
-  .stat-num {
-    font-family: DINAlternate, DINAlternate;
-    font-weight: bold;
-    font-size: 42rpx;
-    color: #1a1a1a;
-  }
-
-  // 新增：单位的样式
-  .stat-unit {
-    font-size: 24rpx;
-    color: #999999;
-    margin-left: 4rpx; // 数字和单位之间的一点点间距
-    margin-bottom: 4rpx; // 微调垂直位置，视字体而定
-  }
-
-  .stat-label {
-    font-size: 24rpx;
-    color: #999999;
-    margin-top: 4rpx;
-  }
-
-  .divider {
-    width: 1rpx;
-    height: 40rpx;
-    background-color: #f0f0f0;
-  }
+  padding: 15px 0;
+  margin-bottom: 10px;
+}
+.stat-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+}
+.num-box {
+  display: flex;
+  flex-direction: row;
+  align-items: baseline;
+}
+.stat-num {
+  font-weight: bold;
+  font-size: 24px;
+  color: #1a1a1a;
+  font-family: 'DINAlternate', sans-serif;
+}
+.stat-unit {
+  font-size: 14px;
+  color: #999999;
+  margin-left: 2px;
+}
+.stat-label {
+  font-size: 12px;
+  color: #999999;
+  margin-top: 4px;
 }
 
-.text {
-  padding: 20rpx;
-  font-family: PingFangSC, PingFang SC;
-  font-weight: 400;
+.list-title {
+  padding: 15px;
+  font-size: 16px;
+  color: #333;
 }
 
 /* 3. 列表卡片样式 */
 .car-list {
-  padding: 0 20rpx;
-  // margin-top: 20rpx;
+  padding: 0 15px;
 }
-
 .car-card {
   background-color: #ffffff;
-  border-radius: 16rpx;
-  margin-bottom: 20rpx;
+  border-radius: 12px;
+  margin-bottom: 15px;
   display: flex;
-  padding: 20rpx;
+  padding: 15px;
   position: relative;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+.status-tag {
+  position: absolute;
+  top: 0;
+  right: 0;
+  border-radius: 0 12px 0 12px;
+  font-size: 10px;
+  padding: 4px 8px;
+}
+.img-wrapper {
+  width: 100px;
+  height: 100px;
+  margin-right: 15px;
+  position: relative;
+  border-radius: 8px;
   overflow: hidden;
-
-  .status-tag {
-    position: absolute;
-    top: 0;
-    right: 0;
-    font-size: 22rpx;
-    font-size: 20rpx;
-    color: #fff;
-    padding: 6rpx 15rpx;
-    border-radius: 0rpx 16rpx 0rpx 16rpx;
-
-    &.tag-green {
-      background-color: #4cd964;
-      /* 绿色 */
-    }
-
-    &.tag-blue {
-      background-color: #007aff;
-      /* 蓝色 */
-    }
-  }
-
-  /* 图片区域 */
-  .img-wrapper {
-    width: 200rpx;
-    height: 200rpx;
-    margin-right: 30rpx;
-    position: relative;
-    border-radius: 12rpx;
-    overflow: hidden;
-
-    .car-img {
-      width: 100%;
-      height: 100%;
-    }
-
-    .lock-mask {
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background-color: rgba(0, 0, 0, 0.6);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      z-index: 2;
-      opacity: 0.6;
-    }
-  }
-
-  /* 信息区域 */
-  .info-wrapper {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    padding-right: 10rpx;
-
-    .top-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-
-      .car-name {
-        font-family: PingFangSC, PingFang SC;
-        font-weight: 600;
-        font-size: 28rpx;
-        color: #222222;
-      }
-    }
-
-    .desc-row {
-      display: flex;
-      margin-top: 10rpx;
-      font-family: PingFangSC, PingFang SC;
-      font-weight: 400;
-      font-size: 20rpx;
-      color: #555555;
-
-      .label {
-        width: 100rpx;
-      }
-
-      .value {
-        flex: 1;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-      }
-    }
-
-    .bottom-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-top: 20rpx;
-
-      .battery {
-        font-family: PingFangSC, PingFang SC;
-        font-weight: 400;
-        font-size: 20rpx;
-        color: #555555;
-      }
-
-      .action-btn {
-        background-color: #f1c40f;
-        /* 黄色按钮 */
-        color: #333;
-        font-size: 24rpx;
-        font-weight: bold;
-        padding: 0 30rpx;
-        height: 60rpx;
-        line-height: 60rpx;
-        border-radius: 30rpx;
-        margin: 0;
-        /* 去除默认外边距 */
-
-        &.btn-disabled {
-          background-color: #cccccc;
-          color: #666;
-        }
-      }
-    }
-  }
+}
+.car-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.lock-mask {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
+}
+.info-wrapper {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+.top-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.car-name {
+  font-weight: 600;
+  font-size: 16px;
+  color: #222222;
+}
+.desc-row {
+  display: flex;
+  font-size: 12px;
+  color: #555555;
+  margin-top: 5px;
+}
+.label {
+  width: 60px;
+  flex-shrink: 0;
+}
+.value {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.bottom-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 10px;
+}
+.battery {
+  font-size: 12px;
+  color: #555555;
+}
+.action-btn {
+  height: 28px;
+  font-size: 12px;
+  padding: 0 15px;
 }
 
-.custom-input {
-  background: #f8f8f8;
-  border-radius: 16rpx;
-
-  .input {
-    height: 90rpx;
-    line-height: 1;
-  }
+/* 弹窗通用样式 */
+.modal-content {
+  padding: 20px;
+  width: 80vw;
+  max-width: 300px;
+  text-align: center;
+}
+.modal-content h3 {
+  margin-top: 0;
+  margin-bottom: 15px;
+  font-size: 18px;
+}
+.cont {
+  font-size: 14px;
+  color: #666;
+  margin-bottom: 10px;
+  text-align: left;
+}
+.modal-footer {
+  margin-top: 20px;
 }
 
-.custom-content {
-  font-family: PingFangSC, PingFang SC;
-  font-weight: 400;
-  font-size: 28rpx;
-  color: #333333;
-
-  .title {
-    font-weight: 600;
-  }
-
-  .cont {
-    display: block;
-    text-align: left;
-  }
+/* 预约成功弹窗特有样式 */
+.order-cont .car-image {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  margin-bottom: 15px;
+  background-color: #f0f0f0;
 }
-
-.order-cont {
-  .popup-title {
-    font-size: 36rpx;
-    font-weight: bold;
-    color: #333333;
-    margin-bottom: 30rpx;
-  }
-
-  .img {
-    text-align: center;
-  }
-
-  /* 车辆图片 */
-  .car-image {
-    width: 160rpx;
-    height: 160rpx;
-    border-radius: 50%;
-    /* 圆形图片 */
-    margin-bottom: 20rpx;
-    background-color: #f0f0f0;
-    /* 占位背景色 */
-  }
-
-  /* 主状态文本 */
-  .main-status {
-    font-size: 32rpx;
-    font-weight: bold;
-    color: #333333;
-    margin-bottom: 10rpx;
-    display: block;
-  }
-
-  /* 副状态文本 */
-  .sub-status {
-    font-size: 26rpx;
-    color: #999999;
-    margin-bottom: 30rpx;
-    display: block;
-  }
-
-  /* 详情信息卡片 */
-  .info-card {
-    width: 100%;
-    background-color: #f7f8fa;
-    /* 浅灰背景 */
-    border-radius: 12rpx;
-    padding: 20rpx;
-    box-sizing: border-box;
-    margin-bottom: 20rpx;
-  }
-
-  .info-item {
-    display: flex;
-    font-size: 26rpx;
-    margin-bottom: 10rpx;
-    line-height: 1.6;
-  }
-
-  .info-item:last-child {
-    margin-bottom: 0;
-  }
-
-  .label {
-    color: #666666;
-  }
-
-  .value {
-    color: #333333;
-  }
-
-  /* 底部提示语 */
-  .tip-text {
-    font-size: 24rpx;
-    color: #999999;
-    margin-bottom: 40rpx;
-  }
+.main-status {
+  font-size: 16px;
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 5px;
+}
+.sub-status {
+  font-size: 12px;
+  color: #999;
+  margin-bottom: 15px;
+}
+.info-card {
+  background-color: #f7f8fa;
+  border-radius: 8px;
+  padding: 10px;
+  text-align: left;
+  margin-bottom: 15px;
+}
+.info-item {
+  display: flex;
+  font-size: 12px;
+  margin-bottom: 5px;
+}
+.info-item:last-child {
+  margin-bottom: 0;
+}
+.tip-text {
+  font-size: 10px;
+  color: #999;
+  margin-bottom: 15px;
 }
 </style>

@@ -16,7 +16,7 @@ const routes: Array<RouteRecordRaw> = [
         meta: {
           title: "首页",
           noAuth: true,
-
+          noCache: false,
           hiddenNavBar: false,
         },
       },
@@ -26,7 +26,6 @@ const routes: Array<RouteRecordRaw> = [
         component: () => import("@/views/tools/index.vue"),
         meta: {
           title: "工具",
-
           noAuth: true,
         },
       },
@@ -48,7 +47,6 @@ const routes: Array<RouteRecordRaw> = [
         meta: {
           title: "登录",
           noCache: true,
-
           noAuth: true,
         },
       },
@@ -71,7 +69,8 @@ const routes: Array<RouteRecordRaw> = [
           noCache: true,
           noAuth: true,
         },
-      },{
+      },
+      {
         path: "register",
         name: "Register",
         component: () => import("@/views/register/index.vue"),
@@ -140,7 +139,17 @@ const routes: Array<RouteRecordRaw> = [
           noCache: true,
           noAuth: true,
         },
-      }
+      },
+      {
+        path: "carDetails",
+        name: "CarDetails",
+        component: () => import("@/views/car/details.vue"),
+        meta: {
+          title: "车辆详情",
+          noCache: true,
+          noAuth: false,
+        },
+      },
     ],
   },
 ];

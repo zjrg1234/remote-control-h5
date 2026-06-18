@@ -14,11 +14,10 @@
 
 <script setup lang="ts">
 import tabbar from "@/components/Tabbar/index.vue";
-// import NavBar from "@/components/NavBar/index.vue";
 import { useCachedViewStoreHook } from "@/store/modules/cachedView";
 import { useDarkMode } from "@/hooks/useToggleDarkMode";
 import { computed, ref, watch } from "vue";
-import { useRoute, useRouter } from 'vue-router'
+import { useRoute } from 'vue-router'
 const route = useRoute()
 
 const showNavBar = ref(false)
@@ -27,7 +26,6 @@ watch(
   () => route.meta,
   (meta) => {
     showNavBar.value = meta.hiddenNavBar === false
-    console.log(12223)
   },
   { immediate: true }
 )

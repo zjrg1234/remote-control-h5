@@ -4,18 +4,9 @@
 
     <!-- 网格列表 -->
     <div class="grid">
-      <div
-        class="grid-item"
-        v-for="item in list"
-        :key="item.id"
-        :class="{ active: selected === item.id }"
-        @click="selected = item.id"
-      >
-        <img
-          class="car-img"
-          src="@/assets/images/common/car@2x.png"
-          alt="car"
-        />
+      <div class="grid-item" v-for="item in list" :key="item.id" :class="{ active: selected === item.id }"
+        @click="selected = item.id">
+        <img class="car-img" src="@/assets/images/common/car@2x.png" alt="car" />
         <div class="info">
           <span class="name">{{ item.agent_name }}</span>
           <span class="desc">分区数 ｜ {{ item.partitions_number }} 个</span>
@@ -27,9 +18,7 @@
 
     <!-- 底部加载/无数据状态 -->
     <div class="loading-layout" v-if="list.length || noData">
-      <van-loading v-if="!noData" type="spinner" color="#1989fa"
-        >加载中...</van-loading
-      >
+      <van-loading v-if="!noData" type="spinner" color="#1989fa">加载中...</van-loading>
       <!-- <van-empty v-else description="没有更多了" image="search" /> -->
     </div>
 
@@ -39,12 +28,7 @@
     </div>
 
     <!-- 提示弹窗 -->
-    <van-dialog
-      v-model:show="tipVisible"
-      title="提示"
-      show-cancel-button
-      @confirm="handleConfirm"
-    >
+    <van-dialog v-model:show="tipVisible" title="提示" show-cancel-button @confirm="handleConfirm">
       <div class="dialog-content">
         <p class="text">
           变更专区后您所有的账户数据不会转移到新的专区（您稍后也可自行变更到当前专区）
@@ -140,6 +124,8 @@ const handleConfirm = async () => {
     const res = await ChangeSpecialList(obj);
     if (res.code == 200) {
       userStore.setAreaId(selected.value);
+      showSuccessToast('变更专区成功');
+
     } else {
       showFailToast(res.msg);
     }
@@ -168,7 +154,7 @@ const handleConfirm = async () => {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 5px;
-  padding: 10px 10px;
+  padding: 10px;
 }
 
 .grid-item {
@@ -246,9 +232,11 @@ const handleConfirm = async () => {
   left: 50%;
   transform: translateX(-50%);
   margin-bottom: 10px;
+  width: calc(100% - 20px);
+
 
   .confirm-btn {
-    width: 702px;
+    width: 100%;
     height: 45px;
     line-height: 45px;
     border: none;
@@ -270,11 +258,9 @@ const handleConfirm = async () => {
     line-height: 1.6;
     margin: 0;
 
-    & + .text {
+    &+.text {
       margin-top: 8px;
     }
   }
 }
-
-
 </style>

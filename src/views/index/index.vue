@@ -7,19 +7,9 @@
 
     <!-- 分类导航栏 -->
 
-    <van-tabs
-      v-model:active="currentTabIndex"
-      sticky
-      offset-top="0"
-      @click-tab="handleCategoryClick"
-      class="sticky-nav"
-    >
-      <van-tab
-        v-for="(item, index) in categories"
-        :key="index"
-        :title="item.name"
-        :name="item.id"
-      />
+    <van-tabs v-model:active="currentTabIndex" sticky offset-top="0" @click-tab="handleCategoryClick"
+      class="sticky-nav">
+      <van-tab v-for="(item, index) in categories" :key="index" :title="item.name" :name="item.id" />
     </van-tabs>
 
     <div v-if="list.length === 0 && !loading" class="empty-state">
@@ -27,12 +17,7 @@
     </div>
 
     <div class="list-container" v-if="list.length != 0">
-      <div
-        v-for="(item, index) in list"
-        :key="index"
-        class="card-item"
-        @click="handleCar(item)"
-      >
+      <div v-for="(item, index) in list" :key="index" class="card-item" @click="handleCar(item)">
         <img :src="item.image || item.venue_image?.[0]" class="card-img" />
         <div class="meta">
           <span class="status online"></span>
@@ -95,7 +80,7 @@ const fetchData = async () => {
       noMore.value = true;
     }
   } catch (error) {
- 
+
     noMore.value = true;
   } finally {
     loading.value = false;
@@ -111,7 +96,7 @@ const handleCategoryClick = ({ name }) => {
     currentCategoryId.value = item.id;
     // 切换分类时清空列表并重新加载
     list.value = [];
-   
+
     fetchData();
   }
 };
@@ -139,7 +124,7 @@ onMounted(async () => {
 
 <style lang="scss" scoped>
 .container {
-  // min-height: 100vh;
+   min-height: 100vh;
   // background-color: #f5f6fa;
   // padding-bottom: 40px;
 }
@@ -158,6 +143,7 @@ onMounted(async () => {
 }
 
 .sticky-nav {
+  top: -10px;
   :deep(.van-tabs__nav) {
     background-color: #fff;
     border-radius: 20px 20px 0 0;
@@ -167,8 +153,8 @@ onMounted(async () => {
 
 /* 【修改】：单列列表布局 */
 .list-container {
-   display: grid; 
-grid-template-columns: repeat(2, 1fr);
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
   padding: 10px;
   gap: 10px;
   background-color: #fff;
@@ -179,7 +165,8 @@ grid-template-columns: repeat(2, 1fr);
   position: relative;
   background: #e9e9e9;
   border-radius: 8px;
-  height: 200px; /* 单列建议适当调整高度，避免卡片过高 */
+  height: 200px;
+  /* 单列建议适当调整高度，避免卡片过高 */
   overflow: hidden;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03);
 
@@ -221,11 +208,13 @@ grid-template-columns: repeat(2, 1fr);
     .num {
       display: flex;
       align-items: center;
+
       .icon {
         width: 12px;
         height: 12px;
         display: block;
       }
+
       .text {
         font-size: 12px;
         color: #ffc838;
@@ -253,6 +242,7 @@ grid-template-columns: repeat(2, 1fr);
       margin-right: 4px;
       background: #15cb50;
     }
+
     .divider {
       margin: 0 6px;
       color: #ddd;
