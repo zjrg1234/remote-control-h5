@@ -81,5 +81,11 @@ export function  StartDriving(data) {
 	return post('/api/start/driving',data)
 }
 
+export function  Logout(data) {
+	return post('/api/login/logout',data)
+}
+
+
+
 
 

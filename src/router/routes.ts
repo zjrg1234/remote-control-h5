@@ -150,6 +150,16 @@ const routes: Array<RouteRecordRaw> = [
           noAuth: true,
         },
       },
+      {
+        path: "set",
+        name: "Set",
+        component: () => import("@/views/mine/set.vue"),
+        meta: {
+          title: "设置",
+          noCache: true,
+          noAuth: true,
+        },
+      },
     ],
   },
 ];

@@ -1,165 +1,132 @@
 <template>
-  <view class="page">
+  <div class="page">
+    <NavBar title="设置"></NavBar>
+
+
     <!-- 顶部操作组 -->
-    <view class="card">
-      <view class="item" @click="handleModifyPassword">
-        <text class="label">修改密码</text>
-        <image class="arrow" src="/static/images/common/icon_arrows_gray@2x.png" mode="aspectFill" />
-      </view>
-      <view class="item" @click="handleModifyPhone">
-        <text class="label">修改手机号</text>
-        <image class="arrow" src="/static/images/common/icon_arrows_gray@2x.png" mode="aspectFill" />
-      </view>
-    </view>
+    <div class="card">
+      <div class="item" @click="handleModifyPassword">
+        <span class="label">修改密码</span>
+        <img class="arrow" src="@/assets/images/common/icon_arrows_gray@2x.png" mode="aspectFill" />
+      </div>
+      <div class="item" @click="handleModifyPhone">
+        <span class="label">修改手机号</span>
+        <img class="arrow" src="@/assets/images/common/icon_arrows_gray@2x.png" mode="aspectFill" />
+      </div>
+    </div>
 
     <!-- 版本与服务信息组 -->
-    <view class="card">
-      
-      <view class="item" @click="handleOpenPrivacy">
-        <text class="label">隐私政策</text>
-        <image class="arrow" src="/static/images/common/icon_arrows_gray@2x.png" mode="aspectFill" />
-      </view>
-      <view class="item" @click="handleOpenInfoList">
-        <text class="label">个人信息收集清单</text>
-        <image class="arrow" src="/static/images/common/icon_arrows_gray@2x.png" mode="aspectFill" />
-      </view>
-      <view class="item" @click="handleOpenSDKList">
-        <text class="label">SDK 共享清单</text>
-        <image class="arrow" src="/static/images/common/icon_arrows_gray@2x.png" mode="aspectFill" />
-      </view>
-      <!-- <view class="item" @click="handleOpenCompanyIntro">
-        <text class="label">公司介绍</text>
-        <image class="arrow" src="/static/images/common/icon_arrows_gray@2x.png" mode="aspectFill" />
-      </view>
-      <view class="item" @click="handleOpenFAQ">
-        <text class="label">常见问题</text>
-        <image class="arrow" src="/static/images/common/icon_arrows_gray@2x.png" mode="aspectFill" />
-      </view> -->
+    <div class="card">
 
-      <view class="item" @click="handleDeleteAccount">
-        <text class="label">注销账号</text>
-        <image class="arrow" src="/static/images/common/icon_arrows_gray@2x.png" mode="aspectFill" />
-      </view>
-    </view>
+      <!-- <div class="item" @click="handleOpenPrivacy">
+        <span class="label">隐私政策</span>
+        <img class="arrow" src="@/assets/images/common/icon_arrows_gray@2x.png" mode="aspectFill" />
+      </div>
+      <div class="item" @click="handleOpenInfoList">
+        <span class="label">个人信息收集清单</span>
+        <img class="arrow" src="@/assets/images/common/icon_arrows_gray@2x.png" mode="aspectFill" />
+      </div>
+      <div class="item" @click="handleOpenSDKList">
+        <span class="label">SDK 共享清单</span>
+        <img class="arrow" src="@/assets/images/common/icon_arrows_gray@2x.png" mode="aspectFill" />
+      </div> -->
+
+
+      <!-- <div class="item" @click="handleDeleteAccount">
+        <span class="label">注销账号</span>
+        <img class="arrow" src="@/assets/images/common/icon_arrows_gray@2x.png" mode="aspectFill" />
+      </div> -->
+    </div>
 
     <!-- 退出登录按钮 -->
-    <view class="logout-btn" @click="handleLogout">
+    <div class="logout-btn" @click="handleLogout">
       退出登录
-    </view>
-  </view>
-	
-	<CustomModal  v-model:visible="logoutModal" title="提示" content="是否注销账号?" 
-	 cancelText="取消" confirmText="确定" @cancel="logoutModal = false" @confirm="handleConfirm"  />
+    </div>
+
+    <TipModal title="提示" v-model:visible="logoutVisible" @confirm="logout">
+      <template #content>
+        <div class="custom-content">确定要退出登录吗？</div>
+      </template>
+    </TipModal>
+  </div>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
-	import CustomModal from '@/components/common-modal/common-modal.vue'
-import {logoutAccount} from "@/axios/mine.js"
-const cacheSize = ref('34.23kb')
-const logoutModal = ref(false)
-// 模拟获取缓存大小
-onMounted(() => {
-  // 实际项目中可通过 uni.getStorageInfo 获取
-  // uni.getStorageInfo({
-  //   success: (res) => {
-  //     const sizeKB = (res.currentSize / 1024).toFixed(2)
-  //     cacheSize.value = `${sizeKB}kb`
-  //   }
-  // })
-})
+import { ref } from 'vue';
+import { useRouter } from 'vue-router';
+// import { showSuccessToast, showFailToast, showDialog } from 'vant';
+import NavBar from "@/components/CustomNavBar/index.vue";
+import { Logout } from "@/api/mine";
+import TipModal from "@/components/TipModal/index.vue";
 
+
+const router = useRouter();
+const logoutVisible = ref(false)
+
+const logoutType = ref(1)
 // 事件处理函数
 const handleModifyPassword = () => {
-  uni.navigateTo({ url: '/pages/user/modifyPwd' })
-}
+  router.push('/modifyPwd');
+};
 
 const handleModifyPhone = () => {
-  uni.navigateTo({ url: '/pages/user/modifyPhone' })
-}
+  router.push('/modifyPhone');
+};
 
-const handleOpenPrivacy = () => {
-  uni.navigateTo({ url: '/pages/set/privacy' })
-}
+// const handleOpenPrivacy = () => {
+//   router.push('/privacy');
+// };
 
-const handleOpenInfoList = () => {
-  uni.navigateTo({ url: '/pages/set/infoSheet' })
-}
+// const handleOpenInfoList = () => {
+//   router.push('/infoSheet');
+// };
 
-const handleOpenSDKList = () => {
-  uni.navigateTo({ url: '/pages/set/sdkSheet' })
-}
+// const handleOpenSDKList = () => {
+//   router.push('/sdkSheet');
+// };
 
-const handleOpenCompanyIntro = () => {
-  uni.navigateTo({ url: '/pages/webview/company' })
-}
+// // 注销账号
+// const handleDeleteAccount = () => {
+//   logoutType.value = 1
+//   logoutVisible.value = true
+// }
 
-const handleOpenFAQ = () => {
-  uni.navigateTo({ url: '/pages/webview/faq' })
-}
-
-const handleClearCache = () => {
-  uni.showModal({
-    title: '提示',
-    content: '确定要清除缓存吗？',
-    success: (res) => {
-      if (res.confirm) {
-        uni.clearStorageSync()
-        uni.showToast({ title: '清除成功' })
-        cacheSize.value = '0.00kb'
-      }
-    }
-  })
-}
-
-const handleDeleteAccount = () => {
-  logoutModal.value = true
-}
-const handleConfirm = () => {
-	logoutAccount().then(res => {
-		uni.showToast({ title: '注销成功', icon: 'success' });
-		// 回到首页
-	}).catch();
-}
+// 退出登录
 const handleLogout = () => {
-  uni.showModal({
-    title: '提示',
-    content: '确定要退出登录吗？',
-    success: (res) => {
-      if (res.confirm) {
-        // 清除登录状态
-        uni.removeStorageSync('token')
-        uni.showToast({ title: '已退出' })
-        uni.reLaunch({ url: '/pages/login/login' })
-      }
-    }
-  })
+  logoutType.value = 2
+  logoutVisible.value = true
+};
+const logout = () => {
+  Logout().then(res => {
+    localStorage.removeItem('token');
+    showToast('已退出');
+    router.replace('/login');
+  }).catch()
 }
 </script>
 
 <style lang="scss" scoped>
-
-page {
-	background: #F8F8F8;
-}
 .page {
-  padding: 20rpx;
-	background: #F8F8F8;
+
+  min-height: 100vh;
+  box-sizing: border-box;
+  background: #F8F8F8;
 }
 
 .card {
   background-color: #fff;
-  border-radius: 16rpx;
-  margin-bottom: 20rpx;
+  border-radius: 16px;
+  margin: 20px;
   overflow: hidden;
+
 }
 
 .item {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 34rpx 30rpx 34rpx 24rpx;
-  border-bottom: 1rpx solid #f0f0f0;
+  padding: 20px;
+  border-bottom: 1px solid #f0f0f0;
 
   &:last-child {
     border-bottom: none;
@@ -168,30 +135,32 @@ page {
   .label {
     font-family: PingFangSC, PingFang SC;
     font-weight: 400;
-    font-size: 28rpx;
+    font-size: 16px;
     color: #222222;
   }
 
   // .value {
-  //   font-size: 30rpx;
+  //   font-size: 30px;
   //   color: #999;
   // }
 
   .arrow {
-    width: 32rpx;
-    height: 32rpx;
+    width: 16px;
+    height: 16px;
   }
 }
 
 .logout-btn {
-  margin-top: 80rpx;
   background-color: #fff;
-  border-radius: 16rpx;
+  border-radius: 8px;
   text-align: center;
-  padding: 25rpx;
-	font-family: PingFangSC, PingFang SC;
-	font-weight: 500;
-	font-size: 28rpx;
-	color: #222222;
+  padding: 10px;
+  margin: 20px;
+  margin-top: 40px;
+
+  font-family: PingFangSC, PingFang SC;
+  font-weight: 500;
+  font-size: 18px;
+  color: #222222;
 }
 </style>
