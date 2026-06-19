@@ -11,11 +11,7 @@
         @load="onLoad"
       >
         <!-- 【修复2】增加 !finished 判断，防止加载结束瞬间空状态闪烁 -->
-        <van-empty
-          v-if="!loading && !finished && list.length === 0"
-          description="暂无预约记录"
-          image="search"
-        />
+        
 
         <!-- 列表项 -->
         <div
@@ -60,7 +56,7 @@
 
           <div class="info-row">
             <span class="label">预约类型：</span>
-            <span class="value">{{ getBillingText(item.billing_method) }}</span>
+            <span class="value">{{ billingMethod(item.billing_method) }}</span>
           </div>
 
           <div class="info-row">
@@ -102,6 +98,12 @@
           </div>
         </div>
       </van-list>
+
+      <van-empty
+          v-if="!loading && list.length === 0"
+          description="暂无预约记录"
+          image="search"
+        />
     </div>
   </div>
 </template>
@@ -114,6 +116,8 @@ import NavBar from "@/components/CustomNavBar/index.vue";
 
 import { GetReservationList } from "@/api/mine"; // 假设你的 api 路径
 import { formatDate, copyToClipboard } from "@/utils/utils";
+import { billingMethod } from "@/utils/filter";
+
 import icon_wait from "@/assets/images/reservation/icon_waiting@2x.png";
 import icon_canceled from "@/assets/images/reservation/icon_canceled@2x.png";
 import icon_driving from "@/assets/images/reservation/icon_driving@2x.png";
@@ -136,14 +140,6 @@ const finished = ref(false); // 控制是否加载完毕
 const page = ref(1);
 const pageSize = 10;
 
-// 获取计费文案
-const getBillingText = (type) => {
-  const map = {
-    0: "按时间计费",
-    1: "按次计费",
-  };
-  return map[type] || "-";
-};
 
 // 复制订单号
 const copyOrderNo = async (text) => {
@@ -171,13 +167,14 @@ const handleAction = (item) => {
 // 按钮点击：申诉
 const handleAppeal = (item) => {
   router.push({
-    path: "/mine/orderAppeal",
+    path: "/orderAppeal",
     query: { order_no: item.order_no },
   });
 };
 
 // 【修复3】核心加载逻辑优化
 const onLoad = async () => {
+
   try {
     const res = await GetReservationList({
       page: page.value,

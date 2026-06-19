@@ -145,7 +145,7 @@
 
         <div class="tip-text">请在【我的-预约订单】中查看</div>
         <div class="modal-footer">
-          <van-button block type="primary" @click="gotoUrl">查看订单</van-button>
+          <div class="confirm-btn common-btn" type="primary" @click="gotoUrl">查看订单</div>
         </div>
       </div>
     </van-popup>
@@ -281,7 +281,7 @@ const onBillingConfirm = (params) => {
 
 const gotoUrl = () => {
   orderVisible.value = false;
-  router.push('/pages/mine/reservation');
+  router.push('/reservation');
 };
 </script>
 
@@ -513,7 +513,7 @@ const gotoUrl = () => {
 }
 
 .modal-footer {
-  margin-top: 20px;
+  margin-top: 15px;
 }
 
 /* 预约成功弹窗特有样式 */
@@ -521,6 +521,7 @@ const gotoUrl = () => {
   width: 80px;
   height: 80px;
   border-radius: 50%;
+  margin: auto;
   margin-bottom: 15px;
   background-color: #f0f0f0;
 }
@@ -559,7 +560,9 @@ const gotoUrl = () => {
 .tip-text {
   font-size: 10px;
   color: #999;
-  margin-bottom: 15px;
+}
+.confirm-btn {
+  padding: 3px 0;
 }
 
 .status-tag {

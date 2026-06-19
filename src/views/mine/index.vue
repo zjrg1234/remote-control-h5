@@ -2,7 +2,7 @@
   <div class="container">
     <!-- 背景图 -->
     <div class="bg-image">
-      <img src="@/assets/images/mine/bg@2x.png" alt="" />
+      <img class="bg-img" src="@/assets/images/mine/bg@2x.png" alt="" />
     </div>
 
     <!-- 用户信息区域 -->
@@ -106,14 +106,14 @@ const menuList = ref([
     url: "changeArea",
   },
   {
-    name: "我的预约",
+    name: "预约订单",
     icon: new URL("@/assets/images/mine/icon_book@2x.png", import.meta.url)
       .href,
     key: "order",
     url: "/reservation",
   },
   {
-    name: "我的申诉",
+    name: "申诉记录",
     icon: new URL("@/assets/images/mine/icon_appeal@2x.png", import.meta.url)
       .href,
     key: "appeal",
@@ -205,7 +205,7 @@ const openService = () => {
 .container {
   position: relative;
   background-color: #fff;
-  // min-height: 100vh;
+  min-height: 100vh;
 }
 
 .bg-image {
@@ -216,7 +216,7 @@ const openService = () => {
   width: 100%;
   height: 200px;
 
-  img {
+  .bg-img {
     width: 100%;
     height: 100%;
     display: block;
@@ -236,9 +236,12 @@ const openService = () => {
   align-items: center;
 }
 
+
 .avatar-image {
   position: relative;
   margin-right: 10px;
+  border-radius: 50%; 
+  overflow: hidden; 
 
   .arrow-edit {
     position: absolute;
@@ -247,6 +250,8 @@ const openService = () => {
     width: 16px;
     height: 16px;
     display: block;
+    border-radius: 50%; 
+    background-color: #fff;
   }
 }
 
@@ -305,6 +310,7 @@ const openService = () => {
   font-size: 20px;
   font-weight: bold;
   color: #333;
+  line-height: 1;
 }
 
 .asset-label {
