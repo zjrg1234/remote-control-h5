@@ -6,7 +6,7 @@
     <div class="grid">
       <div class="grid-item" v-for="item in list" :key="item.id" :class="{ active: selected === item.id }"
         @click="selected = item.id">
-        <img class="car-img" src="@/assets/images/common/car@2x.png" alt="car" />
+        <img class="car-img" :src="item.image" alt="car" />
         <div class="info">
           <span class="name">{{ item.agent_name }}</span>
           <span class="desc">分区数 ｜ {{ item.partitions_number }} 个</span>
