@@ -160,6 +160,16 @@ const routes: Array<RouteRecordRaw> = [
           noAuth: true,
         },
       },
+      {
+        path: "orderAppeal",
+        name: "OrderAppeal",
+        component: () => import("@/views/mine/orderAppeal.vue"),
+        meta: {
+          title: "预约申诉",
+          noCache: true,
+          noAuth: true,
+        },
+      },
     ],
   },
 ];
