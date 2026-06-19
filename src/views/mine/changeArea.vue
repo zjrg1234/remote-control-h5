@@ -41,8 +41,7 @@
 
 <script setup>
 import { onMounted, onUnmounted, ref } from "vue";
-import { showSuccessToast, showFailToast } from "vant";
-
+import { showToast } from "vant";
 import { GetSpecialList, ChangeSpecialList } from "@/api/mine";
 import { useUserStore } from "@/store/modules/user";
 import NavBar from "@/components/CustomNavBar/index.vue";
@@ -135,10 +134,10 @@ const handleConfirm = async () => {
     const res = await ChangeSpecialList(obj);
     if (res.code == 200) {
       userStore.setAreaId(selected.value);
-      showSuccessToast('变更专区成功');
+      showToast('变更专区成功');
 
     } else {
-      showFailToast(res.msg);
+      showToast(res.msg);
     }
   } catch (error) {
     console.error("变更专区失败:", error);

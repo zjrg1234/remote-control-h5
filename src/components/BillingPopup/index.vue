@@ -1,12 +1,5 @@
 <template>
-  <van-popup
-    v-model:show="show"
-    position="bottom"
-    round
-    teleport="body"
-    :close-on-click-overlay="false"
-    @close="close"
-  >
+  <van-popup v-model:show="show" position="bottom" round teleport="body" :close-on-click-overlay="false" @close="close">
     <div class="billing-popup">
       <!-- 标题栏 -->
       <div class="header">
@@ -18,19 +11,11 @@
       <div class="payment-type-row">
         <span class="label">付费方式</span>
         <div class="type-selector">
-          <div
-            class="type-item"
-            :class="{ active: currentUnit === 1 }"
-            @click="switchUnit(1)"
-          >
+          <div class="type-item" :class="{ active: currentUnit === 1 }" @click="switchUnit(1)">
             <div class="radio-circle" :class="{ checked: currentUnit === 1 }"></div>
             <span>电池</span>
           </div>
-          <div
-            class="type-item"
-            :class="{ active: currentUnit === 2 }"
-            @click="switchUnit(2)"
-          >
+          <div class="type-item" :class="{ active: currentUnit === 2 }" @click="switchUnit(2)">
             <div class="radio-circle" :class="{ checked: currentUnit === 2 }"></div>
             <span>能量</span>
           </div>
@@ -42,11 +27,8 @@
         <div class="section-title">按时间计费</div>
         <span class="desc">按照分钟计费，不受时间限制，想玩就玩</span>
         <div class="grid-box">
-          <div
-            class="option-card"
-            :class="{ selected: selectedIndex == -1 }"
-            @click="selectOption(-1, billData.time_billing.time, billData.time_billing.battery)"
-          >
+          <div class="option-card" :class="{ selected: selectedIndex == -1 }"
+            @click="selectOption(-1, billData.time_billing.time, billData.time_billing.battery)">
             {{ billData.time_billing.time }}分钟{{ billData.time_billing.battery }}{{ unitText }}
           </div>
         </div>
@@ -57,13 +39,8 @@
         <div class="section-title">按次计费</div>
         <span class="desc">按照单次时间游玩，时间到则立即结束</span>
         <div class="grid-box">
-          <div
-            v-for="(item, index) in billData.one_billing"
-            :key="index"
-            class="option-card"
-            :class="{ selected: selectedIndex === index }"
-            @click="selectOption(index, item.time, item.battery)"
-          >
+          <div v-for="(item, index) in billData.one_billing" :key="index" class="option-card"
+            :class="{ selected: selectedIndex === index }" @click="selectOption(index, item.time, item.battery)">
             {{ item.time }}分钟{{ item.battery }}{{ unitText }}
           </div>
         </div>
@@ -77,14 +54,8 @@
       </div>
 
       <!-- 底部按钮 -->
-      <van-button
-        block
-        type="warning"
-        class="confirm-btn"
-        @click="isWallet ? handleConfirm() : goRecharge()"
-      >
-        {{ isWallet ? '确定支付' : '去充值' }}
-      </van-button>
+     <button class="confirm-btn" v-if="isWallet" @click="handleConfirm">确定支付</button>
+      <button class="confirm-btn" v-if="!isWallet" @click="goRecharge">充值</button>
     </div>
   </van-popup>
 </template>
@@ -113,12 +84,8 @@ const isWallet = ref(true);
 
 const userInfo = computed(() => {
   const val = userStore.getUserInfo();
-  // 哪个有值用哪个
-  if (val.wallet.balance > 0 && val.wallet.energy == 0) {
-    currentUnit.value = 1;
-  }
-  if (val.wallet.balance == 0 && val.wallet.energy > 0) {
-    currentUnit.value = 2;
+  if (Number(val.wallet.balance) == 0) {
+    isWallet.value = false;
   }
   return val;
 });
@@ -126,13 +93,18 @@ const userInfo = computed(() => {
 const unitText = computed(() => (currentUnit.value === 1 ? '电池' : '能量'));
 
 watch(currentUnit, (val) => {
-  if (
-    (val == 1 && Number(userInfo.value.wallet.balance) > 0) ||
-    (val == 2 && Number(userInfo.value.wallet.energy) > 0)
-  ) {
-    isWallet.value = true;
+  if (val == 1) {
+    if (Number(userInfo.value.wallet.balance) > 0) {
+      isWallet.value = true;
+    } else {
+      isWallet.value = false;
+    }
   } else {
-    isWallet.value = false;
+    if (Number(userInfo.value.wallet.energy) > 0) {
+      isWallet.value = true;
+    } else {
+      isWallet.value = false;
+    }
   }
 });
 
@@ -177,7 +149,7 @@ const handleConfirm = () => {
 };
 
 const goRecharge = () => {
-  router.push('/pages/mine/recharge');
+  router.push('/recharge');
 };
 
 // 暴露方法给父组件调用
@@ -206,6 +178,8 @@ defineExpose({
 }
 
 .header .title {
+  font-family: PingFangSC, PingFang SC;
+  font-weight: 400;
   font-size: 18px;
   font-weight: bold;
   color: #333;
@@ -215,6 +189,8 @@ defineExpose({
   position: absolute;
   right: 0;
   font-size: 22px;
+  font-family: PingFangSC, PingFang SC;
+  font-weight: 400;
   color: #999;
   cursor: pointer;
 }
@@ -227,6 +203,8 @@ defineExpose({
 }
 
 .payment-type-row .label {
+  font-family: PingFangSC, PingFang SC;
+  font-weight: 400;
   font-size: 16px;
   font-weight: bold;
   color: #333;
@@ -262,7 +240,7 @@ defineExpose({
 }
 
 .radio-circle.checked {
-  border-color: #ee0a24;
+  border-color: #ffc838;
 }
 
 .radio-circle.checked::after {
@@ -273,7 +251,7 @@ defineExpose({
   transform: translate(-50%, -50%);
   width: 8px;
   height: 8px;
-  background-color: #ee0a24;
+  background-color: #ffc838;
   border-radius: 50%;
 }
 
@@ -283,6 +261,8 @@ defineExpose({
 }
 
 .section-title {
+  font-family: PingFangSC, PingFang SC;
+  font-weight: 400;
   font-size: 16px;
   font-weight: bold;
   color: #333;
@@ -343,7 +323,7 @@ defineExpose({
 .battery-num {
   font-size: 24px;
   font-weight: bold;
-  color: #ee0a24;
+  color: #FFC838;
 }
 
 /* 确定按钮 */
@@ -353,5 +333,10 @@ defineExpose({
   height: 48px;
   font-size: 16px;
   font-weight: bold;
+  background-color: #fbbd08;
+  border: none;
+  color: #333;
+  width: 100%;
 }
+
 </style>

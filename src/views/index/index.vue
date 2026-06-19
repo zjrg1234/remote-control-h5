@@ -124,7 +124,7 @@ onMounted(async () => {
 
 <style lang="scss" scoped>
 .container {
-   min-height: 100vh;
+  min-height: 100vh;
   // background-color: #f5f6fa;
   // padding-bottom: 40px;
 }
@@ -144,6 +144,7 @@ onMounted(async () => {
 
 .sticky-nav {
   top: -10px;
+
   :deep(.van-tabs__nav) {
     background-color: #fff;
     border-radius: 20px 20px 0 0;
@@ -194,9 +195,9 @@ onMounted(async () => {
         font-size: 18px;
         color: #fff;
         overflow: hidden;
-text-overflow: ellipsis;
-white-space: nowrap;
-max-width: 100%;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        max-width: 100%;
       }
 
       .tag {
@@ -206,8 +207,8 @@ max-width: 100%;
         background: #fee2a2;
         border-radius: 2px;
         margin-left: 8px;
-        white-space: nowrap; 
-    flex-shrink: 0;
+        white-space: nowrap;
+        flex-shrink: 0;
       }
     }
 

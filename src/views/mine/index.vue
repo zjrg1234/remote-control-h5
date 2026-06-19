@@ -78,18 +78,21 @@
 </template>
 
 <script setup>
-import { ref, computed } from "vue";
+import { ref, computed, onMounted } from "vue";
 import { useRouter } from "vue-router";
 import { showToast } from "vant";
 import BusinessModal from "@/components/BusinessModal/index.vue";
 import TipModal from "@/components/TipModal/index.vue";
 import { useUserStore } from "@/store/modules/user";
 import { copyToClipboard } from "@/utils/utils";
+import {  GetUserInfo } from "@/api/index";
 
 const router = useRouter();
 const userStore = useUserStore();
 
 const userInfo = computed(() => userStore.getUserInfo());
+
+
 const showModal = ref(false);
 const serviceModal = ref(false);
 const serviceTip = ref("是否打开微信，联系在线客服");
@@ -155,6 +158,15 @@ const goEditProfile = () => {
 const goBattery = () => {
   router.push("/battery");
 };
+
+
+
+// --- 生命周期 ---
+onMounted(async () => {
+  GetUserInfo().then(res => {
+    userStore.setUser(res.data);
+  }).catch()
+});
 
 // --- 菜单点击 ---
 const handleClick = (item) => {

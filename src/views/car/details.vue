@@ -16,7 +16,7 @@
     </div>
 
     <!-- 2. 统计数据 -->
-    <van-cell-group inset class="stats-container">
+    <div class="stats-container">
       <div class="stat-item">
         <div class="num-box">
           <span class="stat-num">{{ stats.queue }}</span>
@@ -40,7 +40,7 @@
         </div>
         <span class="stat-label">驾驶中</span>
       </div>
-    </van-cell-group>
+    </div>
 
     <!-- 3. 车辆列表 -->
     <div class="list-title">车辆列表</div>
@@ -93,18 +93,26 @@
     <!-- 4. 弹窗组件 -->
 
     <!-- 用户协议弹窗 -->
-    <van-popup v-model:show="agree" position="center" round>
-      <div class="modal-content">
-        <h3>用户驾驶协议</h3>
-        <div class="cont">禁止未成年人充值使用。</div>
-        <div class="cont">用户充值消费驾驶后不支持退余额，充值的金额只能在平台消费，如果排队没玩到车，保留到后面场地有车继续消费。</div>
-        <div class="cont">车辆预约会扣费，如没排队上，预约取消会自动退回账户里。</div>
-        <div class="cont">如有疑问请联系客服。</div>
-        <div class="modal-footer">
-          <van-button block type="primary" @click="handleAgree">我已同意</van-button>
+  
+     <TipModal title="用户驾驶协议" v-model:visible="agree" key="1" @confirm="handleAgree">
+      <template #content>
+        <div class="custom-content">
+          <div class="cont">
+            禁止未成年人充值使用。
+          </div>
+          <div class="cont">
+            用户充值消费驾驶后不支持退余额，充值的金额只能在平台消费，如果排队没玩到车，保留到后面场地有车继续消费。
+          </div>
+          <div class="cont">
+            车辆预约会扣费，如没排队上，预约取消会自动退回账户里。
+          </div>
+          <div class="cont">
+            如有疑问请联系客服。
+          </div>
         </div>
-      </div>
-    </van-popup>
+      </template>
+    </TipModal>
+
 
     <!-- 密码输入弹窗 -->
     <van-popup v-model:show="pwdVisible" position="center" round>
@@ -153,6 +161,7 @@ import { useRouter, useRoute } from 'vue-router';
 import { showToast } from 'vant';
 import BillingPopup from '@/components/BillingPopup/index.vue';
 import NavBar from "@/components/CustomNavBar/index.vue";
+import TipModal from "@/components/TipModal/index.vue";
 
 import { GetVenueDetail, OrderCar } from '@/api/index';
 
@@ -288,7 +297,6 @@ const gotoUrl = () => {
 /* 1. 头部样式 */
 .header-section {
   background-color: #ffffff;
-  margin-bottom: 10px;
 }
 
 .banner-img {
@@ -337,8 +345,7 @@ const gotoUrl = () => {
   justify-content: space-around;
   align-items: center;
   background-color: #ffffff;
-  padding: 15px 0;
-  margin-bottom: 10px;
+  padding-bottom: 15px;
 }
 
 .stat-item {
@@ -482,11 +489,7 @@ const gotoUrl = () => {
   color: #555555;
 }
 
-.action-btn {
-  height: 28px;
-  font-size: 12px;
-  padding: 0 15px;
-}
+
 
 /* 弹窗通用样式 */
 .modal-content {
@@ -581,15 +584,15 @@ const gotoUrl = () => {
 }
 
 .action-btn {
-  background-color: #f1c40f;
-  /* 黄色按钮 */
-  color: #333;
-  font-size: 24rpx;
-  font-weight: bold;
-  padding: 0 30rpx;
-  height: 60rpx;
-  line-height: 60rpx;
-  border-radius: 30rpx;
+  font-family: PingFangSC, PingFang SC;
+  font-weight: 400;
+  font-size: 15px;
+  color: #1A1A1A;
+  background: #FFC838;
+  width: 80px;
+  height: 45px;
+  line-height: 1;
+  border-radius: 10px;
   margin: 0;
   /* 去除默认外边距 */
 
@@ -598,4 +601,21 @@ const gotoUrl = () => {
     color: #666;
   }
 }
+
+.custom-content {
+  font-family: PingFangSC, PingFang SC;
+  font-weight: 400;
+  font-size: 16px;
+  color: #333333;
+
+  .title {
+    font-weight: 600;
+  }
+
+  .cont {
+    display: block;
+    text-align: left;
+  }
+}
+
 </style>
