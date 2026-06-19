@@ -115,8 +115,8 @@ const logout = () => {
 
 .card {
   background-color: #fff;
-  border-radius: 16px;
-  margin: 20px;
+  border-radius: 8px;
+  margin: 15px;
   overflow: hidden;
 
 }
@@ -125,7 +125,7 @@ const logout = () => {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 20px;
+  padding: 15px;
   border-bottom: 1px solid #f0f0f0;
 
   &:last-child {
@@ -155,7 +155,7 @@ const logout = () => {
   border-radius: 8px;
   text-align: center;
   padding: 10px;
-  margin: 20px;
+  margin: 15px;
   margin-top: 40px;
 
   font-family: PingFangSC, PingFang SC;
