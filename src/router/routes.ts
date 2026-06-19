@@ -147,7 +147,7 @@ const routes: Array<RouteRecordRaw> = [
         meta: {
           title: "车辆详情",
           noCache: true,
-          noAuth: false,
+          noAuth: true,
         },
       },
     ],

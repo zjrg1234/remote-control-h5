@@ -18,7 +18,7 @@
         <van-field
           v-model="form.password"
           type="password"
-          maxlength="6"
+          maxlength="20"
           label="密码"
           placeholder="请输入密码"
         />
@@ -109,6 +109,7 @@ const handleLogin = async () => {
     const res = await Login({ ...form.value, type: 1 });
     if (res.code === 200) {
       userStore.setToken(res.data.session_key);
+      localStorage.setItem('token', res.data.session_key)
       userStore.setAreaId(res.data.special_area);
       userStore.setId(res.data.id);
 

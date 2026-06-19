@@ -43,7 +43,6 @@
 import { onMounted, onUnmounted, ref } from "vue";
 import { showSuccessToast, showFailToast } from "vant";
 
-
 import { GetSpecialList, ChangeSpecialList } from "@/api/mine";
 import { useUserStore } from "@/store/modules/user";
 import NavBar from "@/components/CustomNavBar/index.vue";
@@ -66,7 +65,7 @@ const queryParams = {
 // 获取列表数据
 const getSpecialList = async () => {
   try {
-    const res = await GetSpecialList(queryParams); // 建议将 queryParams 传给后端
+    const res = await GetSpecialList(queryParams);
     list.value = [...list.value, ...res.data];
     if (queryParams.size > res.data.length) {
       noData.value = true;
@@ -76,26 +75,37 @@ const getSpecialList = async () => {
   }
 };
 
-// 触底加载逻辑 (替代 onReachBottom)
+// 增加防抖定时器变量
+let scrollTimer = null;
+
+// 触底加载逻辑
 const handleScroll = () => {
-  const scrollTop =
-    document.documentElement.scrollTop || document.body.scrollTop;
-  const scrollHeight = document.documentElement.scrollHeight;
-  const clientHeight = document.documentElement.clientHeight;
+  // 如果正在加载或已经没有更多数据，直接返回
+  if (noData.value || loading.value) return;
 
-  // 距离底部 100px 时触发
-  if (scrollTop + clientHeight >= scrollHeight - 100) {
-    if (noData.value || loading.value) return;
+  // 增加防抖，避免滚动事件高频触发
+  if (scrollTimer) clearTimeout(scrollTimer);
+  
+  scrollTimer = setTimeout(() => {
+    const scrollTop = document.documentElement.scrollTop || document.body.scrollTop;
+    const scrollHeight = document.documentElement.scrollHeight;
+    const clientHeight = document.documentElement.clientHeight;
 
-    loading.value = true;
-    queryParams.page++;
+    // 【核心修复】：判断内容是否超出屏幕。
+    // 如果内容没有超出屏幕（即没有产生滚动条），则不触发加载，防止首次加载后立刻触发第二次
+    if (scrollHeight <= clientHeight) return;
 
-    // 模拟防抖/延迟，实际开发中建议直接调用接口
-    setTimeout(async () => {
-      await getSpecialList();
-      loading.value = false;
-    }, 500);
-  }
+    // 距离底部 100px 时触发
+    if (scrollTop + clientHeight >= scrollHeight - 100) {
+      loading.value = true;
+      queryParams.page++;
+      
+      // 直接调用接口，去掉了不必要的 setTimeout 延迟
+      getSpecialList().finally(() => {
+        loading.value = false;
+      });
+    }
+  }, 100); // 100ms 防抖
 };
 
 onMounted(() => {
@@ -105,9 +115,11 @@ onMounted(() => {
 
 onUnmounted(() => {
   window.removeEventListener("scroll", handleScroll);
+  // 组件销毁时清除定时器，防止内存泄漏
+  if (scrollTimer) clearTimeout(scrollTimer);
 });
 
-// 确认按钮点击
+
 const confirm = () => {
   if (userStore.areaId == selected.value) return;
   const obj = list.value.find((item) => item.id == selected.value);
@@ -116,7 +128,6 @@ const confirm = () => {
   tipVisible.value = true;
 };
 
-// 弹窗确认回调
 const handleConfirm = async () => {
 
   const obj = { special_id: selected.value };
@@ -134,7 +145,6 @@ const handleConfirm = async () => {
   }
 };
 </script>
-
 <style lang="scss" scoped>
 .container {
   background-color: #f2f5f8;

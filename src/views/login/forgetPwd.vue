@@ -36,7 +36,7 @@
           <van-field
             v-model="form.password"
             type="password"
-            maxlength="6"
+            maxlength="20"
             placeholder="请输入新密码"
             
           />
@@ -45,7 +45,7 @@
           <van-field
             v-model="form.passwordAgain"
             type="password"
-            maxlength="6"
+            maxlength="20"
             placeholder="请再次输入新密码"
            
           />

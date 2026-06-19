@@ -103,7 +103,7 @@ const handleCategoryClick = ({ name }) => {
 
 const handleCar = (item) => {
   localStorage.setItem("carTitle", item.venue_name || item.title);
-  router.push(`/car/details?id=${item.id}`);
+  router.push(`/carDetails?id=${item.id}`);
 };
 
 // --- 生命周期 ---
@@ -192,7 +192,11 @@ onMounted(async () => {
       .title {
         font-weight: 600;
         font-size: 18px;
-        color: #ffffff;
+        color: #fff;
+        overflow: hidden;
+text-overflow: ellipsis;
+white-space: nowrap;
+max-width: 100%;
       }
 
       .tag {
@@ -202,6 +206,8 @@ onMounted(async () => {
         background: #fee2a2;
         border-radius: 2px;
         margin-left: 8px;
+        white-space: nowrap; 
+    flex-shrink: 0;
       }
     }
 

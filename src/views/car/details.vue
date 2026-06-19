@@ -9,7 +9,7 @@
       <div class="info-box">
         <div class="title-row">
           <span class="main-title">{{ detailData.venue_name }}</span>
-          <van-tag v-if="detailData.labels" type="primary" size="medium">{{ detailData.labels }}</van-tag>
+          <text class="tag">{{ detailData.labels }}</text>
         </div>
         <div class="time-text">营业时间：{{ detailData.start_time }} ~ {{ detailData.end_time }}</div>
       </div>
@@ -47,12 +47,15 @@
     <div class="car-list">
       <div class="car-card" v-for="car in carList" :key="car.id">
         <!-- 状态标签 -->
-        <van-tag 
-          :type="car.vehicle_state === '1' ? 'success' : 'primary'" 
-          class="status-tag"
-        >
-          {{ car.vehicle_state === "1" ? "空闲" : "排队" + car.vehicle_queue + "人" }}
-        </van-tag>
+
+
+        <div class="status-tag" :class="car.vehicle_state === '1' ? 'tag-green' : 'tag-blue'">
+          {{
+            car.vehicle_state === "1"
+              ? "空闲"
+              : "排队" + car.vehicle_queue + "人"
+          }}
+        </div>
 
         <!-- 左侧图片区域 -->
         <div class="img-wrapper">
@@ -73,26 +76,22 @@
           </div>
           <div class="desc-row">
             <span class="label">最高时速：</span>
-            <span class="value">{{ car.top_speed }}</span>
+            <span class="value">{{ car.top_speed || '0km/h' }}</span>
           </div>
           <div class="bottom-row">
             <span class="battery">车辆电量：{{ car.vehicle_battery }}</span>
-            <van-button 
-              size="small" 
-              type="warning" 
-              :disabled="car.vehicle_state == 2"
-              class="action-btn"
-              @click="handleDrive(car)"
-            >
-              预约驾驶
-            </van-button>
+
+            <button class="action-btn" :class="{ 'btn-disabled': car.vehicle_state == 2 }"
+              :disabled="car.vehicle_state == 2" @click="handleDrive(car)">
+              我要驾驶
+            </button>
           </div>
         </div>
       </div>
     </div>
 
     <!-- 4. 弹窗组件 -->
-    
+
     <!-- 用户协议弹窗 -->
     <van-popup v-model:show="agree" position="center" round>
       <div class="modal-content">
@@ -111,7 +110,7 @@
     <van-popup v-model:show="pwdVisible" position="center" round>
       <div class="modal-content">
         <h3>输入密码</h3>
-        <van-field v-model="password" type="password" placeholder="请输入密码" maxlength="6" />
+        <van-field v-model="password" type="password" placeholder="请输入密码" maxlength="20" />
         <div class="modal-footer">
           <van-button block type="primary" @click="handlePwd">确认</van-button>
         </div>
@@ -124,7 +123,7 @@
         <img class="car-image" :src="selectCar.vehicle_image" alt="car" />
         <div class="main-status">已成功预约 {{ orderCar.vehicle_name }} 车辆</div>
         <div class="sub-status">当前还有 {{ orderCar.people_number }} 人排队，请耐心等待</div>
-        
+
         <div class="info-card">
           <div class="info-item">
             <span class="label">预约类型：</span>
@@ -135,7 +134,7 @@
             <span class="value">{{ orderCar.time }}</span>
           </div>
         </div>
-        
+
         <div class="tip-text">请在【我的-预约订单】中查看</div>
         <div class="modal-footer">
           <van-button block type="primary" @click="gotoUrl">查看订单</van-button>
@@ -150,11 +149,14 @@
 
 <script setup>
 import { ref, onMounted } from 'vue';
-import { useRouter } from 'vue-router';
+import { useRouter, useRoute } from 'vue-router';
 import { showToast } from 'vant';
-import { GetVenueDetail, OrderCar } from '@/api/index'; 
-import BillingPopup from '@/components/BillingPopup/index.vue'; 
+import BillingPopup from '@/components/BillingPopup/index.vue';
+import NavBar from "@/components/CustomNavBar/index.vue";
 
+import { GetVenueDetail, OrderCar } from '@/api/index';
+
+const route = useRoute();
 const router = useRouter();
 const stats = ref({ queue: 0, online: 0, drive: 0 });
 const agree = ref(false);
@@ -173,24 +175,31 @@ const title = ref('')
 // 页面加载模拟
 onMounted(() => {
   // 模拟获取路由参数
-  const options = { id: 1 }; 
-  title.value = localStorage.getItem("carTitle") || "场馆详情";
-  
-  GetVenueDetail({ venue_id: options.id })
+
+  title.value = localStorage.getItem("carTitle") || "车辆详情";
+
+  GetVenueDetail({ venue_id: route.query.id })
     .then((res) => {
-      const { code, data } = res;
-      detailData.value = { ...data };
-      stats.value.queue = data.queue;
-      stats.value.online = data.online;
-      stats.value.drive = data.drive;
-      imageUrl.value = data.venue_image?.[0];
-      carList.value = data.vehicle;
-      billingMethod.value = data.venue_config;
-      selectCar.value.venue_id = options.id;
-      selectCar.value.venue_name = data.venue_name;
+
+      const { code, data, msg } = res;
+      if (code === 200) {
+        detailData.value = { ...data };
+        stats.value.queue = data.queue;
+        stats.value.online = data.online;
+        stats.value.drive = data.drive;
+        imageUrl.value = data.venue_image?.[0];
+        carList.value = data.vehicle;
+        billingMethod.value = data.venue_config;
+        selectCar.value.venue_id = route.query.id;
+        selectCar.value.venue_name = data.venue_name;
+      } else {
+        showToast(msg)
+      }
+
     })
-    .catch(() => {
-      showToast('加载失败');
+    .catch((e) => {
+      throw e
+      // showToast(e);
     });
 });
 
@@ -232,11 +241,11 @@ const flag = ref(true);
 const onBillingConfirm = (params) => {
   if (!flag.value) return;
   flag.value = false;
-  
+
   const min = Math.pow(10, 7);
   const max = Math.pow(10, 8) - 1;
   const randomNumber = Math.floor(Math.random() * (max - min + 1)) + min;
-  
+
   OrderCar({
     vehicle_id: selectCar.value.vehicle_id,
     vehicle_name: selectCar.value.vehicle_name,
@@ -247,18 +256,18 @@ const onBillingConfirm = (params) => {
     billing_method: params.selectType == -1 ? 0 : 1,
     app_transmitter_id: randomNumber,
   })
-  .then((res) => {
-    if (res.code === 200) {
-      orderCar.value = { ...res.data };
-      orderVisible.value = true;
-    }
-  })
-  .catch(() => {
-    showToast('预约失败');
-  })
-  .finally(() => {
-    flag.value = true;
-  });
+    .then((res) => {
+      if (res.code === 200) {
+        orderCar.value = { ...res.data };
+        orderVisible.value = true;
+      }
+    })
+    .catch(() => {
+      showToast('预约失败');
+    })
+    .finally(() => {
+      flag.value = true;
+    });
 };
 
 const gotoUrl = () => {
@@ -267,7 +276,7 @@ const gotoUrl = () => {
 };
 </script>
 
-<style scoped>
+<style lang="scss" scoped>
 /* 全局容器 */
 .page {
   background-color: #f5f5f5;
@@ -281,26 +290,41 @@ const gotoUrl = () => {
   background-color: #ffffff;
   margin-bottom: 10px;
 }
+
 .banner-img {
   width: 100%;
   height: 170px;
   object-fit: cover;
   display: block;
 }
+
 .info-box {
   padding: 15px;
 }
+
 .title-row {
   display: flex;
   align-items: center;
   margin-bottom: 8px;
 }
+
 .main-title {
   font-weight: 500;
   font-size: 18px;
   color: #1a1a1a;
   margin-right: 10px;
 }
+
+.tag {
+  font-family: PingFangSC, PingFang SC;
+  font-weight: 400;
+  font-size: 10px;
+  color: #3e77ac;
+  padding: 2px 5px;
+  background: #c7e0ff;
+  border-radius: 2px;
+}
+
 .time-text {
   font-size: 12px;
   color: #666666;
@@ -316,6 +340,7 @@ const gotoUrl = () => {
   padding: 15px 0;
   margin-bottom: 10px;
 }
+
 .stat-item {
   display: flex;
   flex-direction: column;
@@ -323,22 +348,26 @@ const gotoUrl = () => {
   justify-content: center;
   flex: 1;
 }
+
 .num-box {
   display: flex;
   flex-direction: row;
   align-items: baseline;
 }
+
 .stat-num {
   font-weight: bold;
   font-size: 24px;
   color: #1a1a1a;
   font-family: 'DINAlternate', sans-serif;
 }
+
 .stat-unit {
   font-size: 14px;
   color: #999999;
   margin-left: 2px;
 }
+
 .stat-label {
   font-size: 12px;
   color: #999999;
@@ -355,6 +384,7 @@ const gotoUrl = () => {
 .car-list {
   padding: 0 15px;
 }
+
 .car-card {
   background-color: #ffffff;
   border-radius: 12px;
@@ -362,8 +392,9 @@ const gotoUrl = () => {
   display: flex;
   padding: 15px;
   position: relative;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
+
 .status-tag {
   position: absolute;
   top: 0;
@@ -372,6 +403,7 @@ const gotoUrl = () => {
   font-size: 10px;
   padding: 4px 8px;
 }
+
 .img-wrapper {
   width: 100px;
   height: 100px;
@@ -380,11 +412,13 @@ const gotoUrl = () => {
   border-radius: 8px;
   overflow: hidden;
 }
+
 .car-img {
   width: 100%;
   height: 100%;
   object-fit: cover;
 }
+
 .lock-mask {
   position: absolute;
   top: 0;
@@ -397,48 +431,57 @@ const gotoUrl = () => {
   justify-content: center;
   z-index: 2;
 }
+
 .info-wrapper {
   flex: 1;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
 }
+
 .top-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
+
 .car-name {
   font-weight: 600;
   font-size: 16px;
   color: #222222;
 }
+
 .desc-row {
   display: flex;
   font-size: 12px;
   color: #555555;
   margin-top: 5px;
 }
+
 .label {
   width: 60px;
   flex-shrink: 0;
 }
+
 .value {
   flex: 1;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+
 .bottom-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-top: 10px;
 }
+
 .battery {
   font-size: 12px;
   color: #555555;
 }
+
 .action-btn {
   height: 28px;
   font-size: 12px;
@@ -452,17 +495,20 @@ const gotoUrl = () => {
   max-width: 300px;
   text-align: center;
 }
+
 .modal-content h3 {
   margin-top: 0;
   margin-bottom: 15px;
   font-size: 18px;
 }
+
 .cont {
   font-size: 14px;
   color: #666;
   margin-bottom: 10px;
   text-align: left;
 }
+
 .modal-footer {
   margin-top: 20px;
 }
@@ -475,17 +521,20 @@ const gotoUrl = () => {
   margin-bottom: 15px;
   background-color: #f0f0f0;
 }
+
 .main-status {
   font-size: 16px;
   font-weight: bold;
   color: #333;
   margin-bottom: 5px;
 }
+
 .sub-status {
   font-size: 12px;
   color: #999;
   margin-bottom: 15px;
 }
+
 .info-card {
   background-color: #f7f8fa;
   border-radius: 8px;
@@ -493,17 +542,60 @@ const gotoUrl = () => {
   text-align: left;
   margin-bottom: 15px;
 }
+
 .info-item {
   display: flex;
   font-size: 12px;
   margin-bottom: 5px;
 }
+
 .info-item:last-child {
   margin-bottom: 0;
 }
+
 .tip-text {
   font-size: 10px;
   color: #999;
   margin-bottom: 15px;
+}
+
+.status-tag {
+  position: absolute;
+  top: 0;
+  right: 0;
+  font-size: 22rpx;
+  font-size: 20rpx;
+  color: #fff;
+  padding: 6rpx 15rpx;
+  border-radius: 0rpx 16rpx 0rpx 16rpx;
+
+  &.tag-green {
+    background-color: #4cd964;
+    /* 绿色 */
+  }
+
+  &.tag-blue {
+    background-color: #007aff;
+    /* 蓝色 */
+  }
+}
+
+.action-btn {
+  background-color: #f1c40f;
+  /* 黄色按钮 */
+  color: #333;
+  font-size: 24rpx;
+  font-weight: bold;
+  padding: 0 30rpx;
+  height: 60rpx;
+  line-height: 60rpx;
+  border-radius: 30rpx;
+  margin: 0;
+  /* 去除默认外边距 */
+
+  &.btn-disabled {
+    background-color: #cccccc;
+    color: #666;
+  }
 }
 </style>
