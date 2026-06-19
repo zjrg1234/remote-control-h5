@@ -2,7 +2,14 @@
   <div class="container">
     <!-- 顶部 Banner -->
     <div class="banner-section">
-      <img :src="imgUrl" class="banner-img" alt="" />
+      <!-- <img :src="imgUrl" class="banner-img" alt="" /> -->
+
+      <van-image width="100%" fit="cover" :src="imgUrl" radius="0">
+        <template #loading>
+          <van-loading type="spinner" size="20" />
+        </template>
+      </van-image>
+
     </div>
 
     <!-- 分类导航栏 -->
@@ -110,9 +117,16 @@ const handleCar = (item) => {
 onMounted(async () => {
   categories.value = [{ name: "全部", id: "" }];
   try {
+    if (localStorage.imgUrl) {
+      imgUrl.value = localStorage.imgUrl
+    }
     const res = await GetHomeBanner();
+    if (imgUrl.value !== res.data[0]?.image) {
+      localStorage.setItem('imgUrl', res.data[0]?.image)
+      imgUrl.value = localStorage.imgUrl
+    }
+    
     const res1 = await GetHomeTabTitle();
-    imgUrl.value = res.data[0]?.image;
     categories.value = [...categories.value, ...res1.data];
   } catch (err) {
     showToast("页面初始化失败");

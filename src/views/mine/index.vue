@@ -205,7 +205,7 @@ const openService = () => {
 .container {
   position: relative;
   background-color: #fff;
-  min-height: 100vh;
+  // min-height: 100vh;
 }
 
 .bg-image {
