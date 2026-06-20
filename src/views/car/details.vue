@@ -5,7 +5,14 @@
 
     <!-- 1. 顶部背景图与基础信息 -->
     <div class="header-section">
-      <img class="banner-img" :src="imageUrl" alt="venue banner" />
+      <!-- <img class="banner-img" :src="imageUrl" alt="venue banner" /> -->
+
+      <van-image width="100%" fit="cover" height="170" :src="imageUrl" radius="0">
+        <template #loading>
+          <van-loading type="spinner" size="20" />
+        </template>
+      </van-image>
+
       <div class="info-box">
         <div class="title-row">
           <span class="main-title">{{ detailData.venue_name }}</span>
