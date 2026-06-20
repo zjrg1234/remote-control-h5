@@ -56,4 +56,9 @@ export function Register(data) {
 }
 
 
+export function StartDrive(data) {
+  return post('/api/user/start/driving',data)
+}
+
+
 

@@ -54,7 +54,7 @@
 <script setup>
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
-// import { showSuccessToast, showFailToast, showDialog } from 'vant';
+import { showToast } from 'vant';
 import NavBar from "@/components/CustomNavBar/index.vue";
 import { Logout } from "@/api/mine";
 import TipModal from "@/components/TipModal/index.vue";

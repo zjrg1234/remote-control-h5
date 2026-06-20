@@ -3,7 +3,10 @@
     <div class="page-content">
       <div class="bg">
         <video src=""></video>
+
+
       </div>
+
       <div class="logout" @click="logout">
         <img src="@/assets/images/icon_exit@2x.png" alt="" />
       </div>
@@ -18,7 +21,7 @@
             </div>
           </div>
           <div>
-            <battery :percent="40" ></battery>
+            <battery :percent="40"></battery>
           </div>
           <div>
             <span class="time-text">|</span>
@@ -87,6 +90,10 @@ import battery from './components/battery.vue';
 import UpDown from './components/UpDown.vue';
 import LeftRight from './components/LeftRight.vue';
 import { formatTime } from "@/utils/utils";
+
+import { getWebSocket } from "@/utils/scoket";
+import { StartDrive } from "@/api/index";
+
 import {
   ch1, speeds, cSpeeds, repairs, ch_selected,
   speeds_selected, cSpeeds_selected, after_diff,
@@ -102,7 +109,7 @@ const isLandscape = ref(true);
 const tipVisible = ref(false);
 const logoutVisible = ref(false);
 const repairVisible = ref(false);
-const batteryPercentage = ref(23);
+
 const currentTime = ref();
 const showSpeed = ref(false);
 const showRepairReason = ref(false);
@@ -112,16 +119,20 @@ const setVisible = ref(false);
 const showSound = ref(false);
 
 const carType = ref('2')
-const currentDate = ref()
+const timerNum = ref()
+
+const ws = ref()
+
+
+
 // 检测屏幕方向
 const checkOrientation = () => {
   isLandscape.value = window.innerWidth > window.innerHeight;
 };
 
 
-
 const menuList = ref([
-  { name: "报修", icon: repairs, key: "repairs", iconSelect: repairs,  type: 1 },
+  { name: "报修", icon: repairs, key: "repairs", iconSelect: repairs, type: 1 },
   { name: "前差", icon: before_diff, key: "chBefore", iconSelect: before_diff_selected, type: 1 },
   { name: "后差", icon: after_diff, key: "chAfter", iconSelect: after_diff_selected, type: 1 },
   { name: "CH4", icon: ch1, key: "ch", iconSelect: ch_selected, type: 1 },
@@ -146,10 +157,25 @@ onMounted(() => {
   }, 1000);
 
   let num = 1;
-  let timer1 = setInterval(() => {
+  timerNum.value = setInterval(() => {
     currentTime.value = formatTime(++num);
   }, 1000);
+
+  const url = localStorage.wssUrl
+  const port = localStorage.wssPort
+
+  ws.value = getWebSocket('ws://' + url + ':' + port + '', {
+    maxReconnectCount: 5,       // 最大重连次数
+    reconnectInterval: 3000,    // 基础重连间隔（实际会乘以重连次数）
+    heartBeatInterval: 30000    // 心跳间隔（毫秒）
+  });
+
+  ws.value.onOpen((event) => {
+    console.log('连接成功，可以开始发送消息了！');
+    ws.value.send({ type: 'auth', token: 'user-token-1111' });
+  });
 });
+
 
 const activeKey = ref([]);
 
@@ -191,6 +217,7 @@ const handleIcon = (item) => {
 onUnmounted(() => {
   window.removeEventListener("resize", checkOrientation);
   window.removeEventListener("orientationchange", checkOrientation);
+  clearInterval(timerNum.value)
 });
 
 const handlePopupAction = (type) => {
@@ -489,6 +516,7 @@ const logout = () => {
   display: flex;
   align-items: center;
   opacity: 0.8;
+
   img {
     display: block;
     width: 5px;
@@ -501,6 +529,7 @@ const logout = () => {
 .icon-wrapper :deep(svg) {
   width: 8px;
   height: 8px;
-  fill: #fff; /* Vant 4 的主题色 */
+  fill: #fff;
+  /* Vant 4 的主题色 */
 }
 </style>

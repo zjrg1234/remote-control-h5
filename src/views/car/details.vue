@@ -208,6 +208,8 @@ onMounted(() => {
         billingMethod.value = data.venue_config;
         selectCar.value.venue_id = route.query.id;
         selectCar.value.venue_name = data.venue_name;
+        localStorage.setItem('wssUrl',data.content_url);
+        localStorage.setItem('wssPort',data.content_url_port);
       } else {
         showToast(msg)
       }

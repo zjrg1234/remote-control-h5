@@ -161,7 +161,10 @@ const copyOrderNo = async (text) => {
 // 按钮点击：开始驾驶 (根据业务需求补充逻辑)
 const handleAction = (item) => {
   console.log("开始驾驶", item);
-  router.push('/drive')
+  router.push({
+    path: "/drive",
+    query: { order_no: item.order_no },
+  })
   // TODO: 跳转到驾驶页面
 };
 

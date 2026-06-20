@@ -170,6 +170,16 @@ const routes: Array<RouteRecordRaw> = [
           noAuth: true,
         },
       },
+      {
+        path: "drive",
+        name: "Drive",
+        component: () => import("@/views/drive/index.vue"),
+        meta: {
+          title: "驾驶页面",
+          noCache: true,
+          noAuth: true,
+        },
+      },
     ],
   },
 ];
