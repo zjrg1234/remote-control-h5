@@ -4,29 +4,17 @@
 
     <div class="cont">
       <!-- 【修复1】去掉 :immediate-check="false"，让 van-list 自动触发首次加载 -->
-      <van-list
-        v-model:loading="loading"
-        :finished="finished"
-        :finished-text="list.length > 10 ? '没有更多了' : ''"
-        @load="onLoad"
-      >
+      <van-list v-model:loading="loading" :finished="finished" :finished-text="list.length > 10 ? '没有更多了' : ''"
+        @load="onLoad">
         <!-- 【修复2】增加 !finished 判断，防止加载结束瞬间空状态闪烁 -->
-        
+
 
         <!-- 列表项 -->
-        <div
-          class="order-item"
-          v-for="(item, index) in list"
-          :key="item.order_no || index"
-          :class="{ active: item.reservation_status === 4 }"
-        >
+        <div class="order-item" v-for="(item, index) in list" :key="item.order_no || index"
+          :class="{ active: item.reservation_status === 4 }">
           <!-- 状态角标 -->
           <div class="corner-tag" v-if="statusMap[item.reservation_status]">
-            <img
-              class="tag-img"
-              :src="statusMap[item.reservation_status]"
-              alt="status"
-            />
+            <img class="tag-img" :src="statusMap[item.reservation_status]" alt="status" />
           </div>
 
           <!-- 标题 -->
@@ -39,19 +27,9 @@
             <span class="label">预约编号：</span>
             <span class="value text-ellipsis">{{ item.order_no }}</span>
 
-            <img
-              class="copy-icon"
-              src="@/assets/images/common/icon_copy@2x.png"
-              mode="aspectFill"
-              @click="copyOrderNo(item.order_no)"
-            />
-            <van-icon
-              name="copy"
-              size="14"
-              color="#999"
-              class="copy-icon"
-              @click="copyOrderNo(item.order_no)"
-            />
+            <img class="copy-icon" src="@/assets/images/common/icon_copy@2x.png" mode="aspectFill"
+              @click="copyOrderNo(item.order_no)" />
+            <van-icon name="copy" size="14" color="#999" class="copy-icon" @click="copyOrderNo(item.order_no)" />
           </div>
 
           <div class="info-row">
@@ -72,38 +50,21 @@
           <!-- 操作按钮区域 -->
           <div class="action-area">
             <!-- 状态 1 或 2：开始驾驶 -->
-            <van-button
-              v-if="[1, 2].includes(item.reservation_status)"
-              type="primary"
-              size="small"
-              color="#FFC838"
-              class="action-btn"
-              @click="handleAction(item)"
-            >
+            <van-button v-if="[1, 2].includes(item.reservation_status)" type="primary" size="small" color="#FFC838"
+              class="action-btn" @click="handleAction(item)">
               开始驾驶
             </van-button>
 
             <!-- 状态 4 且 is_reservation=1：申诉 -->
-            <van-button
-              v-if="item.reservation_status === 4 && item.is_reservation === 1"
-              plain
-              size="small"
-              color="#FFC838"
-              text-color="#FFC838"
-              class="action-btn"
-              @click="handleAppeal(item)"
-            >
+            <van-button v-if="item.reservation_status === 4 && item.is_reservation === 1" plain size="small"
+              color="#FFC838" text-color="#FFC838" class="action-btn" @click="handleAppeal(item)">
               申诉
             </van-button>
           </div>
         </div>
       </van-list>
 
-      <van-empty
-          v-if="!loading && list.length === 0"
-          description="暂无预约记录"
-          image="search"
-        />
+      <van-empty v-if="!loading && list.length === 0" description="暂无预约记录" image="search" />
     </div>
   </div>
 </template>
@@ -114,7 +75,8 @@ import { useRouter } from "vue-router";
 import { showToast, showFailToast } from "vant";
 import NavBar from "@/components/CustomNavBar/index.vue";
 
-import { GetReservationList } from "@/api/mine"; // 假设你的 api 路径
+import { GetReservationList } from "@/api/mine";
+import { GetCarDetails } from "@/api/index";
 import { formatDate, copyToClipboard } from "@/utils/utils";
 import { billingMethod } from "@/utils/filter";
 
@@ -161,10 +123,23 @@ const copyOrderNo = async (text) => {
 // 按钮点击：开始驾驶 (根据业务需求补充逻辑)
 const handleAction = (item) => {
   console.log("开始驾驶", item);
-  router.push({
-    path: "/drive",
-    query: { order_no: item.order_no, vehicle_id: item.vehicle_id },
-  })
+  GetCarDetails({
+    id: item.vehicle_id,
+  }).then(res => {
+
+    if (res.code == 200) {
+
+      localStorage.setItem('carDetails', JSON.stringify(res.data))
+      router.push({
+        path: "/drive",
+        query: { order_no: item.order_no, vehicle_id: item.vehicle_id },
+      })
+    } else {
+      showToast("联系客服，报错原因：" + res.msg)
+    }
+
+  }).catch()
+
   // TODO: 跳转到驾驶页面
 };
 
@@ -216,11 +191,13 @@ const onLoad = async () => {
   background-color: #fff;
   box-sizing: border-box;
 }
+
 .cont {
   background: #f2f4f7;
   padding: 10px;
   height: 100vh;
 }
+
 .order-item {
   background-color: #fff;
   border-radius: 8px;
@@ -230,9 +207,7 @@ const onLoad = async () => {
   overflow: hidden;
   border: 1px solid transparent;
 
-  &.active {
-    border-color: #409eff;
-  }
+
 
   // 右上角角标
   .corner-tag {
@@ -315,6 +290,7 @@ const onLoad = async () => {
     }
   }
 }
+
 .mt {
   margin-top: 10px;
 }

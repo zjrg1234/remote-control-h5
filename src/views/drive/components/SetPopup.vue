@@ -3,6 +3,7 @@
     class="custom-popup-right" :style="{ width: '60%', height: '100%' }">
     <div class="cont">
       <div class="left">
+        <!-- type 1 是遥控车 -->
         <div class="group" v-if="selectedIndex == 0 && type == '1'" >
           <div class="group-item">
             <p class="tit">视频清晰度</p>
@@ -81,10 +82,7 @@
                   <img v-if="selectedMode === mode.id && index == 0" src="@/assets/images/icon_ev_dir1_selected@2x.png" alt="">
                   <img v-if="selectedMode !== mode.id && index == 0" src="@/assets/images/icon_ev_dir1@2x.png" alt="">
                    <img v-if="selectedMode === mode.id && index == 1" src="@/assets/images/icon_ev_dir2_selected@2x.png" alt="">
-                  <img v-if="selectedMode !== mode.id && index == 1" src="@/assets/images/icon_ev_dir2@2x.png" alt="">
-                  
-
-              
+                  <img v-if="selectedMode !== mode.id && index == 1" src="@/assets/images/icon_ev_dir2@2x.png" alt="">  
               </div>
             </div>
           </div>
@@ -125,8 +123,8 @@
                   </template>
                 </van-slider>
                 <div class="slider-label-bottom">
-                  <div class="num-text num-left"> 500 </div>
-                  <div class="num-text num-right"> 5000 </div>
+                  <div class="num-text num-left"> {{ directionCenter.mini_value }} </div>
+                  <div class="num-text num-right"> {{ directionCenter.max_value }} </div>
                 </div>
               </div>
 
@@ -213,10 +211,6 @@
           </div>
         </div>
 
-
-
-
-
       </div>
       <div class="right">
         <div class="settings-bar">
@@ -237,25 +231,106 @@
 </template>
 
 <script setup>
-import { computed, ref } from "vue";
+import { computed, ref, watch,  h } from "vue";
 import { arrowUp, arrowDown, arrowLeft, arrowRight } from "../img.js";
 const props = defineProps({
   show: { type: Boolean, default: false },
   type: { type: String, default: '1' },
+  videoDefinition: {
+    type: String, default: '1'
+  },
+  operFB: {type: Number, default: 0},
+  operDir: {type: Number, default: 0},
+  // 方向中位
+  directionCenter: {
+    type: Object,
+    default: () => ({
+      mini_value: 500,
+      max_value: 1500,
+      current_value: 0,
+    })
+  },
+  // 方向力度
+  directionDynamics : {
+      type: Object,
+    default: () => ({
+      mini_value: 500,
+      max_value: 1500,
+      current_value: 0,
+    })
+  },
+ // 油门力度
+  acceleratorDynamics: {
+     type: Object,
+    default: () => ({
+      mini_value: 500,
+      max_value: 1500,
+      current_value: 0,
+    })
+  }
+});
+
+const dir1Oper = ref(false);
+const dir2Oper = ref(false);
+const dirMiddle = ref(1);
+const dirTurn = ref(1)
+const throttle = ref(1)
+const valueMap = {
+  1: dirMiddle,
+  2: dirTurn,
+  3: throttle
+};
+
+const qualityList = ref([])
+const currentQuality = ref("1");
+// "video_definition": "1,2,3", //清晰度 1户外 2超清 3高清 4标清
+watch(
+  () => props.videoDefinition, 
+  (newVal, oldVal) => {
+    const qualityListMap = [
+  { label: "户外", value: "1" }, // 默认选中项
+  { label: "超清", value: "2" }, // 默认选中项
+  { label: "高清", value: "3" },
+  { label: "标清", value: "4" },
+];
+  // 自动追踪 props.videoDefinition 的变化
+  console.log('当前清晰度:', newVal);
+  const  targetStr = newVal
+  const targetValues = targetStr.split(",");
+
+// 2. 过滤出对应的对象
+  qualityList.value = qualityListMap.filter(item => targetValues.includes(item.value));
+  currentQuality.value = targetValues[0]
+  },
+  { immediate: true } 
+);
+
+watch(
+  () => props.operFB, 
+  (newVal, oldVal) => {
+    dir1Oper.value = newVal == 0 ? false : true
+  }, {immediate: true})
+
+watch(
+  () => props.operDir, 
+  (newVal, oldVal) => {
+    dir2Oper.value = newVal == 0 ? false : true
+  }, {immediate: true})
+
+const emit = defineEmits(["update:show", "action", "operAction"]);
+
+const visible = computed({
+  get: () => props.show,
+  set: (val) => emit("update:show", val),
 });
 
 const setGroup = ref([
   { name: "通用设置", key: 0 },
   { name: "车辆微调", key: 1 }
 ]);
-const selectedIndex = ref(1);
+const selectedIndex = ref(0);
 
-const emit = defineEmits(["update:show", "action"]);
 
-const visible = computed({
-  get: () => props.show,
-  set: (val) => emit("update:show", val),
-});
 
 const close = () => {
   visible.value = false;
@@ -264,16 +339,9 @@ const handleItem = (index) => {
   selectedIndex.value = index;
 };
 
-const qualityList = [
-  { label: "超清", value: "1" }, // 默认选中项
-  { label: "高清", value: "2" },
-  { label: "标清", value: "3" },
-];
-
-const currentQuality = ref("1");
-
 // 3. 处理点击事件
 const handleSelect = (value) => {
+  console.log("点击清晰度")
   currentQuality.value = value;
 };
 
@@ -288,6 +356,7 @@ const steeringModes = [
 // 点击切换逻辑
 const handleSetSelect = (id) => {
   selectedMode.value = id;
+  emit("action", id)
 };
 
 
@@ -302,18 +371,9 @@ const IconArrowDown = () => h("img", { src: arrowDown, ...iconConfig });
 const IconArrowLeft = () => h("img", { src: arrowLeft, ...iconConfig });
 const IconArrowRight = () => h("img", { src: arrowRight, ...iconConfig });
 
-import { h } from "vue";
 
-const dir1Oper = ref(false);
-const dir2Oper = ref(false);
-const dirMiddle = ref(1);
-const dirTurn = ref(1)
-const throttle = ref(1)
-const valueMap = {
-  1: dirMiddle,
-  2: dirTurn,
-  3: throttle
-};
+
+
 
 // 2. 统一的加减处理函数
 const handleValueChange = (type, step) => {
@@ -333,9 +393,32 @@ const handleReduce = (type) => handleValueChange(type, -1);
 
 // 操作不同的类型
 const handleOper = (type, val) => {
-  console.log(type, val)
+  console.log(type+"_"+val)
+  emit('operAction', type+"_"+val)
 }
 
+
+const  reverseMapValue  = (value) => {
+  // 1. 边界保护，防止传入超出范围的值
+  const clampedValue = Math.max(props.directionCenter.mini_value, Math.min(props.directionCenter.max_value, value));
+  
+  // 2. 逆向线性映射计算
+  const result = 1 + (clampedValue - props.directionCenter.max_value) * ((100 - 1) / -(props.directionCenter.mini_value - props.directionCenter.max_value));
+  
+  // 3. 四舍五入取整
+  return Math.round(result);
+}
+
+const  mapValue = (value)  => {
+  // 1. 边界保护，防止传入超出范围的值
+  const clampedValue = Math.max(1, Math.min(100, value));
+  
+  // 2. 线性映射计算
+  const result = 500 + (clampedValue - 1) * (1000 / 99);
+  
+  // 3. 如果硬件通道需要整数，可以使用 Math.round() 四舍五入
+  return Math.round(result);
+}
 
 </script>
 
@@ -461,6 +544,7 @@ const handleOper = (type, val) => {
     display: flex;
     gap: 12px;
     padding-top: 5px;
+    margin-bottom: 5px;
   }
 
   .fj {

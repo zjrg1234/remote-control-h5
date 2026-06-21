@@ -60,13 +60,9 @@
         </div>
       </div>
 
-
-
-      <UpDown @action="handleFBDrive"></UpDown>
-
-      <LeftRight @action="handleLRDrive"></LeftRight>
-
-
+      <LeftRight @action="handleLRDrive" :operMode="operMode"></LeftRight>
+      <UpDown @action="handleFBDrive" :operMode="operMode"></UpDown>
+      
       <div class="time">
         <img src="@/assets/images/icon_time@2x.webp" alt="">
         <TimeClock></TimeClock>
@@ -75,13 +71,16 @@
       <ALLPopup v-model:show="tipVisible" type="tip" :orderNo="orderNo" :vehicleId="vehicleId" :count="count" @action="handlePopupAction" />
       <ALLPopup v-model:show="logoutVisible" type="logout" :orderNo="orderNo"  :vehicleId="vehicleId" @action="handlePopupAction" />
       <ALLPopup v-model:show="repairVisible" type="repair" :orderNo="orderNo"  :vehicleId="vehicleId" :isShow="showRepairReason" @action="handlePopupAction" />
-      <SetPopup v-model:show="setVisible" :type="carType" @action="handlePopupAction" />
+      <SetPopup v-model:show="setVisible" :videoDefinition="videoDefinition" 
+        :operFB="operFB" 
+        :directionCenter="directionCenter"
+        :operDir="operDir"  :type="carType" @action="handleOper" @operAction="handleFBDir" />
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted, nextTick } from "vue";
+import { ref, onMounted, onUnmounted } from "vue";
 import { useRoute } from "vue-router";
 
 import ALLPopup from "./components/ALLPopup.vue";
@@ -91,10 +90,12 @@ import TimeClock from './components/TimeClock.vue';
 import battery from './components/battery.vue';
 import UpDown from './components/UpDown.vue';
 import LeftRight from './components/LeftRight.vue';
-import { formatTime } from "@/utils/utils";
+import { formatTime, mapValue } from "@/utils/utils";
 
-import { getWebSocket } from "@/utils/scoket";
-import { StartDrive } from "@/api/index";
+import { getWebSocket } from "@/utils/socket";
+// import { handleDriverSocketData } from "@/utils/socketHelper";
+
+// import { StartDrive } from "@/api/index";
 
 import {
   ch1, speeds, cSpeeds, repairs, ch_selected,
@@ -123,11 +124,27 @@ const count = ref(15);
 const value = ref(5);
 const setVisible = ref(false);
 const showSound = ref(false);
-const carType = ref('2')
+
+// 车辆类型 是四驱车还是挖机 车辆类型 vehicle_type 10-19四驱车、20-29挖机、30-39推土机
+const carType = ref("1") 
 const timerNum = ref()
 const ws = ref()
 const orderNo = ref()
 const vehicleId = ref()
+const operMode = ref('mode1') // 操作模式
+const operFB = ref(0)  // 操作前后 正常0 反向1
+const operDir = ref(0) // 操作方向 正常0 反向1
+const directionCenter = ref()
+const chValue = ref({
+  ch1: '',
+  ch2: '',
+  ch3: '',
+  ch4: '',
+  ch5: '',
+  ch6: '',
+  ch7: '',
+  ch8: '',
+})
 
 
 // 检测屏幕方向
@@ -140,11 +157,19 @@ const menuList = ref([
   { name: "报修", icon: repairs, key: "repairs", iconSelect: repairs, type: 1 },
   { name: "前差", icon: before_diff, key: "chBefore", iconSelect: before_diff_selected, type: 1 },
   { name: "后差", icon: after_diff, key: "chAfter", iconSelect: after_diff_selected, type: 1 },
-  { name: "CH4", icon: ch1, key: "ch", iconSelect: ch_selected, type: 1 },
-  { name: "高低速", icon: speeds, key: "highLowSpeed", iconSelect: speeds_selected, type: 1 },
+  { name: "CH4", icon: ch1, key: "ch4", iconSelect: ch_selected, type: 1 },
+  { name: "高低", icon: speeds, key: "highLowSpeed", iconSelect: speeds_selected, type: 1 },
   { name: "定速", icon: cSpeeds, key: "speed", iconSelect: cSpeeds_selected, type: 1 },
   { name: "", icon: light, key: "light", iconSelect: light_selected, type: 2 },
 ]);
+const carDetails = ref()
+const videoDefinition = ref('1')
+
+onUnmounted(() => {
+  window.removeEventListener("resize", checkOrientation);
+  window.removeEventListener("orientationchange", checkOrientation);
+  clearInterval(timerNum.value)
+});
 
 onMounted(() => {
   checkOrientation();
@@ -168,8 +193,30 @@ onMounted(() => {
 
   orderNo.value = route.query.order_no || "";
   vehicleId.value = route.query.vehicle_id || "";
+  carDetails.value = JSON.parse(localStorage.carDetails)
+  videoDefinition.value = carDetails.value.video_definition
+  // 四驱车
+  if (carDetails.value.vehicle_type >= 10 && carDetails.value.vehicle_type <= 19) {
+    carType.value = '1'
+  }
+  // 挖机
+  if (carDetails.value.vehicle_type >= 20 && carDetails.value.vehicle_type <= 29) {
+    carType.value = '2'
+  }
+  operFB.value = carDetails.value.reverse_left_right
+  operDir.value = carDetails.value.reverse_up_down
+  directionCenter.value = carDetails.value.direction_center
+  console.log(carType.value)
 
 
+  // 除了ch3～ch8 拿开关值
+  chValue.value.ch3 = carDetails.value.vehicle_config_detail.ch3.close_value.current_value
+  chValue.value.ch4 = carDetails.value.vehicle_config_detail.ch4.close_value.current_value
+  chValue.value.ch5 = carDetails.value.vehicle_config_detail.ch5.close_value.current_value
+  chValue.value.ch6 = carDetails.value.vehicle_config_detail.ch6.close_value.current_value
+  chValue.value.ch7 = carDetails.value.vehicle_config_detail.ch7.close_value.current_value
+  chValue.value.ch8 = carDetails.value.vehicle_config_detail.ch8.close_value.current_value
+  console.log(chValue.value)
   const url = localStorage.wssUrl
   const port = localStorage.wssPort
 
@@ -190,57 +237,60 @@ onMounted(() => {
 const activeKey = ref([]);
 
 const handleIcon = (item) => {
-  console.log(item.key, activeKey.value)
+  console.log(item.key, activeKey.value);
 
-  // 前差
-  if(item.key == 'chBefore') {
-    console.log("发送前差消息")
-    ws.value.send('ch1');
-
-  }
-
-  if(item.key == 'chAfter') {
-    console.log("发送后差消息")
-    ws.value.send('ch2');
-  }
-
-  if (activeKey.value.includes(item.key)) {
-    const index = activeKey.value.indexOf(item.key);
-
-    // 如果定速 消失
-    if (activeKey.value.includes('speed')) {
-      showSpeed.value = false;
-    }
-
-    if (index > -1) {
-      activeKey.value.splice(index, 1);
-    }
-
-  } else {
-    activeKey.value.push(item.key);
-
-    // 如果点击定速
-    if (item.key == "speed") {
-      showSpeed.value = true;
-    }
-
-  }
-
-
-  if (item.key == "repairs") {
+  // 1. 特殊功能拦截：维修项直接弹窗并返回，不参与状态切换
+  if (item.key === "repairs") {
     showRepairReason.value = true;
     repairVisible.value = true;
     return;
   }
 
+  // 2. 提取通道控制逻辑，避免重复代码
+  const updateChannel = (key, chKey) => {
+    if (item.key === key) {
+      const config = carDetails.value.vehicle_config_detail[chKey];
+      // 根据当前状态决定读取 open_value 还是 close_value
+      const valueObj = activeKey.value.includes(item.key) 
+        ? config.close_value 
+        : config.open_value;
+      
+      chValue.value[chKey] = valueObj.current_value;
+      console.log(`发送 ${key} 消息:`, valueObj.current_value);
+    }
+  };
 
+  // 统一调用通道更新
+  updateChannel('chBefore', 'ch5');
+  updateChannel('chAfter', 'ch6');
+  updateChannel('ch4', 'ch4');
+  updateChannel('highLowSpeed', 'ch3');
+ 
+  
+
+  // 3. 处理菜单激活/取消激活状态
+  const index = activeKey.value.indexOf(item.key);
+  
+  if (index > -1) {
+    // 当前已激活 -> 取消激活
+    activeKey.value.splice(index, 1);
+    
+    // 修复Bug：只有当点击的是 speed 时，才隐藏定速UI
+    if (item.key === "speed") {
+      showSpeed.value = false;
+    }
+  } else {
+    // 当前未激活 -> 激活
+    activeKey.value.push(item.key);
+    
+    if (item.key === "speed") {
+      showSpeed.value = true;
+    }
+  }
+
+  console.log(chValue.value)
 };
 
-onUnmounted(() => {
-  window.removeEventListener("resize", checkOrientation);
-  window.removeEventListener("orientationchange", checkOrientation);
-  clearInterval(timerNum.value)
-});
 
 const handlePopupAction = (type) => {
   console.log(type);
@@ -260,18 +310,31 @@ const handlePopupAction = (type) => {
 };
 
 
+const handleOper = (type) => {
+  console.log(type)
+  operMode.value = type // 操作模式 箭头上下 在左
+  if (carType.value == 1) {
 
-const isRippleActive = ref(false);
+  } else {
 
-const triggerRipple = () => {
-  // 1. 先移除 active 状态
-  isRippleActive.value = false;
+  }
+}
 
-  // 2. 等待 DOM 更新后，再重新添加 active 状态，从而触发 CSS 动画
-  nextTick(() => {
-    isRippleActive.value = true;
-  });
-};
+// 前后 左右是否反向
+const handleFBDir = (val) => {
+
+  const arr = val.split("_")
+  if (arr[0] == 1) {
+    operFB.value = arr[1] === 'true' ? 1 : 0
+    return
+  }
+
+  if (arr[0] == 2) {
+    operDir.value = arr[1] === 'true' ? 1 : 0
+    return
+  }
+
+}
 
 const set = () => {
   setVisible.value = true
@@ -309,11 +372,7 @@ const handleLRDrive = (item) => {
   }
 }
 
-const mapValue = (value) => {
-  // 可选：限制输入值在 0~65 之间，防止越界
-  const clampedValue = Math.max(0, Math.min(65, Math.abs(value)));
-  return ((clampedValue / 65) * 100).toFixed(2);
-}
+
 </script>
 
 <style lang="scss" scoped>
@@ -514,12 +573,12 @@ const mapValue = (value) => {
 .side-menu {
   // 1. 整体容器样式
   position: fixed;
-  top: 18px;
+  top: 25px;
   right: 7px;
   z-index: 2;
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 4px;
   background: rgba(20, 20, 20, 0.75);
   backdrop-filter: blur(10px);
   border-radius: 20px;
@@ -541,6 +600,7 @@ const mapValue = (value) => {
     display: block;
     width: 6px;
     height: 6px;
+    margin-bottom: 1px;
   }
 
   .label {
@@ -556,7 +616,7 @@ const mapValue = (value) => {
 .slider {
   position: absolute;
   z-index: 1;
-  top: 105px;
+  top: 130px;
   right: 24px;
   width: 50px;
 }

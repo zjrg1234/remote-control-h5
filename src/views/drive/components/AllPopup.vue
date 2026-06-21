@@ -111,6 +111,8 @@ const handleAction = (actionType) => {
     }).then(res => {
       if (res.code != 200) {
         showToast(res.msg)
+      } else {
+        visible.value = false;
       }
     }).catch()
   }
@@ -122,7 +124,22 @@ const cancel = () => {
 }
 
 const logout = () => {
-  window.location.href = '/reservation'
+  // type 3 结束驾驶
+  // 先发
+  StartDrive({
+      order_no: props.orderNo,
+      type: 3,
+      vehicle_id: props.vehicleId
+    }).then(res => {
+      if (res.code != 200) {
+        showToast(res.msg)
+      } else {
+        setTimeout(()=> {
+          window.location.href = '/reservation'
+        }, 2000)
+      }
+    }).catch()
+
 }
 const report = () => {
 

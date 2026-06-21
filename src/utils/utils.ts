@@ -126,3 +126,10 @@ export const compareTimestamp = (startTime, endTime) => {
 };
 
 const formatNum = (n) => (n < 10 ? "0" + n : n);
+
+
+export const mapValue = (value) => {
+  // 可选：限制输入值在 0~65 之间，防止越界
+  const clampedValue = Math.max(0, Math.min(65, Math.abs(value)));
+  return ((clampedValue / 65) * 100).toFixed(2);
+}

@@ -60,5 +60,9 @@ export function StartDrive(data) {
   return post('/api/user/start/driving',data)
 }
 
+// 获取车辆详情
+export function GetCarDetails(data) {
+  return post('/api/vehicle/detail',data)
+}
 
 

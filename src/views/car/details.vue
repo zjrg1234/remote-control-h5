@@ -75,7 +75,7 @@
         <!-- 右侧信息区域 -->
         <div class="info-wrapper">
           <div class="top-row">
-            <span class="car-name">{{ car.name }}</span>
+            <span class="car-name">{{ car.vehicle_name }}</span>
           </div>
           <div class="desc-row">
             <span class="label">车辆特点：</span>
