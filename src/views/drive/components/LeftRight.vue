@@ -33,11 +33,12 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onBeforeUnmount } from "vue";
+import { ref, onMounted, onBeforeUnmount, defineEmits } from "vue";
 
 import leftImg from "@/assets/images/arrow_left_big@2x.png";
 import rightImg from "@/assets/images/arrow_right_big@2x.png";
 import dotImg from "@/assets/images/dot@2x.webp";
+const emit = defineEmits(['action'])
 
 const leftImage = ref(leftImg);
 const rightImage = ref(rightImg);
@@ -91,6 +92,11 @@ const enterReadyMode = () => {
 const updateArrows = (deltaX) => {
   isLeftActive.value = deltaX < -SWIPE_THRESHOLD;
   isRightActive.value = deltaX > SWIPE_THRESHOLD;
+
+  emit("action", {
+    lr: isLeftActive.value ? isLeftActive.value : false,
+    value: deltaX,
+  })
 };
 
 const resetArrows = () => {
@@ -151,6 +157,22 @@ const processMove = () => {
     }
 
     currentDotX = deltaX;
+
+    //  if(deltaX < 0 ) {
+    //   console.log("向左滑动", deltaX)
+    // }
+    if(deltaX < -65) {
+      deltaX = -65;
+    }
+
+    if(deltaX > 65) {
+      deltaX = 65;
+    }
+
+    // if(deltaX > 0 ) {
+    //   console.log("向右滑动", deltaX)
+    // }
+
     // 直接操作 DOM
     dotRef.value.style.transform = `translateX(${currentDotX}px) scale(1)`;
     updateArrows(deltaX);

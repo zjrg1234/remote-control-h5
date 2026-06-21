@@ -34,7 +34,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onBeforeUnmount } from "vue";
+import { ref, onMounted, onBeforeUnmount, defineEmits } from "vue";
 import upImg from "@/assets/images/arrow_up_big@2x.png";
 import downImg from "@/assets/images/arrow_down_big@2x.png";
 import dotImg from "@/assets/images/dot@2x.webp";
@@ -50,6 +50,8 @@ const MAX_DOT_DRAG = 40; // 待命模式下，圆点最大可拉动距离 (px)
 // --- DOM 引用 ---
 const boxRef = ref(null);
 const dotRef = ref(null);
+
+const emit = defineEmits(['action'])
 
 // --- 响应式状态 ---
 const boxX = ref(0);
@@ -89,11 +91,20 @@ const enterReadyMode = () => {
 const updateArrows = (deltaY) => {
   isUpActive.value = deltaY < -SWIPE_THRESHOLD;
   isDownActive.value = deltaY > SWIPE_THRESHOLD;
+
+  emit("action", {
+    fb: isUpActive.value ? isUpActive.value : false,
+    value: deltaY,
+  })
 };
 
 const resetArrows = () => {
   isUpActive.value = false;
   isDownActive.value = false;
+  emit("action", {
+    fb: isUpActive.value ? isUpActive.value : isDownActive.value,
+    value: 0,
+  })
 };
 
 // --- 事件处理 ---
@@ -173,10 +184,27 @@ const handleMove = (e) => {
     }
 
     dotOffsetY.value = deltaY;
+
+    // if(deltaY < 0 ) {
+    //   console.log("向上滑动", deltaY)
+    // }
+    if(deltaY < -65) {
+      deltaY = -65;
+    }
+
+    if(deltaY > 65) {
+      deltaY = 65;
+    }
+
+    // if(deltaY > 0 ) {
+    //   console.log("向下滑动", deltaY)
+    // }
     // deltaY  正向下  负数 向上
     updateArrows(deltaY);
   }
 };
+
+
 
 const handleEnd = () => {
   if (!isDragging.value) return;

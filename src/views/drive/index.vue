@@ -62,9 +62,9 @@
 
 
 
-      <UpDown></UpDown>
+      <UpDown @action="handleFBDrive"></UpDown>
 
-      <LeftRight></LeftRight>
+      <LeftRight @action="handleLRDrive"></LeftRight>
 
 
       <div class="time">
@@ -72,9 +72,9 @@
         <TimeClock></TimeClock>
       </div>
 
-      <ALLPopup v-model:show="tipVisible" type="tip" :count="count" @action="handlePopupAction" />
-      <ALLPopup v-model:show="logoutVisible" type="logout" @action="handlePopupAction" />
-      <ALLPopup v-model:show="repairVisible" type="repair" :isShow="showRepairReason" @action="handlePopupAction" />
+      <ALLPopup v-model:show="tipVisible" type="tip" :orderNo="orderNo" :vehicleId="vehicleId" :count="count" @action="handlePopupAction" />
+      <ALLPopup v-model:show="logoutVisible" type="logout" :orderNo="orderNo"  :vehicleId="vehicleId" @action="handlePopupAction" />
+      <ALLPopup v-model:show="repairVisible" type="repair" :orderNo="orderNo"  :vehicleId="vehicleId" :isShow="showRepairReason" @action="handlePopupAction" />
       <SetPopup v-model:show="setVisible" :type="carType" @action="handlePopupAction" />
     </div>
   </div>
@@ -82,6 +82,8 @@
 
 <script setup>
 import { ref, onMounted, onUnmounted, nextTick } from "vue";
+import { useRoute } from "vue-router";
+
 import ALLPopup from "./components/ALLPopup.vue";
 import SetPopup from "./components/SetPopup.vue";
 import Ripple from "./components/Ripple.vue";
@@ -104,7 +106,11 @@ import {
   light_selected
 } from "./img.js";
 
-
+// 点击设置， 选中前差等全部重置最初状态
+// 设置里的数据都是车辆详情carDetails接口拿本地
+// 退出延迟2s中 发送中位值
+// 方向设置 要发送ws信息s
+const route = useRoute();
 const isLandscape = ref(true);
 const tipVisible = ref(false);
 const logoutVisible = ref(false);
@@ -117,12 +123,11 @@ const count = ref(15);
 const value = ref(5);
 const setVisible = ref(false);
 const showSound = ref(false);
-
 const carType = ref('2')
 const timerNum = ref()
-
 const ws = ref()
-
+const orderNo = ref()
+const vehicleId = ref()
 
 
 // 检测屏幕方向
@@ -161,10 +166,15 @@ onMounted(() => {
     currentTime.value = formatTime(++num);
   }, 1000);
 
+  orderNo.value = route.query.order_no || "";
+  vehicleId.value = route.query.vehicle_id || "";
+
+
   const url = localStorage.wssUrl
   const port = localStorage.wssPort
 
-  ws.value = getWebSocket('ws://' + url + ':' + port + '', {
+  console.log('ws://' + url + ':' + port)
+  ws.value = getWebSocket('ws://' + url + ':' + port, {
     maxReconnectCount: 5,       // 最大重连次数
     reconnectInterval: 3000,    // 基础重连间隔（实际会乘以重连次数）
     heartBeatInterval: 30000    // 心跳间隔（毫秒）
@@ -172,7 +182,7 @@ onMounted(() => {
 
   ws.value.onOpen((event) => {
     console.log('连接成功，可以开始发送消息了！');
-    ws.value.send({ type: 'auth', token: 'user-token-1111' });
+    // ws.value.send();
   });
 });
 
@@ -181,6 +191,18 @@ const activeKey = ref([]);
 
 const handleIcon = (item) => {
   console.log(item.key, activeKey.value)
+
+  // 前差
+  if(item.key == 'chBefore') {
+    console.log("发送前差消息")
+    ws.value.send('ch1');
+
+  }
+
+  if(item.key == 'chAfter') {
+    console.log("发送后差消息")
+    ws.value.send('ch2');
+  }
 
   if (activeKey.value.includes(item.key)) {
     const index = activeKey.value.indexOf(item.key);
@@ -228,6 +250,13 @@ const handlePopupAction = (type) => {
     repairVisible.value = true;
     showRepairReason.value = false
   }
+
+  // 有维修原因的
+  if (type == "repair") {
+    logoutVisible.value = false
+    repairVisible.value = true;
+    showRepairReason.value = true
+  }
 };
 
 
@@ -250,6 +279,40 @@ const set = () => {
 
 const logout = () => {
   logoutVisible.value = true
+}
+
+// 前进后退
+const handleFBDrive = (item) => {
+  console.log(item)
+  if (item.fb == true) {
+    console.log("向前", mapValue(item.value))
+  }
+  if(item.fb == false) {
+    if (item.value == 0) {
+      console.log("停止", 0)
+    } else {
+      console.log("向后", mapValue(item.value))
+    }
+  }
+}
+// 左右
+const handleLRDrive = (item) => {
+  if (item.lr == true) {
+    console.log("向左", mapValue(item.value))
+  }
+  if(item.lr == false) {
+    if (item.value == 0) {
+      console.log("停止", 0)
+    } else {
+      console.log("向右", mapValue(item.value))
+    }
+  }
+}
+
+const mapValue = (value) => {
+  // 可选：限制输入值在 0~65 之间，防止越界
+  const clampedValue = Math.max(0, Math.min(65, Math.abs(value)));
+  return ((clampedValue / 65) * 100).toFixed(2);
 }
 </script>
 

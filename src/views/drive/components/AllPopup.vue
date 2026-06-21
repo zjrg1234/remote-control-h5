@@ -66,12 +66,16 @@
 
 <script setup>
 import { computed, ref } from 'vue'
+import { showToast } from "vant";
+import { StartDrive } from "@/api/index";
 
 const props = defineProps({
   show: { type: Boolean, default: false },
   type: { type: String, default: 'tip' },
   count: { type: Number, default: 0 },
-  isShow: { type: Boolean, default: false }
+  isShow: { type: Boolean, default: false },
+  orderNo: { type: String, default: '' },
+  vehicleId: { type: String, default: '' },
 })
 
 const message = ref('');
@@ -94,10 +98,22 @@ const visible = computed({
   get: () => props.show,
   set: (val) => emit('update:show', val)
 })
-
+      
 // 统一处理按钮点击，向父组件抛出动作类型
 const handleAction = (actionType) => {
   emit('action', actionType)
+
+  if('driving' == actionType) {
+    StartDrive({
+      order_no: props.orderNo,
+      type: 1,
+      vehicle_id: props.vehicleId
+    }).then(res => {
+      if (res.code != 200) {
+        showToast(res.msg)
+      }
+    }).catch()
+  }
 }
 
 const cancel = () => {
@@ -106,7 +122,7 @@ const cancel = () => {
 }
 
 const logout = () => {
-
+  window.location.href = '/reservation'
 }
 const report = () => {
 

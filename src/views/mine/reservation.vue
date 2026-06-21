@@ -163,7 +163,7 @@ const handleAction = (item) => {
   console.log("开始驾驶", item);
   router.push({
     path: "/drive",
-    query: { order_no: item.order_no },
+    query: { order_no: item.order_no, vehicle_id: item.vehicle_id },
   })
   // TODO: 跳转到驾驶页面
 };
