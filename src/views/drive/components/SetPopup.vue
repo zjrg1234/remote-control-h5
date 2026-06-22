@@ -188,6 +188,7 @@
                   v-model="dirMiddle"
                   :min="1"
                   :max="100"
+                  @change="changeVal"
                   active-color="#f5c542"
                 >
                   <template #button>
@@ -237,6 +238,7 @@
                 <van-slider
                   v-model="dirTurn"
                   :min="1"
+                  @change="changeVal"
                   :max="100"
                   active-color="#f5c542"
                 >
@@ -285,6 +287,7 @@
                   v-model="throttle"
                   :min="1"
                   :max="100"
+                  @change="changeVal"
                   active-color="#f5c542"
                 >
                   <template #button>
@@ -358,6 +361,10 @@ const throttle = ref(1);
 //     step: 1,
 //   });
 
+const dirCenter = ref()
+const dirDyn = ref()
+const altDyn = ref()
+
 const props = defineProps({
   show: { type: Boolean, default: false },
   type: { type: String, default: "1" },
@@ -398,27 +405,29 @@ const props = defineProps({
 watch(
   () => props.directionCenter,
   (val) => {
+    dirCenter.value = {...val}
     const mapNum = createReverseMapper(1, 100, val.mini_value, val.max_value);
     dirMiddle.value = mapNum(val.current_value);
   },
-  { immediate: true },
+  { immediate: true, deep: true },
 );
 watch(
   () => props.directionDynamics,
   (val) => {
-    // dirTurn.value = val.current_value;
+    dirDyn.value = {...val}
     const mapNum = createReverseMapper(1, 100, val.mini_value, val.max_value);
     dirTurn.value = mapNum(val.current_value);
   },
-  { immediate: true },
+  { immediate: true, deep: true },
 );
 watch(
   () => props.acceleratorDynamics,
   (val) => {
+    altDyn.value = {...val}
     const mapNum = createReverseMapper(1, 100, val.mini_value, val.max_value);
     throttle.value = mapNum(val.current_value);
   },
-  { immediate: true },
+  { immediate: true , deep: true},
 );
 const dir1Oper = ref(false);
 const dir2Oper = ref(false);
@@ -437,7 +446,7 @@ const dirMiddleVal = computed(() => {
     props.directionCenter.max_value,
   );
 
-  return (mapNum(dirMiddle.value)).toFixed(0);
+  return mapNum(dirMiddle.value).toFixed(0);
 });
 
 const qualityList = ref([]);
@@ -463,7 +472,7 @@ watch(
     );
     currentQuality.value = targetValues[0];
   },
-  { immediate: true },
+  { immediate: true  ,deep: true},
 );
 
 // 前后正常操作
@@ -481,10 +490,15 @@ watch(
   (newVal) => {
     dir2Oper.value = newVal == 0 ? false : true;
   },
-  { immediate: true },
+  { immediate: true,  deep: true },
 );
 
-const emit = defineEmits(["update:show", "action", "operAction"]);
+const emit = defineEmits([
+  "update:show",
+  "action",
+  "operAction",
+  "changeValue",
+]);
 
 const visible = computed({
   get: () => props.show,
@@ -498,7 +512,23 @@ const setGroup = ref([
 const selectedIndex = ref(0);
 
 const close = () => {
+  const val = {
+    1: props.directionCenter.current_value,
+    2: props.directionDynamics.current_value,
+    3: props.acceleratorDynamics.current_value
+  }
+
+  if (saveFlag.value[1]) {
+    val[1] = dirMiddleVal.value
+  } 
+  if (saveFlag.value[2]) {
+    val[2] = dirTurn.value
+  }
+  if (saveFlag.value[3]) {
+    val[2] = throttle.value
+  }
   visible.value = false;
+  emit("changeValue", val);
 };
 const handleItem = (index) => {
   selectedIndex.value = index;
@@ -518,7 +548,7 @@ const steeringModes = [
   { id: "mode2", isReverse: true }, // 反转布局
 ];
 
-// 点击切换逻辑
+// 点击切换左右操作
 const handleSetSelect = (id) => {
   selectedMode.value = id;
   emit("action", id);
@@ -542,39 +572,57 @@ const handleValueChange = (type, step) => {
 
   // 计算新值
   const newValue = target.value + step;
-
-  // 3. 边界保护（假设范围是 0 ~ 100，请根据实际业务修改）
   target.value = Math.max(0, Math.min(100, newValue));
-  console.log(target.value, type);
+  // 减产操作，传值
+  emit("changeValue", {
+    1: dirMiddleVal.value,
+    2: dirTurn.value,
+    3: throttle.value,
+  });
 };
+const changeVal = () =>{ 
+  emit("changeValue", {
+    1: dirMiddleVal.value,
+    2: dirTurn.value,
+    3: throttle.value,
+  });
+}
 
 // 4. 调用时只需传入 type 和 步长（1 为加，-1 为减）
 const handleAdd = (type) => handleValueChange(type, 1);
 const handleReduce = (type) => handleValueChange(type, -1);
 
-// 操作不同的类型
+// 操作不同的类型 是否反向 正向
 const handleOper = (type, val) => {
   emit("operAction", type + "_" + val);
 };
 
-function createMapper  (inMin, inMax, outMin, outMax) {
+function createMapper(inMin, inMax, outMin, outMax) {
   return (value) => {
     const clampedValue = Math.max(inMin, Math.min(inMax, value));
     return (
       outMin + ((clampedValue - inMin) * (outMax - outMin)) / (inMax - inMin)
     );
   };
-};
-function createReverseMapper  (inMin, inMax, outMin, outMax)  {
+}
+function createReverseMapper(inMin, inMax, outMin, outMax) {
   return (value) => {
     const clampedValue = Math.max(outMin, Math.min(outMax, value));
-    const result = inMin + ((clampedValue - outMin) * (inMax - inMin)) / (outMax - outMin);
-    
-    return parseFloat(result.toFixed(1)); 
+    const result =
+      inMin + ((clampedValue - outMin) * (inMax - inMin)) / (outMax - outMin);
+
+    return parseFloat(result.toFixed(1));
   };
+}
+
+const saveFlag = ref({
+  1: false,
+  2: false,
+  3: false,
+});
+const save = (type) => {
+  saveFlag.value[type] = true
 };
-// 生成你需要的专属映射函数
-// const dirMiddleMapper = createMapper(1, 100, 45, 2000);
 </script>
 
 <style lang="scss" scoped>

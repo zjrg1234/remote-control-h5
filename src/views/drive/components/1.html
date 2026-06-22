@@ -239,7 +239,155 @@
         window.addEventListener('touchmove', handleMove, { passive: false });
         window.addEventListener('mouseup', handleEnd);
         window.addEventListener('touchend', handleEnd);
+
+
+
+
+        /**
+ * 模拟遥控车通道控制逻辑
+ * 对应 Swift: handleTwoDirectionControlChannel
+ */
+class CarControlHandler {
+  constructor() {
+    // 模拟状态变量
+    this.channelS1 = 1500; // 方向通道 (默认中位)
+    this.channelS2 = 1500; // 油门通道 (默认中位)
+    this.isOpenConstantSpeedFalg = false; // 定速巡航开关状态
+  }
+
+  /**
+   * 处理双摇杆控制通道值
+   * @param {boolean} isUpDown - true: 处理油门(左摇杆), false: 处理方向(右摇杆)
+   * @param {string} positionType - 操作类型: 'endType'(结束), 'upType'/'leftType'(上/左), 'downType'/'rightType'(下/右)
+   * @param {number} ratioValue - 摇杆偏移比例 (0.0 ~ 1.0)
+   * @param {Object} config - 配置参数对象 (模拟 Swift 中的 ViewModel 数据)
+   */
+  handleTwoDirectionControlChannel(isUpDown, positionType, ratioValue, config) {
+    // 1. 获取基础配置 (最大值、中位值、最小值)
+    // 对应 Swift: getCenterTrimmingVMViewModel(index: ...)
+    const throttleConfig = config.throttle || { max: 2000, center: 1500, min: 1000, dynamics: 1.0, dynamicsMax: 1.0 };
+    const steeringConfig = config.steering || { max: 2000, center: 1500, min: 1000, dynamics: 1.0, dynamicsMax: 1.0 };
+    
+    let maxValue = 0.0;
+    let centerValue = 0.0;
+    let minValue = 0.0;
+    let rateValue = 0.0; // 力度比例
+
+    if (isUpDown) {
+      // ================= 处理油门 (左摇杆) =================
+      // 对应 Swift: leftControlView 逻辑
+      
+      // 模拟定速巡航关闭逻辑
+      if (this.isOpenConstantSpeedFalg) {
+        this.isOpenConstantSpeedFalg = false;
+        this.channelS2 = centerValue; // 假设关闭时回到中位
+        console.log("定速巡航已关闭");
+      }
+
+      maxValue = throttleConfig.max;
+      centerValue = throttleConfig.center;
+      minValue = throttleConfig.min;
+      
+      // 计算油门力度比例
+      rateValue = throttleConfig.dynamics / throttleConfig.dynamicsMax;
+
+      if (positionType === 'endType') {
+        // 摇杆回中
+        this.channelS2 = Math.floor(centerValue);
+      } else {
+        // 计算油门输出值
+        // 注意：Swift 代码中有 reverseUpDownState 逻辑，这里通过 positionType 区分
+        if (positionType === 'upType') {
+          // 推油门 (正向)
+          // 公式: center + (max - center) * 力度 * 比例
+          this.channelS2 = Math.floor(centerValue + (maxValue - centerValue) * rateValue * ratioValue);
+          
+          // 边界限制
+          if (this.channelS2 < centerValue) this.channelS2 = centerValue;
+          if (this.channelS2 > maxValue) this.channelS2 = maxValue;
+          
+        } else {
+          // 拉刹车/倒车 (反向)
+          // 公式: center - (center - min) * 力度 * 比例
+          this.channelS2 = Math.floor(centerValue - (centerValue - minValue) * rateValue * ratioValue);
+          
+          // 边界限制
+          if (this.channelS2 < minValue) this.channelS2 = minValue;
+          if (this.channelS2 > centerValue) this.channelS2 = centerValue;
+        }
+      }
+
+    } else {
+      // ================= 处理方向 (右摇杆) =================
+      // 对应 Swift: rightTwoControlView 逻辑
+      
+      maxValue = steeringConfig.max;
+      centerValue = steeringConfig.center;
+      minValue = steeringConfig.min;
+      
+      // 计算方向力度比例
+      rateValue = steeringConfig.dynamics / steeringConfig.dynamicsMax;
+
+      if (positionType === 'endType') {
+        // 摇杆回中
+        this.channelS1 = Math.floor(centerValue);
+      } else {
+        // 计算方向输出值
+        if (positionType === 'leftType') {
+          // 向左打方向
+          this.channelS1 = Math.floor(centerValue + (maxValue - centerValue) * rateValue * ratioValue);
+          
+          // 边界限制
+          if (this.channelS1 < centerValue) this.channelS1 = centerValue;
+          if (this.channelS1 > maxValue) this.channelS1 = maxValue;
+          
+        } else {
+          // 向右打方向
+          this.channelS1 = Math.floor(centerValue - (centerValue - minValue) * rateValue * ratioValue);
+          
+          // 边界限制
+          if (this.channelS1 < minValue) this.channelS1 = minValue;
+          if (this.channelS1 > centerValue) this.channelS1 = centerValue;
+        }
+      }
+      
+      // 全局安全限制 (对应 Swift 代码末尾的硬编码限制)
+      if (this.channelS1 < 1) this.channelS1 = 1;
+      if (this.channelS1 > 2000) this.channelS1 = 2000;
+    }
+
+    // 返回当前计算出的通道值，用于发送蓝牙/WiFi 指令
+    return {
+      throttle: this.channelS2,
+      steering: this.channelS1
+    };
+  }
+}
+
+// --- 使用示例 ---
+
+const controller = new CarControlHandler();
+
+// 模拟配置数据 (通常从服务器或本地存储获取)
+const carConfig = {
+  throttle: { max: 2000, center: 1500, min: 1000, dynamics: 1.0, dynamicsMax: 1.0 },
+  steering: { max: 2000, center: 1500, min: 1000, dynamics: 1.0, dynamicsMax: 1.0 }
+};
+
+// 1. 模拟推油门到 50% (ratioValue = 0.5)
+console.log("推油门 50%:", controller.handleTwoDirectionControlChannel(true, 'upType', 0.5, carConfig));
+// 预期输出: throttle 约 1750
+
+// 2. 模拟回中
+console.log("摇杆回中:", controller.handleTwoDirectionControlChannel(true, 'endType', 0, carConfig));
+// 预期输出: throttle 1500
+
+// 3. 模拟向左打方向到 100%
+console.log("向左打死:", controller.handleTwoDirectionControlChannel(false, 'leftType', 1.0, carConfig));
+// 预期输出: steering 2000
     </script>
 </body>
 </html>
-左右摇杆
+
+
+

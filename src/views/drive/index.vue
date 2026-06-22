@@ -117,6 +117,7 @@
         :type="carType"
         @action="handleOper"
         @operAction="handleFBDir"
+        @changeValue="changeVal"
       />
     </div>
   </div>
@@ -427,7 +428,7 @@ const handleOper = (type) => {
   }
 };
 
-// 前后 左右是否反向
+// 前后 左右是否反向 正常0 反向 1
 const handleFBDir = (val) => {
   const arr = val.split("_");
   if (arr[0] == 1) {
@@ -440,6 +441,15 @@ const handleFBDir = (val) => {
     return;
   }
 };
+
+// 加减传值
+const changeVal = (value) => {
+  console.log(value)
+  // 1是方向中位值 2是方向力度  3是油门
+  directionCenter.value.current_value = value[1]
+  directionDynamics.value.current_value = value[2]
+  acceleratorDynamics.value.current_value = value[3]
+}
 
 const set = () => {
   setVisible.value = true;
