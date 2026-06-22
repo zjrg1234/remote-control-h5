@@ -1,15 +1,27 @@
 <template>
-  <van-popup v-model:show="visible" :close-on-click-overlay="false" position="right" teleport="body" round
-    class="custom-popup-right" :style="{ width: '60%', height: '100%' }">
+  <van-popup
+    v-model:show="visible"
+    :close-on-click-overlay="false"
+    position="right"
+    teleport="body"
+    round
+    class="custom-popup-right"
+    :style="{ width: '60%', height: '100%' }"
+  >
     <div class="cont">
       <div class="left">
         <!-- type 1 是遥控车 -->
-        <div class="group" v-if="selectedIndex == 0 && type == '1'" >
+        <div class="group" v-if="selectedIndex == 0 && type == '1'">
           <div class="group-item">
             <p class="tit">视频清晰度</p>
             <div class="flex">
-              <span v-for="(item, index) in qualityList" :key="index" class="btn-quality"
-                :class="{ active: currentQuality === item.value }" @click="handleSelect(item.value)">
+              <span
+                v-for="(item, index) in qualityList"
+                :key="index"
+                class="btn-quality"
+                :class="{ active: currentQuality === item.value }"
+                @click="handleSelect(item.value)"
+              >
                 {{ item.label }}
               </span>
             </div>
@@ -18,15 +30,23 @@
           <div class="group-item">
             <p class="tit">操作设置</p>
             <div class="flex">
-              <div v-for="(mode, index) in steeringModes" :key="index" class="option-card"
-                :class="{ 'is-active': selectedMode === mode.id }" @click="handleSetSelect(mode.id)">
+              <div
+                v-for="(mode, index) in steeringModes"
+                :key="index"
+                class="option-card"
+                :class="{ 'is-active': selectedMode === mode.id }"
+                @click="handleSetSelect(mode.id)"
+              >
                 <!-- 右上角的黄色对勾 (仅当选中时显示) -->
                 <div v-if="selectedMode === mode.id" class="check-mark">
-                  <img src="@/assets/images/icon_selected@2x.png" alt="">
+                  <img src="@/assets/images/icon_selected@2x.png" alt="" />
                 </div>
 
                 <!-- 布局区域：根据配置交换左右顺序 -->
-                <div class="content-layout" :class="{ 'reverse-layout': mode.isReverse }">
+                <div
+                  class="content-layout"
+                  :class="{ 'reverse-layout': mode.isReverse }"
+                >
                   <!-- 左侧/第一组图标 -->
                   <div class="icon-group">
                     <div class="icon-row vertical">
@@ -52,23 +72,39 @@
           <div class="group-item pr">
             <div class="flex fj">
               <span class="tit">方向反向操作</span>
-              <van-switch v-model="dir1Oper" @change="handleOper(1,$event)" size="15px" active-color="#f5c542" inactive-color="#dcdee0" />
+              <van-switch
+                v-model="dir1Oper"
+                @change="handleOper(1, $event)"
+                size="15px"
+                active-color="#f5c542"
+                inactive-color="#dcdee0"
+              />
             </div>
 
             <div class="flex fj">
               <span class="tit">进退反向操作</span>
-              <van-switch v-model="dir2Oper" @change="handleOper(2, $event)" size="15px" active-color="#f5c542" inactive-color="#dcdee0" />
+              <van-switch
+                v-model="dir2Oper"
+                @change="handleOper(2, $event)"
+                size="15px"
+                active-color="#f5c542"
+                inactive-color="#dcdee0"
+              />
             </div>
           </div>
         </div>
-
 
         <div class="group" v-if="selectedIndex == 0 && type == '2'">
           <div class="group-item">
             <p class="tit">视频清晰度</p>
             <div class="flex">
-              <span v-for="(item, index) in qualityList" :key="index" class="btn-quality"
-                :class="{ active: currentQuality === item.value }" @click="handleSelect(item.value)">
+              <span
+                v-for="(item, index) in qualityList"
+                :key="index"
+                class="btn-quality"
+                :class="{ active: currentQuality === item.value }"
+                @click="handleSelect(item.value)"
+              >
                 {{ item.label }}
               </span>
             </div>
@@ -77,12 +113,33 @@
           <div class="group-item">
             <p class="tit">操作设置</p>
             <div class="flex">
-              <div v-for="(mode, index) in steeringModes" :key="index" class="option-card"
-                :class="{ 'is-active': selectedMode === mode.id }" @click="handleSetSelect(mode.id)">
-                  <img v-if="selectedMode === mode.id && index == 0" src="@/assets/images/icon_ev_dir1_selected@2x.png" alt="">
-                  <img v-if="selectedMode !== mode.id && index == 0" src="@/assets/images/icon_ev_dir1@2x.png" alt="">
-                   <img v-if="selectedMode === mode.id && index == 1" src="@/assets/images/icon_ev_dir2_selected@2x.png" alt="">
-                  <img v-if="selectedMode !== mode.id && index == 1" src="@/assets/images/icon_ev_dir2@2x.png" alt="">  
+              <div
+                v-for="(mode, index) in steeringModes"
+                :key="index"
+                class="option-card"
+                :class="{ 'is-active': selectedMode === mode.id }"
+                @click="handleSetSelect(mode.id)"
+              >
+                <img
+                  v-if="selectedMode === mode.id && index == 0"
+                  src="@/assets/images/icon_ev_dir1_selected@2x.png"
+                  alt=""
+                />
+                <img
+                  v-if="selectedMode !== mode.id && index == 0"
+                  src="@/assets/images/icon_ev_dir1@2x.png"
+                  alt=""
+                />
+                <img
+                  v-if="selectedMode === mode.id && index == 1"
+                  src="@/assets/images/icon_ev_dir2_selected@2x.png"
+                  alt=""
+                />
+                <img
+                  v-if="selectedMode !== mode.id && index == 1"
+                  src="@/assets/images/icon_ev_dir2@2x.png"
+                  alt=""
+                />
               </div>
             </div>
           </div>
@@ -90,12 +147,24 @@
           <div class="group-item pr">
             <div class="flex fj">
               <span class="tit">进退反向操作</span>
-              <van-switch v-model="dir1Oper" @change="handleOper(3, $event)" size="15px" active-color="#f5c542" inactive-color="#dcdee0" />
+              <van-switch
+                v-model="dir1Oper"
+                @change="handleOper(3, $event)"
+                size="15px"
+                active-color="#f5c542"
+                inactive-color="#dcdee0"
+              />
             </div>
 
             <div class="flex fj">
               <span class="tit">旋转反向操作</span>
-              <van-switch v-model="dir2Oper" @change="handleOper(4, $event)" size="15px" active-color="#f5c542" inactive-color="#dcdee0" />
+              <van-switch
+                v-model="dir2Oper"
+                @change="handleOper(4, $event)"
+                size="15px"
+                active-color="#f5c542"
+                inactive-color="#dcdee0"
+              />
             </div>
           </div>
         </div>
@@ -108,23 +177,35 @@
               <div class="reduce" @click="handleReduce(1)">
                 <img src="@/assets/images/icon_reduce@2x.webp" alt="" />
               </div>
-
               <!-- 滑块区域（占据主要空间） -->
               <div class="slider-wrapper">
                 <div class="slider-label">
-                  <div class="num" :style="{ left: dirMiddle + '%' }">{{ (500 + (dirMiddle - 1) * 45.45).toFixed(0) }}
+                  <div class="num" :style="{ left: dirMiddle + '%' }">
+                    {{ dirMiddleVal }}
                   </div>
                 </div>
-                <van-slider v-model="dirMiddle" :min="1" :max="100" active-color="#f5c542">
+                <van-slider
+                  v-model="dirMiddle"
+                  :min="1"
+                  :max="100"
+                  active-color="#f5c542"
+                >
                   <template #button>
                     <div class="custom-sider-img">
-                      <img src="@/assets/images/icon_sider@2x.webp" alt="滑块" />
+                      <img
+                        src="@/assets/images/icon_sider@2x.webp"
+                        alt="滑块"
+                      />
                     </div>
                   </template>
                 </van-slider>
                 <div class="slider-label-bottom">
-                  <div class="num-text num-left"> {{ directionCenter.mini_value }} </div>
-                  <div class="num-text num-right"> {{ directionCenter.max_value }} </div>
+                  <div class="num-text num-left nl">
+                    {{ directionCenter.mini_value }}
+                  </div>
+                  <div class="num-text num-right">
+                    {{ directionCenter.max_value }}
+                  </div>
                 </div>
               </div>
 
@@ -149,9 +230,16 @@
               <!-- 滑块区域（占据主要空间） -->
               <div class="slider-wrapper">
                 <div class="slider-label">
-                  <div class="num" :style="{ left: dirTurn + '%' }">{{ dirTurn }}</div>
+                  <div class="num" :style="{ left: dirTurn + '%' }">
+                    {{ dirTurn }}
+                  </div>
                 </div>
-                <van-slider v-model="dirTurn" :min="1" :max="100" active-color="#f5c542">
+                <van-slider
+                  v-model="dirTurn"
+                  :min="1"
+                  :max="100"
+                  active-color="#f5c542"
+                >
                   <template #button>
                     <div class="custom-sider-img">
                       <img src="@/assets/images/icon_sider@2x.webp" alt="" />
@@ -159,8 +247,12 @@
                   </template>
                 </van-slider>
                 <div class="slider-label-bottom">
-                  <div class="num-text num-left"> 1 </div>
-                  <div class="num-text num-right"> 100 </div>
+                  <div class="num-text num-left">
+                    {{ directionDynamics.mini_value }}
+                  </div>
+                  <div class="num-text num-right">
+                    {{ directionDynamics.max_value }}
+                  </div>
                 </div>
               </div>
 
@@ -185,9 +277,16 @@
               <!-- 滑块区域（占据主要空间） -->
               <div class="slider-wrapper">
                 <div class="slider-label">
-                  <div class="num" :style="{ left: throttle + '%' }">{{ throttle }}</div>
+                  <div class="num" :style="{ left: throttle + '%' }">
+                    {{ throttle }}
+                  </div>
                 </div>
-                <van-slider v-model="throttle" :min="1" :max="50" active-color="#f5c542">
+                <van-slider
+                  v-model="throttle"
+                  :min="1"
+                  :max="100"
+                  active-color="#f5c542"
+                >
                   <template #button>
                     <div class="custom-sider-img">
                       <img src="@/assets/images/icon_sider@2x.webp" alt="" />
@@ -195,8 +294,12 @@
                   </template>
                 </van-slider>
                 <div class="slider-label-bottom">
-                  <div class="num-text num-left"> 1 </div>
-                  <div class="num-text num-right"> 50 </div>
+                  <div class="num-text num-left">
+                    {{ acceleratorDynamics.mini_value }}
+                  </div>
+                  <div class="num-text num-right">
+                    {{ acceleratorDynamics.max_value }}
+                  </div>
                 </div>
               </div>
 
@@ -210,7 +313,6 @@
             </div>
           </div>
         </div>
-
       </div>
       <div class="right">
         <div class="settings-bar">
@@ -219,8 +321,16 @@
             <img src="@/assets/images/icon_close@2x.webp" alt="" />
           </div>
         </div>
-        <div class="setting-group" v-for="(item, index) in setGroup" :key="index">
-          <div class="setting-item" :class="{ active: selectedIndex == item.key }" @click="handleItem(index)">
+        <div
+          class="setting-group"
+          v-for="(item, index) in setGroup"
+          :key="index"
+        >
+          <div
+            class="setting-item"
+            :class="{ active: selectedIndex == item.key }"
+            @click="handleItem(index)"
+          >
             {{ item.name }}
           </div>
           <div class="gradient-line" v-if="selectedIndex == item.key"></div>
@@ -231,16 +341,32 @@
 </template>
 
 <script setup>
-import { computed, ref, watch,  h } from "vue";
+import { computed, ref, watch, h } from "vue";
+// import { BidirectionalMap } from "@/utils/linearMapOptions";
 import { arrowUp, arrowDown, arrowLeft, arrowRight } from "../img.js";
+
+const dirMiddle = ref(1);
+const dirTurn = ref(1);
+const throttle = ref(1);
+
+//  const volumeSlider = new BidirectionalMap({
+//     inMin: 1,
+//     inMax: 100,
+//     outMin: props.directionCenter.mini_value,
+//     outMax: props.directionCenter.max_value,
+//     clamp: true,
+//     step: 1,
+//   });
+
 const props = defineProps({
   show: { type: Boolean, default: false },
-  type: { type: String, default: '1' },
+  type: { type: String, default: "1" },
   videoDefinition: {
-    type: String, default: '1'
+    type: String,
+    default: "1",
   },
-  operFB: {type: Number, default: 0},
-  operDir: {type: Number, default: 0},
+  operFB: { type: Number, default: 0 },
+  operDir: { type: Number, default: 0 },
   // 方向中位
   directionCenter: {
     type: Object,
@@ -248,74 +374,115 @@ const props = defineProps({
       mini_value: 500,
       max_value: 1500,
       current_value: 0,
-    })
+    }),
   },
   // 方向力度
-  directionDynamics : {
-      type: Object,
+  directionDynamics: {
+    type: Object,
     default: () => ({
-      mini_value: 500,
-      max_value: 1500,
+      mini_value: 1,
+      max_value: 100,
       current_value: 0,
-    })
+    }),
   },
- // 油门力度
+  // 油门力度
   acceleratorDynamics: {
-     type: Object,
+    type: Object,
     default: () => ({
-      mini_value: 500,
-      max_value: 1500,
+      mini_value: 1,
+      max_value: 100,
       current_value: 0,
-    })
-  }
+    }),
+  },
 });
-
+watch(
+  () => props.directionCenter,
+  (val) => {
+    const mapNum = createReverseMapper(1, 100, val.mini_value, val.max_value);
+    dirMiddle.value = mapNum(val.current_value);
+  },
+  { immediate: true },
+);
+watch(
+  () => props.directionDynamics,
+  (val) => {
+    // dirTurn.value = val.current_value;
+    const mapNum = createReverseMapper(1, 100, val.mini_value, val.max_value);
+    dirTurn.value = mapNum(val.current_value);
+  },
+  { immediate: true },
+);
+watch(
+  () => props.acceleratorDynamics,
+  (val) => {
+    const mapNum = createReverseMapper(1, 100, val.mini_value, val.max_value);
+    throttle.value = mapNum(val.current_value);
+  },
+  { immediate: true },
+);
 const dir1Oper = ref(false);
 const dir2Oper = ref(false);
-const dirMiddle = ref(1);
-const dirTurn = ref(1)
-const throttle = ref(1)
+
 const valueMap = {
   1: dirMiddle,
   2: dirTurn,
-  3: throttle
+  3: throttle,
 };
 
-const qualityList = ref([])
+const dirMiddleVal = computed(() => {
+  const mapNum = createMapper(
+    1,
+    100,
+    props.directionCenter.mini_value,
+    props.directionCenter.max_value,
+  );
+
+  return (mapNum(dirMiddle.value)).toFixed(0);
+});
+
+const qualityList = ref([]);
 const currentQuality = ref("1");
 // "video_definition": "1,2,3", //清晰度 1户外 2超清 3高清 4标清
 watch(
-  () => props.videoDefinition, 
+  () => props.videoDefinition,
   (newVal, oldVal) => {
     const qualityListMap = [
-  { label: "户外", value: "1" }, // 默认选中项
-  { label: "超清", value: "2" }, // 默认选中项
-  { label: "高清", value: "3" },
-  { label: "标清", value: "4" },
-];
-  // 自动追踪 props.videoDefinition 的变化
-  console.log('当前清晰度:', newVal);
-  const  targetStr = newVal
-  const targetValues = targetStr.split(",");
+      { label: "户外", value: "1" },
+      { label: "超清", value: "2" },
+      { label: "高清", value: "3" },
+      { label: "标清", value: "4" },
+    ];
+    // 自动追踪 props.videoDefinition 的变化
+    console.log("当前清晰度:", newVal);
+    const targetStr = newVal;
+    const targetValues = targetStr.split(",");
 
-// 2. 过滤出对应的对象
-  qualityList.value = qualityListMap.filter(item => targetValues.includes(item.value));
-  currentQuality.value = targetValues[0]
+    // 2. 过滤出对应的对象
+    qualityList.value = qualityListMap.filter((item) =>
+      targetValues.includes(item.value),
+    );
+    currentQuality.value = targetValues[0];
   },
-  { immediate: true } 
+  { immediate: true },
 );
 
+// 前后正常操作
 watch(
-  () => props.operFB, 
+  () => props.operFB,
   (newVal, oldVal) => {
-    dir1Oper.value = newVal == 0 ? false : true
-  }, {immediate: true})
+    dir1Oper.value = newVal == 0 ? false : true;
+  },
+  { immediate: true },
+);
 
+// 左右正常操作
 watch(
-  () => props.operDir, 
-  (newVal, oldVal) => {
-    dir2Oper.value = newVal == 0 ? false : true
-  }, {immediate: true})
+  () => props.operDir,
+  (newVal) => {
+    dir2Oper.value = newVal == 0 ? false : true;
+  },
+  { immediate: true },
+);
 
 const emit = defineEmits(["update:show", "action", "operAction"]);
 
@@ -326,11 +493,9 @@ const visible = computed({
 
 const setGroup = ref([
   { name: "通用设置", key: 0 },
-  { name: "车辆微调", key: 1 }
+  { name: "车辆微调", key: 1 },
 ]);
 const selectedIndex = ref(0);
-
-
 
 const close = () => {
   visible.value = false;
@@ -341,7 +506,7 @@ const handleItem = (index) => {
 
 // 3. 处理点击事件
 const handleSelect = (value) => {
-  console.log("点击清晰度")
+  console.log("点击清晰度");
   currentQuality.value = value;
 };
 
@@ -356,9 +521,8 @@ const steeringModes = [
 // 点击切换逻辑
 const handleSetSelect = (id) => {
   selectedMode.value = id;
-  emit("action", id)
+  emit("action", id);
 };
-
 
 const iconConfig = {
   width: "12px",
@@ -371,10 +535,6 @@ const IconArrowDown = () => h("img", { src: arrowDown, ...iconConfig });
 const IconArrowLeft = () => h("img", { src: arrowLeft, ...iconConfig });
 const IconArrowRight = () => h("img", { src: arrowRight, ...iconConfig });
 
-
-
-
-
 // 2. 统一的加减处理函数
 const handleValueChange = (type, step) => {
   const target = valueMap[type];
@@ -385,6 +545,7 @@ const handleValueChange = (type, step) => {
 
   // 3. 边界保护（假设范围是 0 ~ 100，请根据实际业务修改）
   target.value = Math.max(0, Math.min(100, newValue));
+  console.log(target.value, type);
 };
 
 // 4. 调用时只需传入 type 和 步长（1 为加，-1 为减）
@@ -393,33 +554,27 @@ const handleReduce = (type) => handleValueChange(type, -1);
 
 // 操作不同的类型
 const handleOper = (type, val) => {
-  console.log(type+"_"+val)
-  emit('operAction', type+"_"+val)
-}
+  emit("operAction", type + "_" + val);
+};
 
-
-const  reverseMapValue  = (value) => {
-  // 1. 边界保护，防止传入超出范围的值
-  const clampedValue = Math.max(props.directionCenter.mini_value, Math.min(props.directionCenter.max_value, value));
-  
-  // 2. 逆向线性映射计算
-  const result = 1 + (clampedValue - props.directionCenter.max_value) * ((100 - 1) / -(props.directionCenter.mini_value - props.directionCenter.max_value));
-  
-  // 3. 四舍五入取整
-  return Math.round(result);
-}
-
-const  mapValue = (value)  => {
-  // 1. 边界保护，防止传入超出范围的值
-  const clampedValue = Math.max(1, Math.min(100, value));
-  
-  // 2. 线性映射计算
-  const result = 500 + (clampedValue - 1) * (1000 / 99);
-  
-  // 3. 如果硬件通道需要整数，可以使用 Math.round() 四舍五入
-  return Math.round(result);
-}
-
+function createMapper  (inMin, inMax, outMin, outMax) {
+  return (value) => {
+    const clampedValue = Math.max(inMin, Math.min(inMax, value));
+    return (
+      outMin + ((clampedValue - inMin) * (outMax - outMin)) / (inMax - inMin)
+    );
+  };
+};
+function createReverseMapper  (inMin, inMax, outMin, outMax)  {
+  return (value) => {
+    const clampedValue = Math.max(outMin, Math.min(outMax, value));
+    const result = inMin + ((clampedValue - outMin) * (inMax - inMin)) / (outMax - outMin);
+    
+    return parseFloat(result.toFixed(1)); 
+  };
+};
+// 生成你需要的专属映射函数
+// const dirMiddleMapper = createMapper(1, 100, 45, 2000);
 </script>
 
 <style lang="scss" scoped>
@@ -506,19 +661,15 @@ const  mapValue = (value)  => {
       /* 线条长度 */
 
       /* 关键代码：创建线性渐变 */
-      background: linear-gradient(to right,
-          /* 方向：从左到右 */
-          transparent,
-          /* 起点：完全透明 */
-          rgba(245, 197, 66, 0.8) 20%,
-          /* 20%处开始显色 */
-          #f5c542 50%,
-          /* 中间：颜色最深 (#f5c542 是取样的金黄色) */
-          rgba(245, 197, 66, 0.8) 80%,
-          /* 80%处开始变淡 */
-          transparent
-          /* 终点：完全透明 */
-        );
+      background: linear-gradient(
+        to right,
+        /* 方向：从左到右 */ transparent,
+        /* 起点：完全透明 */ rgba(245, 197, 66, 0.8) 20%,
+        /* 20%处开始显色 */ #f5c542 50%,
+        /* 中间：颜色最深 (#f5c542 是取样的金黄色) */ rgba(245, 197, 66, 0.8)
+          80%,
+        /* 80%处开始变淡 */ transparent /* 终点：完全透明 */
+      );
 
       margin: 0 auto;
       /* 居中显示 */
@@ -687,7 +838,6 @@ const  mapValue = (value)  => {
   flex-direction: column;
   gap: 4px;
   height: 40px;
-
 }
 
 .num {
@@ -700,6 +850,7 @@ const  mapValue = (value)  => {
   white-space: nowrap;
   /* 防止数字换行 */
   pointer-events: none;
+  text-align: left;
   /* 防止标签拦截鼠标的拖拽事件 */
 }
 
@@ -709,7 +860,6 @@ const  mapValue = (value)  => {
 }
 
 .slider-label-bottom {
-
   display: flex;
   justify-content: space-between;
   margin-top: 2px;
@@ -717,10 +867,12 @@ const  mapValue = (value)  => {
   .num-text {
     color: #fff;
     font-size: 6px;
-
   }
 
   .num-left {
+    margin-left: -1px;
+  }
+  .nl {
     margin-left: -4px;
   }
 
@@ -733,19 +885,16 @@ const  mapValue = (value)  => {
 .add,
 .btn {
   flex-shrink: 0;
-
 }
 
 .btn {
-
   border-radius: 2px;
   font-family: PingFangSC, PingFang SC;
   font-weight: 400;
   font-size: 6px;
-  color: #1A1A1A;
+  color: #1a1a1a;
   padding: 2px 4px;
-  background: #FFC838;
-
+  background: #ffc838;
 }
 
 .reduce img,

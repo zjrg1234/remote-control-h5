@@ -67,7 +67,8 @@
 <script setup>
 import { computed, ref } from 'vue'
 import { showToast } from "vant";
-import { StartDrive } from "@/api/index";
+import { useRouter } from "vue-router";
+const router = useRouter();
 
 const props = defineProps({
   show: { type: Boolean, default: false },
@@ -102,20 +103,6 @@ const visible = computed({
 // 统一处理按钮点击，向父组件抛出动作类型
 const handleAction = (actionType) => {
   emit('action', actionType)
-
-  if('driving' == actionType) {
-    StartDrive({
-      order_no: props.orderNo,
-      type: 1,
-      vehicle_id: props.vehicleId
-    }).then(res => {
-      if (res.code != 200) {
-        showToast(res.msg)
-      } else {
-        visible.value = false;
-      }
-    }).catch()
-  }
 }
 
 const cancel = () => {
@@ -135,7 +122,7 @@ const logout = () => {
         showToast(res.msg)
       } else {
         setTimeout(()=> {
-          window.location.href = '/reservation'
+         router.push('/reservation')
         }, 2000)
       }
     }).catch()

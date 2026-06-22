@@ -1,12 +1,12 @@
-import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios'
-import { useUserStore } from '@/store/modules/user.ts'
+import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from "axios";
+import { useUserStore } from "@/store/modules/user.ts";
 
-import router from '@/router'
+import router from "@/router";
 // 1. 定义后端统一响应数据类型（根据实际后端接口调整）
 interface ApiResponse<T = any> {
-  code: number
-  msg: string
-  data: T
+  code: number;
+  msg: string;
+  data: T;
 }
 
 // 2. 创建 axios 实例
@@ -14,32 +14,32 @@ const service: AxiosInstance = axios.create({
   baseURL: import.meta.env.VITE_BASE_API,
   timeout: 0,
   headers: {
-    'Content-Type': 'application/json;charset=UTF-8'
-  }
-})
+    "Content-Type": "application/json;charset=UTF-8",
+  },
+});
 
 // 3. 接口白名单：无需登录
-const whiteList = ['/api/login/loginIn']
+const whiteList = ["/api/login/loginIn"];
 
 // 4. 请求拦截器
 service.interceptors.request.use(
   (config: AxiosRequestConfig & { noLoading?: boolean }) => {
-    const userStore = useUserStore()
-    const token = userStore.token
-  
+    const userStore = useUserStore();
+    const token = userStore.token;
+
     // 白名单判断
-    const isWhite = whiteList.some(item => config.url?.includes(item))
+    const isWhite = whiteList.some((item) => config.url?.includes(item));
     if (!isWhite && !token) {
-      routerOpera()
-       return Promise.reject(new Error('未登录'))
+      routerOpera();
+      return Promise.reject(new Error("未登录"));
     }
 
     // 注入 Token
     if (token) {
       config.headers = {
         ...config.headers,
-        Authorization: `${token}`
-      }
+        Authorization: `${token}`,
+      };
     }
 
     // 显示 loading（通过自定义配置控制）
@@ -48,70 +48,86 @@ service.interceptors.request.use(
       // 例如: ElLoading.service({ text: '加载中...', lock: true })
     }
 
-    return config
+    return config;
   },
-  (error) => Promise.reject(error)
-)
+  (error) => Promise.reject(error),
+);
 
 // 5. 响应拦截器
 service.interceptors.response.use(
   (response: AxiosResponse<ApiResponse>) => {
-    const config = response.config as any
+    const config = response.config as any;
     if (!config.noLoading) {
       // 这里可以替换为你项目中关闭 Loading 的方法
       // 例如: ElLoading.service().close()
     }
 
-    const res = response.data
-    if (res.code === 200) {
-      // 直接返回业务数据
-      return res as any 
-    } else if (res.code === 401) {
+    const res = response.data;
+    if (res.code === 401) {
       // 处理登录过期
       // Message.error('登录已过期，请重新登录')
-      const userStore = useUserStore()
-      userStore.logout()
-      return Promise.reject(new Error(res.msg))
+      const userStore = useUserStore();
+      userStore.logout();
+      return Promise.reject(new Error(res.msg));
     } else {
-      // 业务错误提示
-      // Message.error(res.msg || '请求失败')
-      return Promise.reject(new Error(res.msg))
+      // 直接返回业务数据
+      return res as any;
     }
   },
   (error) => {
     // 网络异常或超时处理
-    const config = error.config as any
+    const config = error.config as any;
     if (!config?.noLoading) {
       // 关闭 Loading
     }
-    
+
     // Message.error('网络异常，请稍后重试')
-    return Promise.reject(error)
-  }
-)
+    return Promise.reject(error);
+  },
+);
 
 // 6. 获取全局公共参数
 const getParam = (): Record<string, any> => {
-  const userStore = useUserStore()
+  const userStore = useUserStore();
   return {
     uid: userStore.id,
-    token: userStore.token
-  }
-}
+    token: userStore.token,
+  };
+};
 
-const routerOpera = ()  => {
-  router.push('/login')
-}
+const routerOpera = () => {
+  router.push("/login");
+};
 
 // 7. 导出快捷请求方法，支持泛型传递
-export const get = <T = any>(url: string, data: Record<string, any> = {}, opts: AxiosRequestConfig & { noLoading?: boolean } = {}) =>
-  service.get<T, ApiResponse<T>>(url, { params: { ...data, ...getParam() }, ...opts })
+export const get = <T = any>(
+  url: string,
+  data: Record<string, any> = {},
+  opts: AxiosRequestConfig & { noLoading?: boolean } = {},
+) =>
+  service.get<T, ApiResponse<T>>(url, {
+    params: { ...data, ...getParam() },
+    ...opts,
+  });
 
-export const post = <T = any>(url: string, data: Record<string, any> = {}, opts: AxiosRequestConfig & { noLoading?: boolean } = {}) =>
-  service.post<T, ApiResponse<T>>(url, { ...data, ...getParam() }, opts)
+export const post = <T = any>(
+  url: string,
+  data: Record<string, any> = {},
+  opts: AxiosRequestConfig & { noLoading?: boolean } = {},
+) => service.post<T, ApiResponse<T>>(url, { ...data, ...getParam() }, opts);
 
-export const put = <T = any>(url: string, data: Record<string, any> = {}, opts: AxiosRequestConfig & { noLoading?: boolean } = {}) =>
-  service.put<T, ApiResponse<T>>(url, { ...data, ...getParam() }, opts)
+export const put = <T = any>(
+  url: string,
+  data: Record<string, any> = {},
+  opts: AxiosRequestConfig & { noLoading?: boolean } = {},
+) => service.put<T, ApiResponse<T>>(url, { ...data, ...getParam() }, opts);
 
-export const del = <T = any>(url: string, data: Record<string, any> = {}, opts: AxiosRequestConfig & { noLoading?: boolean } = {}) =>
-  service.delete<T, ApiResponse<T>>(url, { params: { ...data, ...getParam() }, ...opts })
+export const del = <T = any>(
+  url: string,
+  data: Record<string, any> = {},
+  opts: AxiosRequestConfig & { noLoading?: boolean } = {},
+) =>
+  service.delete<T, ApiResponse<T>>(url, {
+    params: { ...data, ...getParam() },
+    ...opts,
+  });

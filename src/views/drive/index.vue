@@ -3,8 +3,6 @@
     <div class="page-content">
       <div class="bg">
         <video src=""></video>
-
-
       </div>
 
       <div class="logout" @click="logout">
@@ -36,17 +34,34 @@
       </div>
 
       <div class="side-menu-icon">
-
         <Ripple />
 
-        <img src="@/assets/images/icon_sound_close@2x.png" v-if="!showSound" @click="showSound = true" alt="" />
-        <img src="@/assets/images/icon_sound_open@2x.png" v-if="showSound" @click="showSound = false" alt="" />
-
+        <img
+          src="@/assets/images/icon_sound_close@2x.png"
+          v-if="!showSound"
+          @click="showSound = true"
+          alt=""
+        />
+        <img
+          src="@/assets/images/icon_sound_open@2x.png"
+          v-if="showSound"
+          @click="showSound = false"
+          alt=""
+        />
       </div>
       <div class="side-menu">
         <!-- 菜单项列表 -->
-        <div class="menu-item" v-for="(item, index) in menuList" :key="index" @click="handleIcon(item)">
-          <img class="img" mode="scaleToFill" :src="activeKey.includes(item.key) ? item.iconSelect : item.icon" />
+        <div
+          class="menu-item"
+          v-for="(item, index) in menuList"
+          :key="index"
+          @click="handleIcon(item)"
+        >
+          <img
+            class="img"
+            mode="scaleToFill"
+            :src="activeKey.includes(item.key) ? item.iconSelect : item.icon"
+          />
           <span class="label">{{ item.name }}</span>
         </div>
       </div>
@@ -62,19 +77,47 @@
 
       <LeftRight @action="handleLRDrive" :operMode="operMode"></LeftRight>
       <UpDown @action="handleFBDrive" :operMode="operMode"></UpDown>
-      
+
       <div class="time">
-        <img src="@/assets/images/icon_time@2x.webp" alt="">
+        <img src="@/assets/images/icon_time@2x.webp" alt="" />
         <TimeClock></TimeClock>
       </div>
 
-      <ALLPopup v-model:show="tipVisible" type="tip" :orderNo="orderNo" :vehicleId="vehicleId" :count="count" @action="handlePopupAction" />
-      <ALLPopup v-model:show="logoutVisible" type="logout" :orderNo="orderNo"  :vehicleId="vehicleId" @action="handlePopupAction" />
-      <ALLPopup v-model:show="repairVisible" type="repair" :orderNo="orderNo"  :vehicleId="vehicleId" :isShow="showRepairReason" @action="handlePopupAction" />
-      <SetPopup v-model:show="setVisible" :videoDefinition="videoDefinition" 
-        :operFB="operFB" 
+      <ALLPopup
+        v-model:show="tipVisible"
+        type="tip"
+        :orderNo="orderNo"
+        :vehicleId="vehicleId"
+        :count="count"
+        @action="handlePopupAction"
+      />
+      <ALLPopup
+        v-model:show="logoutVisible"
+        type="logout"
+        :orderNo="orderNo"
+        :vehicleId="vehicleId"
+        @action="handlePopupAction"
+      />
+      <ALLPopup
+        v-model:show="repairVisible"
+        type="repair"
+        :orderNo="orderNo"
+        :vehicleId="vehicleId"
+        :isShow="showRepairReason"
+        @action="handlePopupAction"
+      />
+      <SetPopup
+        v-model:show="setVisible"
+        :videoDefinition="videoDefinition"
+        :operFB="operFB"
         :directionCenter="directionCenter"
-        :operDir="operDir"  :type="carType" @action="handleOper" @operAction="handleFBDir" />
+        :acceleratorDynamics="acceleratorDynamics"
+        :directionDynamics="directionDynamics"
+        :operDir="operDir"
+        :type="carType"
+        @action="handleOper"
+        @operAction="handleFBDir"
+      />
     </div>
   </div>
 </template>
@@ -82,29 +125,37 @@
 <script setup>
 import { ref, onMounted, onUnmounted } from "vue";
 import { useRoute } from "vue-router";
+import {showToast } from "vant";
+import { StartDrive } from "@/api/index";
 
 import ALLPopup from "./components/ALLPopup.vue";
 import SetPopup from "./components/SetPopup.vue";
 import Ripple from "./components/Ripple.vue";
-import TimeClock from './components/TimeClock.vue';
-import battery from './components/battery.vue';
-import UpDown from './components/UpDown.vue';
-import LeftRight from './components/LeftRight.vue';
+import TimeClock from "./components/TimeClock.vue";
+import battery from "./components/battery.vue";
+import UpDown from "./components/UpDown.vue";
+import LeftRight from "./components/LeftRight.vue";
 import { formatTime, mapValue } from "@/utils/utils";
 
 import { getWebSocket } from "@/utils/socket";
 // import { handleDriverSocketData } from "@/utils/socketHelper";
 
-// import { StartDrive } from "@/api/index";
+
 
 import {
-  ch1, speeds, cSpeeds, repairs, ch_selected,
-  speeds_selected, cSpeeds_selected, after_diff,
+  ch1,
+  speeds,
+  cSpeeds,
+  repairs,
+  ch_selected,
+  speeds_selected,
+  cSpeeds_selected,
+  after_diff,
   after_diff_selected,
   before_diff,
   before_diff_selected,
   light,
-  light_selected
+  light_selected,
 } from "./img.js";
 
 // 点击设置， 选中前差等全部重置最初状态
@@ -113,7 +164,7 @@ import {
 // 方向设置 要发送ws信息s
 const route = useRoute();
 const isLandscape = ref(true);
-const tipVisible = ref(false);
+const tipVisible = ref(true);
 const logoutVisible = ref(false);
 const repairVisible = ref(false);
 
@@ -126,49 +177,74 @@ const setVisible = ref(false);
 const showSound = ref(false);
 
 // 车辆类型 是四驱车还是挖机 车辆类型 vehicle_type 10-19四驱车、20-29挖机、30-39推土机
-const carType = ref("1") 
-const timerNum = ref()
-const ws = ref()
-const orderNo = ref()
-const vehicleId = ref()
-const operMode = ref('mode1') // 操作模式
-const operFB = ref(0)  // 操作前后 正常0 反向1
-const operDir = ref(0) // 操作方向 正常0 反向1
-const directionCenter = ref()
+const carType = ref("1");
+const timerNum = ref();
+const ws = ref();
+const orderNo = ref();
+const vehicleId = ref();
+const operMode = ref("mode1"); // 操作模式
+const operFB = ref(0); // 操作前后 正常0 反向1
+const operDir = ref(0); // 操作方向 正常0 反向1
+const directionCenter = ref();
+const directionDynamics = ref();
+const acceleratorDynamics = ref();
 const chValue = ref({
-  ch1: '',
-  ch2: '',
-  ch3: '',
-  ch4: '',
-  ch5: '',
-  ch6: '',
-  ch7: '',
-  ch8: '',
-})
-
+  ch1: "",
+  ch2: "",
+  ch3: "",
+  ch4: "",
+  ch5: "",
+  ch6: "",
+  ch7: "",
+  ch8: "",
+});
 
 // 检测屏幕方向
 const checkOrientation = () => {
   isLandscape.value = window.innerWidth > window.innerHeight;
 };
 
-
 const menuList = ref([
   { name: "报修", icon: repairs, key: "repairs", iconSelect: repairs, type: 1 },
-  { name: "前差", icon: before_diff, key: "chBefore", iconSelect: before_diff_selected, type: 1 },
-  { name: "后差", icon: after_diff, key: "chAfter", iconSelect: after_diff_selected, type: 1 },
+  {
+    name: "前差",
+    icon: before_diff,
+    key: "chBefore",
+    iconSelect: before_diff_selected,
+    type: 1,
+  },
+  {
+    name: "后差",
+    icon: after_diff,
+    key: "chAfter",
+    iconSelect: after_diff_selected,
+    type: 1,
+  },
   { name: "CH4", icon: ch1, key: "ch4", iconSelect: ch_selected, type: 1 },
-  { name: "高低", icon: speeds, key: "highLowSpeed", iconSelect: speeds_selected, type: 1 },
-  { name: "定速", icon: cSpeeds, key: "speed", iconSelect: cSpeeds_selected, type: 1 },
+  {
+    name: "高低",
+    icon: speeds,
+    key: "highLowSpeed",
+    iconSelect: speeds_selected,
+    type: 1,
+  },
+  {
+    name: "定速",
+    icon: cSpeeds,
+    key: "speed",
+    iconSelect: cSpeeds_selected,
+    type: 1,
+  },
   { name: "", icon: light, key: "light", iconSelect: light_selected, type: 2 },
 ]);
-const carDetails = ref()
-const videoDefinition = ref('1')
+const carDetails = ref();
+const videoDefinition = ref("1");
+const timer = ref()
 
 onUnmounted(() => {
   window.removeEventListener("resize", checkOrientation);
   window.removeEventListener("orientationchange", checkOrientation);
-  clearInterval(timerNum.value)
+  clearInterval(timerNum.value);
 });
 
 onMounted(() => {
@@ -177,12 +253,15 @@ onMounted(() => {
   window.addEventListener("orientationchange", checkOrientation);
 
   // 2. 修复 const 不能重新赋值的 bug
-  let timer = setInterval(() => {
+  timer.value = setInterval(() => {
     count.value -= 1;
-    if (count.value <= 0) {
+    console.log(12)
+    if (count.value == 0) {
       count.value = 0;
-      clearInterval(timer);
-      timer = null;
+      clearInterval(timer.value);
+      timer.value = null;
+      tipVisible.value = false
+      handlePopupAction("driving")
     }
   }, 1000);
 
@@ -193,46 +272,58 @@ onMounted(() => {
 
   orderNo.value = route.query.order_no || "";
   vehicleId.value = route.query.vehicle_id || "";
-  carDetails.value = JSON.parse(localStorage.carDetails)
-  videoDefinition.value = carDetails.value.video_definition
+  carDetails.value = JSON.parse(localStorage.carDetails);
+  videoDefinition.value = carDetails.value.video_definition;
   // 四驱车
-  if (carDetails.value.vehicle_type >= 10 && carDetails.value.vehicle_type <= 19) {
-    carType.value = '1'
+  if (
+    carDetails.value.vehicle_type >= 10 &&
+    carDetails.value.vehicle_type <= 19
+  ) {
+    carType.value = "1";
   }
   // 挖机
-  if (carDetails.value.vehicle_type >= 20 && carDetails.value.vehicle_type <= 29) {
-    carType.value = '2'
+  if (
+    carDetails.value.vehicle_type >= 20 &&
+    carDetails.value.vehicle_type <= 29
+  ) {
+    carType.value = "2";
   }
-  operFB.value = carDetails.value.reverse_left_right
-  operDir.value = carDetails.value.reverse_up_down
-  directionCenter.value = carDetails.value.direction_center
-  console.log(carType.value)
-
+  operFB.value = carDetails.value.reverse_left_right;
+  operDir.value = carDetails.value.reverse_up_down;
+  directionCenter.value = carDetails.value.direction_center; // 方向中位
+  directionDynamics.value = carDetails.value.direction_dynamics; // 方向力度
+  acceleratorDynamics.value = carDetails.value.accelerator_dynamics; // 油门
+  console.log(carType.value);
 
   // 除了ch3～ch8 拿开关值
-  chValue.value.ch3 = carDetails.value.vehicle_config_detail.ch3.close_value.current_value
-  chValue.value.ch4 = carDetails.value.vehicle_config_detail.ch4.close_value.current_value
-  chValue.value.ch5 = carDetails.value.vehicle_config_detail.ch5.close_value.current_value
-  chValue.value.ch6 = carDetails.value.vehicle_config_detail.ch6.close_value.current_value
-  chValue.value.ch7 = carDetails.value.vehicle_config_detail.ch7.close_value.current_value
-  chValue.value.ch8 = carDetails.value.vehicle_config_detail.ch8.close_value.current_value
-  console.log(chValue.value)
-  const url = localStorage.wssUrl
-  const port = localStorage.wssPort
+  chValue.value.ch3 =
+    carDetails.value.vehicle_config_detail.ch3.close_value.current_value;
+  chValue.value.ch4 =
+    carDetails.value.vehicle_config_detail.ch4.close_value.current_value;
+  chValue.value.ch5 =
+    carDetails.value.vehicle_config_detail.ch5.close_value.current_value;
+  chValue.value.ch6 =
+    carDetails.value.vehicle_config_detail.ch6.close_value.current_value;
+  chValue.value.ch7 =
+    carDetails.value.vehicle_config_detail.ch7.close_value.current_value;
+  chValue.value.ch8 =
+    carDetails.value.vehicle_config_detail.ch8.close_value.current_value;
+  console.log(chValue.value);
+  const url = localStorage.wssUrl;
+  const port = localStorage.wssPort;
 
-  console.log('ws://' + url + ':' + port)
-  ws.value = getWebSocket('ws://' + url + ':' + port, {
-    maxReconnectCount: 5,       // 最大重连次数
-    reconnectInterval: 3000,    // 基础重连间隔（实际会乘以重连次数）
-    heartBeatInterval: 30000    // 心跳间隔（毫秒）
+  console.log("ws://" + url + ":" + port);
+  ws.value = getWebSocket("ws://" + url + ":" + port, {
+    maxReconnectCount: 5, // 最大重连次数
+    reconnectInterval: 3000, // 基础重连间隔（实际会乘以重连次数）
+    heartBeatInterval: 30000, // 心跳间隔（毫秒）
   });
 
   ws.value.onOpen((event) => {
-    console.log('连接成功，可以开始发送消息了！');
+    console.log("连接成功，可以开始发送消息了！");
     // ws.value.send();
   });
 });
-
 
 const activeKey = ref([]);
 
@@ -251,30 +342,28 @@ const handleIcon = (item) => {
     if (item.key === key) {
       const config = carDetails.value.vehicle_config_detail[chKey];
       // 根据当前状态决定读取 open_value 还是 close_value
-      const valueObj = activeKey.value.includes(item.key) 
-        ? config.close_value 
+      const valueObj = activeKey.value.includes(item.key)
+        ? config.close_value
         : config.open_value;
-      
+
       chValue.value[chKey] = valueObj.current_value;
       console.log(`发送 ${key} 消息:`, valueObj.current_value);
     }
   };
 
   // 统一调用通道更新
-  updateChannel('chBefore', 'ch5');
-  updateChannel('chAfter', 'ch6');
-  updateChannel('ch4', 'ch4');
-  updateChannel('highLowSpeed', 'ch3');
- 
-  
+  updateChannel("chBefore", "ch5");
+  updateChannel("chAfter", "ch6");
+  updateChannel("ch4", "ch4");
+  updateChannel("highLowSpeed", "ch3");
 
   // 3. 处理菜单激活/取消激活状态
   const index = activeKey.value.indexOf(item.key);
-  
+
   if (index > -1) {
     // 当前已激活 -> 取消激活
     activeKey.value.splice(index, 1);
-    
+
     // 修复Bug：只有当点击的是 speed 时，才隐藏定速UI
     if (item.key === "speed") {
       showSpeed.value = false;
@@ -282,97 +371,111 @@ const handleIcon = (item) => {
   } else {
     // 当前未激活 -> 激活
     activeKey.value.push(item.key);
-    
+
     if (item.key === "speed") {
       showSpeed.value = true;
     }
   }
 
-  console.log(chValue.value)
+  console.log(chValue.value);
 };
-
 
 const handlePopupAction = (type) => {
   console.log(type);
   // 退出上报故障
   if (type == "report") {
-    logoutVisible.value = false
+    logoutVisible.value = false;
     repairVisible.value = true;
-    showRepairReason.value = false
+    showRepairReason.value = false;
+    return;
   }
 
   // 有维修原因的
   if (type == "repair") {
-    logoutVisible.value = false
+    logoutVisible.value = false;
     repairVisible.value = true;
-    showRepairReason.value = true
+    showRepairReason.value = true;
+    return;
+  }
+
+  if (type == "driving") {
+    timer.value && clearInterval(timer.value)
+    StartDrive({
+      order_no:orderNo.value,
+      type: 1,
+      vehicle_id: vehicleId.value,
+    })
+      .then((res) => {
+        if (res.code != 200) {
+          tipVisible.value = false;
+
+          showToast(res.msg);
+          
+        } else {
+          tipVisible.value = false;
+        }
+      })
+      .catch();
   }
 };
 
-
 const handleOper = (type) => {
-  console.log(type)
-  operMode.value = type // 操作模式 箭头上下 在左
+  console.log(type);
+  operMode.value = type; // 操作模式 箭头上下 在左
   if (carType.value == 1) {
-
   } else {
-
   }
-}
+};
 
 // 前后 左右是否反向
 const handleFBDir = (val) => {
-
-  const arr = val.split("_")
+  const arr = val.split("_");
   if (arr[0] == 1) {
-    operFB.value = arr[1] === 'true' ? 1 : 0
-    return
+    operFB.value = arr[1] === "true" ? 1 : 0;
+    return;
   }
 
   if (arr[0] == 2) {
-    operDir.value = arr[1] === 'true' ? 1 : 0
-    return
+    operDir.value = arr[1] === "true" ? 1 : 0;
+    return;
   }
-
-}
+};
 
 const set = () => {
-  setVisible.value = true
-}
+  setVisible.value = true;
+};
 
 const logout = () => {
-  logoutVisible.value = true
-}
+  logoutVisible.value = true;
+};
 
 // 前进后退
 const handleFBDrive = (item) => {
-  console.log(item)
+  console.log(item);
   if (item.fb == true) {
-    console.log("向前", mapValue(item.value))
+    console.log("向前", mapValue(item.value));
   }
-  if(item.fb == false) {
+  if (item.fb == false) {
     if (item.value == 0) {
-      console.log("停止", 0)
+      console.log("停止", 0);
     } else {
-      console.log("向后", mapValue(item.value))
+      console.log("向后", mapValue(item.value));
     }
   }
-}
+};
 // 左右
 const handleLRDrive = (item) => {
   if (item.lr == true) {
-    console.log("向左", mapValue(item.value))
+    console.log("向左", mapValue(item.value));
   }
-  if(item.lr == false) {
+  if (item.lr == false) {
     if (item.value == 0) {
-      console.log("停止", 0)
+      console.log("停止", 0);
     } else {
-      console.log("向右", mapValue(item.value))
+      console.log("向右", mapValue(item.value));
     }
   }
-}
-
-
+};
 </script>
 
 <style lang="scss" scoped>
@@ -503,7 +606,7 @@ const handleLRDrive = (item) => {
   }
 
   /* 电池及电量文字组合 */
-  .flex>div:nth-child(2) {
+  .flex > div:nth-child(2) {
     display: flex;
     align-items: center;
     gap: 2px;
@@ -528,7 +631,6 @@ const handleLRDrive = (item) => {
     line-height: 1;
   }
 }
-
 
 // 在 style 中定义
 .mini-forbidden {
@@ -567,7 +669,6 @@ const handleLRDrive = (item) => {
     width: 10px;
     height: 10px;
   }
-
 }
 
 .side-menu {
@@ -647,7 +748,6 @@ const handleLRDrive = (item) => {
     margin-right: 2px;
   }
 }
-
 
 .icon-wrapper :deep(svg) {
   width: 8px;
