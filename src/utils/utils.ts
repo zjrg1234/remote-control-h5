@@ -128,8 +128,20 @@ export const compareTimestamp = (startTime, endTime) => {
 const formatNum = (n) => (n < 10 ? "0" + n : n);
 
 
-export const mapValue = (value) => {
-  // 可选：限制输入值在 0~65 之间，防止越界
-  const clampedValue = Math.max(0, Math.min(65, Math.abs(value)));
-  return ((clampedValue / 65) * 100).toFixed(2);
+// export const mapValue = (value) => {
+//   // 可选：限制输入值在 0~65 之间，防止越界
+//   const clampedValue = Math.max(0, Math.min(65, Math.abs(value)));
+//   return ((clampedValue / 65) * 100).toFixed(2);
+// }
+
+export const mapToPer = (value) => {
+  // 1. 边界保护，防止超出范围
+  if (value <= 0) return 0;
+  if (value >= 65) return 1;
+  
+  // 2. 线性映射计算
+  const percentage = 1 + (value / 65) * 99;
+  
+  // 3. 四舍五入取整（根据需求也可以保留小数）
+  return (Math.round(percentage)/ 100).toFixed(2); 
 }

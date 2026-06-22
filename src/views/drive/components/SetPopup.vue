@@ -512,10 +512,11 @@ const setGroup = ref([
 const selectedIndex = ref(0);
 
 const close = () => {
+  const obj = JSON.parse(localStorage.carDetails)
   const val = {
-    1: props.directionCenter.current_value,
-    2: props.directionDynamics.current_value,
-    3: props.acceleratorDynamics.current_value
+    1: obj.direction_center.current_value,
+    2: obj.direction_dynamics.current_value,
+    3: obj.accelerator_dynamics.current_value
   }
 
   if (saveFlag.value[1]) {
@@ -527,8 +528,8 @@ const close = () => {
   if (saveFlag.value[3]) {
     val[2] = throttle.value
   }
-  visible.value = false;
   emit("changeValue", val);
+  visible.value = false;
 };
 const handleItem = (index) => {
   selectedIndex.value = index;

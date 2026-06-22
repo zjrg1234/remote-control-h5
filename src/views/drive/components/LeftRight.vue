@@ -94,7 +94,7 @@ const updateArrows = (deltaX) => {
   isRightActive.value = deltaX > SWIPE_THRESHOLD;
 
   emit("action", {
-    lr: isLeftActive.value ? isLeftActive.value : false,
+    lr: deltaX < 0 ? true : false,
     value: deltaX,
   })
 };
@@ -102,6 +102,10 @@ const updateArrows = (deltaX) => {
 const resetArrows = () => {
   isLeftActive.value = false;
   isRightActive.value = false;
+  emit("action", {
+    lr:   false,
+    value: deltaX,
+  })
 };
 
 // 【性能核心】：在 RAF 中统一处理 DOM 更新

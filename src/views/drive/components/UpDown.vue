@@ -51,7 +51,7 @@ const MAX_DOT_DRAG = 40; // 待命模式下，圆点最大可拉动距离 (px)
 const boxRef = ref(null);
 const dotRef = ref(null);
 
-const emit = defineEmits(['action'])
+const emit = defineEmits(["action"]);
 
 // --- 响应式状态 ---
 const boxX = ref(0);
@@ -93,18 +93,18 @@ const updateArrows = (deltaY) => {
   isDownActive.value = deltaY > SWIPE_THRESHOLD;
 
   emit("action", {
-    fb: isUpActive.value ? isUpActive.value : false,
+    fb: deltaY < 0 ? true : false,
     value: deltaY,
-  })
+  });
 };
 
 const resetArrows = () => {
   isUpActive.value = false;
   isDownActive.value = false;
   emit("action", {
-    fb: isUpActive.value ? isUpActive.value : isDownActive.value,
+    fb: false,
     value: 0,
-  })
+  });
 };
 
 // --- 事件处理 ---
@@ -184,15 +184,16 @@ const handleMove = (e) => {
     }
 
     dotOffsetY.value = deltaY;
+    console.log(deltaY);
 
     // if(deltaY < 0 ) {
     //   console.log("向上滑动", deltaY)
     // }
-    if(deltaY < -65) {
+    if (deltaY < -65) {
       deltaY = -65;
     }
 
-    if(deltaY > 65) {
+    if (deltaY > 65) {
       deltaY = 65;
     }
 
@@ -203,8 +204,6 @@ const handleMove = (e) => {
     updateArrows(deltaY);
   }
 };
-
-
 
 const handleEnd = () => {
   if (!isDragging.value) return;

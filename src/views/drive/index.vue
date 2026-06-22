@@ -126,7 +126,7 @@
 <script setup>
 import { ref, onMounted, onUnmounted } from "vue";
 import { useRoute } from "vue-router";
-import {showToast } from "vant";
+import { showToast } from "vant";
 import { StartDrive } from "@/api/index";
 
 import ALLPopup from "./components/ALLPopup.vue";
@@ -136,12 +136,11 @@ import TimeClock from "./components/TimeClock.vue";
 import battery from "./components/battery.vue";
 import UpDown from "./components/UpDown.vue";
 import LeftRight from "./components/LeftRight.vue";
-import { formatTime, mapValue } from "@/utils/utils";
-
+import { formatTime, mapToPer } from "@/utils/utils";
 import { getWebSocket } from "@/utils/socket";
+import { CarControlHandler } from "./control/siqu.js";
+
 // import { handleDriverSocketData } from "@/utils/socketHelper";
-
-
 
 import {
   ch1,
@@ -186,9 +185,12 @@ const vehicleId = ref();
 const operMode = ref("mode1"); // 操作模式
 const operFB = ref(0); // 操作前后 正常0 反向1
 const operDir = ref(0); // 操作方向 正常0 反向1
+
 const directionCenter = ref();
 const directionDynamics = ref();
+const acceleratorCenter = ref();
 const acceleratorDynamics = ref();
+
 const chValue = ref({
   ch1: "",
   ch2: "",
@@ -240,7 +242,8 @@ const menuList = ref([
 ]);
 const carDetails = ref();
 const videoDefinition = ref("1");
-const timer = ref()
+const timer = ref();
+const carHandler = ref();
 
 onUnmounted(() => {
   window.removeEventListener("resize", checkOrientation);
@@ -256,13 +259,13 @@ onMounted(() => {
   // 2. 修复 const 不能重新赋值的 bug
   timer.value = setInterval(() => {
     count.value -= 1;
-    console.log(12)
+    console.log(12);
     if (count.value == 0) {
       count.value = 0;
       clearInterval(timer.value);
       timer.value = null;
-      tipVisible.value = false
-      handlePopupAction("driving")
+      tipVisible.value = false;
+      handlePopupAction("driving");
     }
   }, 1000);
 
@@ -293,8 +296,8 @@ onMounted(() => {
   operDir.value = carDetails.value.reverse_up_down;
   directionCenter.value = carDetails.value.direction_center; // 方向中位
   directionDynamics.value = carDetails.value.direction_dynamics; // 方向力度
+  acceleratorCenter.value = carDetails.value.accelerator_center; // 油门中位
   acceleratorDynamics.value = carDetails.value.accelerator_dynamics; // 油门
-  console.log(carType.value);
 
   // 除了ch3～ch8 拿开关值
   chValue.value.ch3 =
@@ -309,7 +312,22 @@ onMounted(() => {
     carDetails.value.vehicle_config_detail.ch7.close_value.current_value;
   chValue.value.ch8 =
     carDetails.value.vehicle_config_detail.ch8.close_value.current_value;
+
+  chValue.value.ch1 = directionCenter.value.current_value;
+  chValue.value.ch2 = acceleratorCenter.value.current_value;
   console.log(chValue.value);
+
+  carHandler.value = new CarControlHandler({
+    reverseUpDownState: operFB.value == 0 ? false : true,
+    reverseLeftRightState: operDir.value == 0 ? false : true,
+    ch1: directionCenter.value.current_value, // 方向
+    ch2: acceleratorDynamics.value.current_value, // 进退 油门// 1,3 进退油门
+    0: { ...directionCenter.value },
+    1: { ...carDetails.value.accelerator_center },
+    2: { ...directionDynamics.value },
+    3: { ...acceleratorDynamics.value },
+  });
+
   const url = localStorage.wssUrl;
   const port = localStorage.wssPort;
 
@@ -400,9 +418,9 @@ const handlePopupAction = (type) => {
   }
 
   if (type == "driving") {
-    timer.value && clearInterval(timer.value)
+    timer.value && clearInterval(timer.value);
     StartDrive({
-      order_no:orderNo.value,
+      order_no: orderNo.value,
       type: 1,
       vehicle_id: vehicleId.value,
     })
@@ -411,7 +429,6 @@ const handlePopupAction = (type) => {
           tipVisible.value = false;
 
           showToast(res.msg);
-          
         } else {
           tipVisible.value = false;
         }
@@ -442,14 +459,19 @@ const handleFBDir = (val) => {
   }
 };
 
-// 加减传值
+// 加减传值以及关闭
 const changeVal = (value) => {
-  console.log(value)
+  console.log(value);
   // 1是方向中位值 2是方向力度  3是油门
-  directionCenter.value.current_value = value[1]
-  directionDynamics.value.current_value = value[2]
-  acceleratorDynamics.value.current_value = value[3]
-}
+  directionCenter.value.current_value = value[1];
+  directionDynamics.value.current_value = value[2];
+  acceleratorDynamics.value.current_value = value[3];
+  carHandler.value.setConfigValue({
+    0: { ...directionCenter.value },
+    2: { ...directionDynamics.value },
+    3: { ...acceleratorDynamics.value },
+  });
+};
 
 const set = () => {
   setVisible.value = true;
@@ -462,29 +484,50 @@ const logout = () => {
 // 前进后退
 const handleFBDrive = (item) => {
   console.log(item);
+  let type = "";
+  let ratioValue = 0;
   if (item.fb == true) {
-    console.log("向前", mapValue(item.value));
+    console.log("向前", mapToPer(item.value));
+    type = "upType";
+    ratioValue = mapToPer(Math.abs(item.value));
   }
   if (item.fb == false) {
     if (item.value == 0) {
       console.log("停止", 0);
+      type = "endType";
+      chValue.value.ch2 = acceleratorCenter.value.current_value;
     } else {
-      console.log("向后", mapValue(item.value));
+      console.log("向后", mapToPer(item.value));
+      type = "downType";
+      ratioValue = mapToPer(Math.abs(item.value));
     }
   }
+
+  carHandler.value.handleTwoDirectionControlChannel(true, type, ratioValue);
+  console.log(carHandler.value.ch2);
 };
 // 左右
 const handleLRDrive = (item) => {
+  let type = "endType";
+  let ratioValue = 0;
   if (item.lr == true) {
-    console.log("向左", mapValue(item.value));
+    console.log("向左", mapToPer(item.value));
+    ratioValue = mapToPer(Math.abs(item.value));
+    type = "leftType";
   }
   if (item.lr == false) {
     if (item.value == 0) {
       console.log("停止", 0);
+      chValue.value.ch1 = directionCenter.value.current_value;
     } else {
-      console.log("向右", mapValue(item.value));
+      console.log("向右", mapToPer(item.value));
+      ratioValue = mapToPer(Math.abs(item.value));
+      type = "rightType";
     }
   }
+
+  carHandler.value.handleTwoDirectionControlChannel(false, type, ratioValue);
+  console.log(carHandler.value.ch1);
 };
 </script>
 

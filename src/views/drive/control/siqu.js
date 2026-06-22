@@ -8,15 +8,15 @@ const MoveDirectionControlType = {
 };
 
 // 2. 将核心逻辑封装为类
-class CarControlHandler {
+export class CarControlHandler {
   /**
    * @param {number} 
    * @param {number} 
    */
   constructor(config) {
     // 通过参数传入初始值
-    this.ch1 = config.ss;
-    this.ch2 =  config.aa;
+    this.ch1 = config.ch1;
+    this.ch2 =  config.ch2;
     this.reverseUpDownState = config.reverseUpDownState
     this.reverseLeftRightState = config.reverseLeftRightState
     this.config = config
@@ -25,6 +25,13 @@ class CarControlHandler {
 
   getConfigValue(index) {
     return this.config[index]
+  }
+
+  setConfigValue(obj) {
+    this.config[0] = obj[0]
+    this.config[2] = obj[2]
+    this.config[3] = obj[3]
+    console.log(this.config)
   }
   /**
    * 处理双摇杆控制通道
@@ -38,12 +45,13 @@ class CarControlHandler {
     let centerValue = 0.0;
     let minValue = 0.0;
     let rateValue = 0.0;
-
+    console.log(positionType)
+    // 1,3 进退油门
     if (isUpDown === true) {
-      
-      maxValue = this.getConfigValue(1)?.max_value;
+     
+      //maxValue = this.getConfigValue(1)?.max_value;
       centerValue = this.getConfigValue(1)?.current_value;
-      minValue = this.getConfigValue(1)?.min_value ; // 计算油门力度比例
+      //minValue = this.getConfigValue(1)?.min_value ; // 计算油门力度比例
 
       const acceleratorDynamicsValue =
         this.getConfigValue(3)?.current_value ;
@@ -55,9 +63,9 @@ class CarControlHandler {
         // 摇杆回中
         this.ch2 = Math.round(centerValue);
       } else {
-        const isReverse =
-          this.driverViewModel.otherSetVM?.reverseUpDownState === true;
+        const isReverse = this.reverseUpDownState;
         const delta = 500 * rateValue * ratioValue;
+        console.log(delta, rateValue, ratioValue)
 
         if (positionType === MoveDirectionControlType.upType) {
           // 上推：如果开启反向，则变为向下输出
@@ -72,10 +80,11 @@ class CarControlHandler {
         }
       } // 边界保护 (忠实保留原逻辑)
 
-      if (this.ch1 < 1) this.ch1 = 1;
-      if (this.ch1 > 2000) this.ch1 = 2000;
+      if (this.ch2 < 1) this.ch2 = 1;
+      if (this.ch2 > 2000) this.ch2 = 2000;
     } else {
-      // ========== 左右控制 (方向) ==========
+      
+      // ==========0,2 左右控制 (方向) ==========
       maxValue = this.getConfigValue(0)?.max_value;
       centerValue = this.getConfigValue(0)?.current_value;
       minValue = this.getConfigValue(0)?.min_value; // 计算方向力度比例
@@ -90,8 +99,7 @@ class CarControlHandler {
         // 摇杆回中
         this.ch1 = Math.round(centerValue);
       } else {
-        const isReverse =
-          this.driverViewModel.otherSetVM?.reverseLeftRightState === true;
+        const isReverse = this.reverseLeftRightState;
         const delta = 500 * rateValue * ratioValue;
 
         if (positionType === MoveDirectionControlType.leftType) {
