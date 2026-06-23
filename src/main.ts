@@ -12,6 +12,7 @@ import "virtual:svg-icons-register";
 import i18n from "./locales";
 import 'vant/es/toast/style'
 import 'vant/es/popup/style'
+import 'vant/es/icon/style';   
 // import 'vant/es/button/style'
 
 import App from "./App.vue";
