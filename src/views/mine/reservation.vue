@@ -181,7 +181,7 @@ const onLoad = async () => {
   }
 };
 
-// 【修复5】删除了原有的 onMounted 中的 onLoad() 调用，交由 van-list 自动触发首次加载
+
 </script>
 
 <!-- 样式部分保持原样，无需修改 -->
