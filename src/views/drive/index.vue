@@ -75,8 +75,9 @@
         </div>
       </div>
 
-      <LeftRight @action="handleLRDrive" :operMode="operMode"></LeftRight>
-      <UpDown @action="handleFBDrive" :operMode="operMode"></UpDown>
+       <LeftRight @action="handleLRDrive" :isLeft="operMode"></LeftRight> 
+      
+      <UpDown @action="handleFBDrive" :isLeft="!operMode"></UpDown>
 
       <div class="time">
         <img src="@/assets/images/icon_time@2x.webp" alt="" />
@@ -182,7 +183,7 @@ const timerNum = ref();
 const ws = ref();
 const orderNo = ref();
 const vehicleId = ref();
-const operMode = ref("mode1"); // 操作模式
+const operMode = ref(false); // 操作模式
 const operFB = ref(0); // 操作前后 正常0 反向1
 const operDir = ref(0); // 操作方向 正常0 反向1
 
@@ -439,8 +440,11 @@ const handlePopupAction = (type) => {
 
 const handleOper = (type) => {
   console.log(type);
-  operMode.value = type; // 操作模式 箭头上下 在左
+  operMode.value = type == 'mode2' ? true: false; // 操作模式 箭头上下 在左
+  
   if (carType.value == 1) {
+
+
   } else {
   }
 };
@@ -484,6 +488,7 @@ const logout = () => {
 // 前进后退
 const handleFBDrive = (item) => {
   console.log(item);
+  showSpeed.value = false
   let type = "";
   let ratioValue = 0;
   if (item.fb == true) {
@@ -508,6 +513,7 @@ const handleFBDrive = (item) => {
 };
 // 左右
 const handleLRDrive = (item) => {
+  showSpeed.value = false
   let type = "endType";
   let ratioValue = 0;
   if (item.lr == true) {
@@ -602,7 +608,7 @@ const handleLRDrive = (item) => {
   position: absolute;
   z-index: 1;
   top: 5px;
-  right: 10px;
+  right: 8px;
 
   img {
     display: block;

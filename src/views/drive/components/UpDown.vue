@@ -1,9 +1,6 @@
 <template>
-  <div
-    class="control-box"
-    ref="boxRef"
-    :style="{ transform: `translate3d(${boxX}px, ${boxY}px, 0)` }"
-  >
+  <!-- 注意：这里不再绑定 Vue 的响应式 style，而是直接操作 DOM -->
+  <div class="control-box" ref="boxRef">
     <div
       class="arrow up"
       :style="{ backgroundImage: `url(${upImage})` }"
@@ -16,7 +13,6 @@
       :class="{ ready: isReadyMode }"
       :style="{
         backgroundImage: `url(${dotImage})`,
-        transform: `translateY(${dotOffsetY}px) scale(${isReadyMode ? 1 : 1})`,
         transition: isDragging
           ? 'none'
           : 'transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), background 0.3s ease, box-shadow 0.3s ease',
@@ -34,47 +30,86 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onBeforeUnmount, defineEmits } from "vue";
+import { ref, onMounted, onBeforeUnmount, watch } from "vue";
+
 import upImg from "@/assets/images/arrow_up_big@2x.png";
 import downImg from "@/assets/images/arrow_down_big@2x.png";
 import dotImg from "@/assets/images/dot@2x.webp";
+
 const upImage = ref(upImg);
 const downImage = ref(downImg);
 const dotImage = ref(dotImg);
 
+const emit = defineEmits(["action"]);
+const props = defineProps({
+  isLeft: { type: Boolean, default: true },
+});
 // --- 配置参数 ---
-const IDLE_DELAY = 500; // 静止 2s 进入待命
-const SWIPE_THRESHOLD = 20; // 触发箭头高亮的阈值 (px)
-const MAX_DOT_DRAG = 40; // 待命模式下，圆点最大可拉动距离 (px)
+const IDLE_DELAY = 500;
+const SWIPE_THRESHOLD = 20;
+const MAX_DOT_DRAG = 40;
 
 // --- DOM 引用 ---
 const boxRef = ref(null);
 const dotRef = ref(null);
 
-const emit = defineEmits(["action"]);
-
-// --- 响应式状态 ---
-const boxX = ref(0);
-const boxY = ref(0);
-const dotOffsetY = ref(0);
-const isDragging = ref(true);
+// --- 响应式状态 (仅用于触发 CSS 类名等低频 UI 变化) ---
+const isDragging = ref(false);
 const isReadyMode = ref(false);
 const isUpActive = ref(false);
 const isDownActive = ref(false);
 
-// --- 内部状态 (无需响应式，提升性能) ---
+// --- 内部非响应式状态 (彻底避免 Vue 响应式开销) ---
 let idleTimer = null;
 let dragOffsetX = 0;
 let dragOffsetY = 0;
 let lastPointerY = 0;
 let readyStartPointerY = 0;
 
-// --- 核心方法 ---
-const updateBoxPosition = (x, y) => {
-  boxX.value = x;
-  boxY.value = y;
+// 纯物理状态 (非响应式)
+let currentBoxX = 0;
+let currentBoxY = 0;
+let currentDotY = 0;
+
+// 👇 新增：记录拖拽开始时的初始绝对坐标（作为移动锚点）
+let dragBaseX = 0;
+let dragBaseY = 0;
+
+// RAF 调度控制
+let animationFrameId = null;
+let pendingMoveEvent = null; // 缓存最新的移动事件
+
+const backRightInit = () => {
+  currentBoxX = window.innerWidth - 260;
+  currentBoxY =  window.innerHeight / 4 - 150;
+  if (boxRef.value) {
+    boxRef.value.style.transform = `translate3d(${currentBoxX}px, ${currentBoxY}px, 0)`;
+  }
 };
 
+const backLeftInit = () => {
+  currentBoxX = 50;
+  currentBoxY = -50;
+  if (boxRef.value) {
+    boxRef.value.style.transform = `translate3d(${currentBoxX}px, ${currentBoxY}px, 0)`;
+  }
+  // 初始化 DOM 位置
+};
+watch(
+  () => props.isLeft,
+  (val) => {
+    if (val) {
+      console.log("left")
+      backLeftInit();
+    } else {
+      backRightInit();
+      console.log("right")
+    }
+  },
+  { immediate: true, deep: true },
+);
+
+// --- 核心方法 ---
 const resetIdleTimer = () => {
   clearTimeout(idleTimer);
   if (!isReadyMode.value) {
@@ -105,40 +140,24 @@ const resetArrows = () => {
     fb: false,
     value: 0,
   });
+ if (props.isLeft) {
+    backLeftInit();
+  } else {
+    backRightInit();
+  }
+
 };
 
-// --- 事件处理 ---
-const handleStart = (e) => {
-  isDragging.value = true;
-  isReadyMode.value = false;
-  clearTimeout(idleTimer);
+// 【性能核心】：在 RAF 中统一处理 DOM 更新
+const processMove = () => {
+  if (!pendingMoveEvent || !isDragging.value) {
+    // 如果没有待处理的事件，继续等待下一帧
+    animationFrameId = requestAnimationFrame(processMove);
+    return;
+  }
 
-  dotOffsetY.value = 0;
-  resetArrows();
-
-  const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-  const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-
-  // 计算并锁定偏移量
-  dragOffsetX = clientX - boxX.value;
-  dragOffsetY = clientY - boxY.value;
-
-  // 立即应用一次位置，消除渲染延迟
-  updateBoxPosition(clientX - dragOffsetX, clientY - dragOffsetY);
-
-  lastPointerY = clientY;
-  resetIdleTimer();
-
-  // 绑定移动和结束事件到 window
-  window.addEventListener("mousemove", handleMove);
-  window.addEventListener("touchmove", handleMove, { passive: false });
-  window.addEventListener("mouseup", handleEnd);
-  window.addEventListener("touchend", handleEnd);
-};
-
-const handleMove = (e) => {
-  if (!isDragging.value) return;
-  if (e.cancelable) e.preventDefault();
+  const e = pendingMoveEvent;
+  pendingMoveEvent = null; // 消费掉事件
 
   const clientX = e.touches ? e.touches[0].clientX : e.clientX;
   const clientY = e.touches ? e.touches[0].clientY : e.clientY;
@@ -147,32 +166,38 @@ const handleMove = (e) => {
   resetIdleTimer();
 
   if (!isReadyMode.value) {
-    // 模式 A：自由拖动
-    let newX = clientX - dragOffsetX;
-    let newY = clientY - dragOffsetY;
+    // 【模式 A：自由拖动容器】
+    
+    // 1. 计算当前鼠标相对于【拖拽起始锚点】的偏移量
+    let deltaX = clientX - dragOffsetX - dragBaseX;
+    let deltaY = clientY - dragOffsetY - dragBaseY;
 
-    // 边界限制
-    const boxWidth = 50;
-    const boxHeight = 90;
+    // 2. 【核心限制逻辑】
+    // X轴：允许向右移动 100px（最大 100），不允许向左移动（最小为 0）
+    // deltaX = Math.max(0, Math.min(100, deltaX));
+    
+    // Y轴：允许向上移动 100px（最小 -100），向下移动 50px（最大 50）
+    // deltaY = Math.max(-100, Math.min(50, deltaY));
+    // const LIMIT = 80;
+  
 
-    // X轴边界：0 到 (屏幕宽度 - 组件宽度)
-    const maxX = window.innerWidth - boxWidth;
-    // Y轴边界：0 到 (屏幕高度 - 组件高度)
-    const maxY = window.innerHeight - boxHeight;
+    // deltaX = Math.max(-LIMIT, Math.min(LIMIT, deltaX));
+    // deltaY = Math.max(-LIMIT, Math.min(LIMIT, deltaY));
 
-    // 限制在安全范围内
-    newX = Math.max(0, Math.min(maxX, newX));
-    newY = Math.max(-80, Math.min(maxY, newY));
-    if (newY > 30) {
-      newY = 30;
-    }
-    if (newX > 200) {
-      newX = 200;
-    }
+    deltaX = Math.max(-50, Math.min(100, deltaX));
+    
+    // Y轴：向上最多 100px，向下最多 50px
+    deltaY = Math.max(-100, Math.min(50, deltaY));
 
-    updateBoxPosition(newX, newY);
+    // 3. 最终绝对坐标 = 拖拽起始锚点 + 限制后的偏移量
+    currentBoxX = dragBaseX + deltaX;
+    currentBoxY = dragBaseY + deltaY;
+
+    // 直接操作 DOM，绕过 Vue 的 Virtual DOM 和响应式系统
+    boxRef.value.style.transform = `translate3d(${currentBoxX}px, ${currentBoxY}px, 0)`;
+    
   } else {
-    // 模式 B：待命模式 - 圆点弹性滑动
+    // 【模式 B：待命模式 - 圆点上下弹性滑动】
     let deltaY = clientY - readyStartPointerY;
     const absDelta = Math.abs(deltaY);
 
@@ -183,26 +208,60 @@ const handleMove = (e) => {
       deltaY = sign * (MAX_DOT_DRAG + excess * 0.2);
     }
 
-    dotOffsetY.value = deltaY;
-    console.log(deltaY);
+    currentDotY = deltaY;
 
-    // if(deltaY < 0 ) {
-    //   console.log("向上滑动", deltaY)
-    // }
-    if (deltaY < -65) {
-      deltaY = -65;
-    }
+    // 硬限制圆点的最大滑动距离
+    if (deltaY < -65) deltaY = -65;
+    if (deltaY > 65) deltaY = 65;
 
-    if (deltaY > 65) {
-      deltaY = 65;
-    }
-
-    // if(deltaY > 0 ) {
-    //   console.log("向下滑动", deltaY)
-    // }
-    // deltaY  正向下  负数 向上
+    // 直接操作 DOM
+    dotRef.value.style.transform = `translateY(${currentDotY}px) scale(1)`;
     updateArrows(deltaY);
   }
+
+  // 循环调度下一帧
+  animationFrameId = requestAnimationFrame(processMove);
+};
+
+// --- 事件处理 ---
+const handleStart = (e) => {
+  isDragging.value = true;
+  isReadyMode.value = false;
+  clearTimeout(idleTimer);
+  resetArrows();
+
+  const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+  const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+
+  // 👇 记录按下时的绝对位置作为本次拖拽的基准点
+  dragBaseX = currentBoxX;
+  dragBaseY = currentBoxY;
+
+  // 锁定鼠标相对于盒子的偏移量
+  dragOffsetX = clientX - currentBoxX;
+  dragOffsetY = clientY - currentBoxY;
+
+  lastPointerY = clientY;
+  resetIdleTimer();
+
+  // 绑定全局事件
+  window.addEventListener("mousemove", handleMove);
+  window.addEventListener("touchmove", handleMove, { passive: false });
+  window.addEventListener("mouseup", handleEnd);
+  window.addEventListener("touchend", handleEnd);
+
+  // 启动 RAF 渲染循环
+  if (!animationFrameId) {
+    animationFrameId = requestAnimationFrame(processMove);
+  }
+};
+
+const handleMove = (e) => {
+  if (!isDragging.value) return;
+  if (e.cancelable) e.preventDefault();
+
+  // 【节流核心】：只缓存最新的事件，不执行任何逻辑
+  pendingMoveEvent = e;
 };
 
 const handleEnd = () => {
@@ -212,10 +271,19 @@ const handleEnd = () => {
   isReadyMode.value = false;
   clearTimeout(idleTimer);
 
-  dotOffsetY.value = 0;
+  // 停止 RAF 循环
+  if (animationFrameId) {
+    cancelAnimationFrame(animationFrameId);
+    animationFrameId = null;
+  }
+  pendingMoveEvent = null;
+
+  // 触发 CSS 过渡回弹
+  dotRef.value.style.transform = `translateY(0px) scale(1)`;
+  currentDotY = 0;
+  readyStartPointerY = 0;
   resetArrows();
 
-  // 移除全局事件
   window.removeEventListener("mousemove", handleMove);
   window.removeEventListener("touchmove", handleMove);
   window.removeEventListener("mouseup", handleEnd);
@@ -224,14 +292,12 @@ const handleEnd = () => {
 
 // --- 生命周期 ---
 onMounted(() => {
-  // 初始化居中
-  //   boxX.value = window.innerWidth / 2 - 50;
-  //   boxY.value = window.innerHeight / 2 - 120;
+  backLeftInit();
 });
 
 onBeforeUnmount(() => {
-  // 组件销毁时清理定时器和事件
   clearTimeout(idleTimer);
+  if (animationFrameId) cancelAnimationFrame(animationFrameId);
   window.removeEventListener("mousemove", handleMove);
   window.removeEventListener("touchmove", handleMove);
   window.removeEventListener("mouseup", handleEnd);
@@ -242,20 +308,17 @@ onBeforeUnmount(() => {
 <style scoped>
 .control-box {
   position: fixed;
-
-  left: 20px;
-  bottom: 20px;
+  left: 0;
+  bottom: 0;
   width: 50px;
   height: 90px;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: space-between;
-
   box-sizing: border-box;
   z-index: 100;
   will-change: transform;
-  /* 防止在移动端拖动时选中文字或触发浏览器默认行为 */
   user-select: none;
   touch-action: none;
 }
@@ -289,9 +352,11 @@ onBeforeUnmount(() => {
   z-index: 2;
   will-change: transform;
 }
+
 .dot:active {
   cursor: grabbing;
 }
+
 .dot.ready {
   box-shadow: 0 0 7.5px rgba(255, 167, 38, 0.6);
 }
