@@ -67,11 +67,39 @@
       </div>
       <div class="slider" v-show="showSpeed">
         <div class="slider-left">
-          <van-slider v-model="value" active-color="#FFC838">
+          <!-- <van-slider v-model="constSpeed" active-color="#FFC838">
             <template #button>
-              <div class="custom-button-slider">{{ value }} km/h</div>
+              <div class="custom-button-slider">{{ constSpeed }} km/h</div>
             </template>
-          </van-slider>
+          </van-slider> -->
+          <div class="slider-wrapper">
+                <div class="slider-label">
+                  <div class="num" :style="{ left: constSpeed + '%' }">
+                    {{ constSpeed }} km/h
+                  </div>
+                </div>
+                <van-slider
+                  v-model="constSpeed"
+                  :min="1"
+                  :max="100"
+                  @change="changeConstSpeed"
+                  active-color="#f5c542"
+                >
+                  <template #button>
+                    <div class="custom-sider-img">
+                      <img src="@/assets/images/icon_sider@2x.webp" alt="" />
+                    </div>
+                  </template>
+                </van-slider>
+                <div class="slider-label-bottom">
+                  <div class="num-text num-left">
+                    0
+                  </div>
+                  <div class="num-text num-right">
+                    100
+                  </div>
+                </div>
+              </div>
         </div>
       </div>
 
@@ -173,7 +201,7 @@ const currentTime = ref();
 const showSpeed = ref(false);
 const showRepairReason = ref(false);
 const count = ref(15);
-const value = ref(5);
+const constSpeed = ref(5);
 const setVisible = ref(false);
 const showSound = ref(false);
 
@@ -479,10 +507,18 @@ const changeVal = (value) => {
 
 const set = () => {
   setVisible.value = true;
+   // 点击退出，定速消失 重置车辆
+  showSpeed.value = false
+  handleFBDrive({fb: false, value: 0})
+  handleIcon("speed")
 };
 
 const logout = () => {
   logoutVisible.value = true;
+  // 点击退出，定速消失 重置车辆
+  showSpeed.value = false
+  handleFBDrive({fb: false, value: 0})
+  handleIcon("speed")
 };
 
 // 前进后退
@@ -511,9 +547,15 @@ const handleFBDrive = (item) => {
   carHandler.value.handleTwoDirectionControlChannel(true, type, ratioValue);
   console.log(carHandler.value.ch2);
 };
+
+const changeConstSpeed = () => {
+  console.log(constSpeed.value)
+ carHandler.value.handleTwoDirectionControlChannel(true, 'upType', constSpeed.value/ 100);
+  console.log(carHandler.value.ch2);
+}
 // 左右
 const handleLRDrive = (item) => {
-  showSpeed.value = false
+
   let type = "endType";
   let ratioValue = 0;
   if (item.lr == true) {
@@ -776,7 +818,7 @@ const handleLRDrive = (item) => {
 .slider {
   position: absolute;
   z-index: 1;
-  top: 130px;
+  top: 110px;
   right: 24px;
   width: 50px;
 }
@@ -814,4 +856,56 @@ const handleLRDrive = (item) => {
   fill: #fff;
   /* Vant 4 的主题色 */
 }
+
+
+
+.slider-wrapper {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  height: 40px;
+  .num {
+  position: absolute;
+  top: 5px;
+  transform: translateX(-50%);
+  /* 关键：让标签的中心点对齐 left 值，实现完美居中 */
+  color: #fff;
+  font-size: 6px;
+  white-space: nowrap;
+  /* 防止数字换行 */
+  pointer-events: none;
+  text-align: left;
+  /* 防止标签拦截鼠标的拖拽事件 */
+}
+
+.slider-label {
+  position: relative;
+  height: 15px;
+}
+
+.slider-label-bottom {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 2px;
+
+  .num-text {
+    color: #fff;
+    font-size: 6px;
+  }
+
+  .num-left {
+    margin-left: -1px;
+  }
+  .nl {
+    margin-left: -4px;
+  }
+
+  .num-right {
+    margin-right: -4px;
+  }
+}
+}
+
+
 </style>

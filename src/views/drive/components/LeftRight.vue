@@ -300,7 +300,7 @@ onBeforeUnmount(() => {
   top: 0;
   left: 0;
   width: 90px;
-  height: 50px;
+  height: 25px;
   display: flex;
   flex-direction: row;
   align-items: center;

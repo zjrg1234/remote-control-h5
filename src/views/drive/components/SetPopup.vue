@@ -887,9 +887,7 @@ const save = (type) => {
   flex-direction: column;
   gap: 4px;
   height: 40px;
-}
-
-.num {
+  .num {
   position: absolute;
   top: 5px;
   transform: translateX(-50%);
@@ -929,6 +927,9 @@ const save = (type) => {
     margin-right: -4px;
   }
 }
+}
+
+
 
 .reduce,
 .add,

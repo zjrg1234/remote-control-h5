@@ -23,7 +23,7 @@
       </div>
 
       <!-- 按时间计费 -->
-      <div class="section">
+      <div class="section" v-if="Object.hasOwn(billData, 'time_billing')">
         <div class="section-title">按时间计费</div>
         <span class="desc">按照分钟计费，不受时间限制，想玩就玩</span>
         <div class="grid-box">
@@ -35,7 +35,7 @@
       </div>
 
       <!-- 按次计费 -->
-      <div class="section">
+      <div class="section"  v-if="Object.hasOwn(billData, 'one_billing')">
         <div class="section-title">按次计费</div>
         <span class="desc">按照单次时间游玩，时间到则立即结束</span>
         <div class="grid-box">
