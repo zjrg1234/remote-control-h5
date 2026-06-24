@@ -121,8 +121,11 @@ const copyOrderNo = async (text) => {
 };
 
 // 按钮点击：开始驾驶 (根据业务需求补充逻辑)
+const flag = ref(false)
 const handleAction = (item) => {
-  console.log("开始驾驶", item);
+
+  if (flag.value) return
+  flag.value = true
   GetCarDetails({
     id: item.vehicle_id,
   }).then(res => {
@@ -138,7 +141,9 @@ const handleAction = (item) => {
       showToast("联系客服，报错原因：" + res.msg)
     }
 
-  }).catch()
+  }).catch().finally(() => {
+    flag.value = false
+  })
 
   // TODO: 跳转到驾驶页面
 };
