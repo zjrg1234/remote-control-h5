@@ -86,6 +86,9 @@ export function  Logout(data) {
 }
 
 
+export function  ChangeHeadImg(data) {
+	return post('/api/user/change/head/shot',data)
+}
 
 
 

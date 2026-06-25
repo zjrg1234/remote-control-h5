@@ -64,6 +64,7 @@ class WebSocketClient {
 
     try {
       this.ws = new WebSocket(this.url);
+      console.log(this.ws)
       this._bindEvents();
     } catch (err) {
       console.error("[WebSocket] 连接请求异常:", err);
@@ -117,15 +118,15 @@ class WebSocketClient {
   }
 
   public send(data: string | object): void {
-    if (
-      !this.isConnected ||
-      !this.ws ||
-      this.ws.readyState !== WebSocket.OPEN
-    ) {
-      console.warn("[WebSocket] 连接未建立，消息已加入队列");
-      this.messageQueue.push(data);
-      return;
-    }
+    console.log(this.isConnected, !this.ws, this.ws, WebSocket.OPEN)
+    // if (
+    //   !this.isConnected ||
+    //   !this.ws
+    // ) {
+    //   console.warn("[WebSocket] 连接未建立，消息已加入队列");
+    //   this.messageQueue.push(data);
+    //   return;
+    // }
 
     const message = typeof data === "object" ? JSON.stringify(data) : data;
 

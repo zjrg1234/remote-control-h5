@@ -153,7 +153,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted } from "vue";
+import { ref, onMounted, onUnmounted, watch } from "vue";
 import { useRoute } from "vue-router";
 import { showToast } from "vant";
 import { StartDrive } from "@/api/index";
@@ -169,7 +169,7 @@ import { formatTime, mapToPer } from "@/utils/utils";
 import { getWebSocket } from "@/utils/socket";
 import { CarControlHandler } from "./control/siqu.js";
 
-// import { handleDriverSocketData } from "@/utils/socketHelper";
+import { handleDriverSocketData } from "@/utils/socketHelper";
 
 import {
   ch1,
@@ -278,7 +278,10 @@ onUnmounted(() => {
   window.removeEventListener("resize", checkOrientation);
   window.removeEventListener("orientationchange", checkOrientation);
   clearInterval(timerNum.value);
+  clearInterval(timerSendMsg.value)
 });
+
+const timerSendMsg = ref();
 
 onMounted(() => {
   checkOrientation();
@@ -361,22 +364,48 @@ onMounted(() => {
   const port = localStorage.wssPort;
 
   console.log("ws://" + url + ":" + port);
-  ws.value = getWebSocket("ws://" + url + ":" + port, {
-    maxReconnectCount: 5, // 最大重连次数
-    reconnectInterval: 3000, // 基础重连间隔（实际会乘以重连次数）
-    heartBeatInterval: 30000, // 心跳间隔（毫秒）
-  });
+  let a = ""
+  const socket = new WebSocket(a);
 
-  ws.value.onOpen((event) => {
-    console.log("连接成功，可以开始发送消息了！");
-    // ws.value.send();
-  });
+// 2. 监听核心事件
+// 连接成功建立时触发
+socket.onopen = function() {
+    console.log('✅ WebSocket 连接成功！');
+    // 连接建立后，主动向服务器发送消息
+    socket.send('Hello, server!');
+};
+
+// 收到服务端消息时触发
+socket.onmessage = function(event) {
+    console.log('收到消息:', event.data);
+};
+
+  // ws.value = getWebSocket("ws://" + url + ":" + port, {
+  //   maxReconnectCount: 5, // 最大重连次数
+  //   reconnectInterval: 3000, // 基础重连间隔（实际会乘以重连次数）
+  //   heartBeatInterval: 30000, // 心跳间隔（毫秒）
+  // });
+
+  // ws.value.onOpen((event) => {
+  //   console.log("连接成功，可以开始发送消息了！");
+  //   // ws.value.send();
+  // });
+
 });
+
+watch(() => chValue.value,(val) => {
+    // 0.04 发一次数据
+  timerSendMsg.value = setInterval(() => {
+    const val =  handleDriverSocketData(carDetails.value.app_transmitter_id, chValue.value.ch1, 
+    chValue.value.ch2, chValue.value.ch3, chValue.value.ch4, chValue.value.ch5, chValue.value.ch6,chValue.value.ch7,chValue.value.ch8)
+    console.log(val,"----")
+    ws.value.send(val);
+  }, 3000);
+}, { immediate: true, deep: true });
 
 const activeKey = ref([]);
 
 const handleIcon = (item) => {
-  console.log(item.key, activeKey.value);
 
   // 1. 特殊功能拦截：维修项直接弹窗并返回，不参与状态切换
   if (item.key === "repairs") {
@@ -523,35 +552,28 @@ const logout = () => {
 
 // 前进后退
 const handleFBDrive = (item) => {
-  console.log(item);
   showSpeed.value = false
   let type = "";
   let ratioValue = 0;
   if (item.fb == true) {
-    console.log("向前", mapToPer(item.value));
     type = "upType";
     ratioValue = mapToPer(Math.abs(item.value));
   }
   if (item.fb == false) {
     if (item.value == 0) {
-      console.log("停止", 0);
       type = "endType";
       chValue.value.ch2 = acceleratorCenter.value.current_value;
     } else {
-      console.log("向后", mapToPer(item.value));
       type = "downType";
       ratioValue = mapToPer(Math.abs(item.value));
     }
   }
 
   carHandler.value.handleTwoDirectionControlChannel(true, type, ratioValue);
-  console.log(carHandler.value.ch2);
 };
 
 const changeConstSpeed = () => {
-  console.log(constSpeed.value)
- carHandler.value.handleTwoDirectionControlChannel(true, 'upType', constSpeed.value/ 100);
-  console.log(carHandler.value.ch2);
+  carHandler.value.handleTwoDirectionControlChannel(true, 'upType', constSpeed.value/ 100);
 }
 // 左右
 const handleLRDrive = (item) => {
