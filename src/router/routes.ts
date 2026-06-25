@@ -132,6 +132,16 @@ const routes: Array<RouteRecordRaw> = [
         },
       },
       {
+        path: "editProfile",
+        name: "EditProfile",
+        component: () => import("@/views/mine/editProfile.vue"),
+        meta: {
+          title: "个人简介",
+          noCache: true,
+          noAuth: true,
+        },
+      },
+      {
         path: "carDetails",
         name: "CarDetails",
         component: () => import("@/views/car/details.vue"),

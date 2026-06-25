@@ -90,5 +90,11 @@ export function  ChangeHeadImg(data) {
 	return post('/api/user/change/head/shot',data)
 }
 
+export function  ChangeName(data) {
+	return post('/api/user/change/name',data)
+}
+
+
+
 
 

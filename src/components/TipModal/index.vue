@@ -92,9 +92,6 @@ const onConfirm = () => {
 .modal-content {
   padding: 20px;
   text-align: center;
-
- 
-  
 }
 
 /* ========== 按钮组 ========== */
