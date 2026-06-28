@@ -3,7 +3,7 @@ import { post, get } from "@/utils/http";
 
 // 登录
 export function loginApi(data) {
-  return post('/api/login', data, { noLoading: true })
+  return post('/api/login', data, { loading: true })
 }
 
 // 首页列表
@@ -24,7 +24,7 @@ export function GetMine() {
 
 // 获取专区列表
 export function GetSpecialList() {
-  return post('/api/user/special/list')
+  return post('/api/user/special/list',{},{loading: true})
 }
 
 // 变更专区

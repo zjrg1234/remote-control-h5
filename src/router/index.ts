@@ -5,7 +5,7 @@ import {
 } from "vue-router";
 import routes from "./routes";
 import { useCachedViewStoreHook } from "@/store/modules/cachedView";
-import NProgress from "@/utils/progress";
+// import NProgress from "@/utils/progress";
 import setPageTitle from "@/utils/set-page-title";
 
 const router = createRouter({
@@ -25,7 +25,7 @@ export interface toRouteType extends RouteLocationNormalized {
 const isLoggedIn = () => !!localStorage.getItem('token'); 
 
 router.beforeEach((to: toRouteType, from, next) => {
-  NProgress.start();
+  // NProgress.start();
   
   // 1. 设置页面 title
   setPageTitle(to.meta.title);
@@ -47,7 +47,7 @@ router.beforeEach((to: toRouteType, from, next) => {
 });
 
 router.afterEach(() => {
-  NProgress.done();
+  // NProgress.done();
 });
 
 export default router;

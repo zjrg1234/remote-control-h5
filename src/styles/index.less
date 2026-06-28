@@ -31,3 +31,46 @@ a:hover {
 	background: #FFC838;
 	border-radius: 8px;
 }
+
+/* 全局 Loading 遮罩层 */
+.global-loading-mask {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  // background-color: rgba(255, 255, 255, 0.8); /* 半透明背景 */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999; /* 确保在最上层 */
+}
+
+/* 三个圆点容器 */
+.loading-dots {
+  display: flex;
+  gap: 8px; /* 圆点之间的间距 */
+}
+
+/* 单个圆点样式 */
+.loading-dots .dot {
+  width: 12px;
+  height: 12px;
+  background-color: #409eff; /* 可替换为你的主题色 */
+  border-radius: 50%;
+  animation: bounce 1.4s infinite ease-in-out both;
+}
+
+/* 依次延迟，产生波浪效果 */
+.loading-dots .dot:nth-child(1) { animation-delay: -0.32s; }
+.loading-dots .dot:nth-child(2) { animation-delay: -0.16s; }
+
+/* 跳动动画 */
+@keyframes bounce {
+  0%, 80%, 100% { 
+    transform: scale(0); 
+  }
+  40% { 
+    transform: scale(1.0); 
+  }
+}

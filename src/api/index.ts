@@ -2,7 +2,7 @@ import { post } from "@/utils/http";
 
 // 登录
 export function Login(data) {
-  // return post('/api/login/loginIn', data, { noLoading: true })
+  // return post('/api/login/loginIn', data, { loading: true })
   return post('/api/login/loginIn', data)
 }
 
@@ -25,7 +25,7 @@ export function GetHomeDataList(params) {
 
 //获取场地数据
 export function GetVenueDetail(params) {
-  return post('/api/user/venue/detail', params)
+  return post('/api/user/venue/detail', params, {loading: true})
 }
 
 // 预约驾驶
@@ -64,5 +64,13 @@ export function StartDrive(data) {
 export function GetCarDetails(data) {
   return post('/api/vehicle/detail',data)
 }
+
+
+// 车辆上报
+export function CarReport(data) {
+  return post('/api/user/processing/alarm/create',data)
+}
+
+
 
 

@@ -21,7 +21,7 @@ export const useUserStore = defineStore('user', {
   persist: {
     key: 'user-store',
     storage: localStorage,
-    paths: ['token', 'id', 'userInfo', 'areaId'] // 仅持久化必要字段
+    pick: ['token', 'id', 'userInfo', 'areaId'] // 仅持久化必要字段
   },
 
   getters: {

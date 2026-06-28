@@ -42,7 +42,8 @@
       <div class="tip-content repair">
         <p class="tit">设备报修</p>
         <div v-if="isShow" class="reason">
-          <span v-for="(item, index) in list" :key="index" @click="selectReason(index)" :class="['reason-item', { active: selectedIndex === index }]">{{ item }}</span>
+          <span v-for="(item, index) in list" :key="index" @click="selectReason(index, item)"
+            :class="['reason-item', { active: selectedIndex === index }]">{{ item }}</span>
         </div>
         <div class="ttarea">
           <van-cell-group inset>
@@ -65,32 +66,53 @@
 </template>
 
 <script setup>
-import { computed, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { showToast } from "vant";
 import { useRouter } from "vue-router";
+import { CarReport } from "@/api/index"
 const router = useRouter();
 
 const props = defineProps({
   show: { type: Boolean, default: false },
-  type: { type: String, default: 'tip' },
   count: { type: Number, default: 0 },
-  isShow: { type: Boolean, default: false },
   orderNo: { type: String, default: '' },
   vehicleId: { type: String, default: '' },
 })
 
+const type = ref('tip')
+const isShow = ref(false)
+const count = ref(15)
 const message = ref('');
+const timer = ref();
+const text = ref()
 
 const list = ref([
   "车辆翻车", "画面卡顿", "无视频信号", "车辆无法控制", "画面黑屏", "电量低",
   "其他"
 ])
 const selectedIndex = ref(0)
-const selectReason = (index) => {
+const selectReason = (index, item) => {
   selectedIndex.value = index
-
+  text.value = item
 }
 
+onMounted(() => {
+
+  // 2. 修复 const 不能重新赋值的 bug
+  timer.value = setInterval(() => {
+    count.value -= 1;
+    console.log(12);
+    if (count.value == 0) {
+      count.value = 0;
+      clearInterval(timer.value);
+      timer.value = null;
+      visible.value = false;
+      handleAction("driving");
+    }
+  }, 1000);
+  text.value = "车辆翻车"
+
+})
 
 const emit = defineEmits(['update:show', 'action'])
 
@@ -99,9 +121,20 @@ const visible = computed({
   get: () => props.show,
   set: (val) => emit('update:show', val)
 })
-      
+
+
+
+
 // 统一处理按钮点击，向父组件抛出动作类型
 const handleAction = (actionType) => {
+
+  // 维修上报都是一起的
+  if (actionType == "repair" || actionType == 'report') {
+    type.value = "repair"
+    clearInterval(timer.value);
+    return
+  }
+
   emit('action', actionType)
 }
 
@@ -114,23 +147,69 @@ const logout = () => {
   // type 3 结束驾驶
   // 先发
   StartDrive({
-      order_no: props.orderNo,
-      type: 3,
-      vehicle_id: props.vehicleId
-    }).then(res => {
-      if (res.code != 200) {
-        showToast(res.msg)
-      } else {
-        setTimeout(()=> {
-         router.push('/reservation')
-        }, 2000)
-      }
-    }).catch()
+    order_no: props.orderNo,
+    type: 3,
+    vehicle_id: props.vehicleId
+  }).then(res => {
+    if (res.code != 200) {
+      showToast(res.msg)
+    } else {
+      setTimeout(() => {
+        router.push('/reservation')
+      }, 2000)
+    }
+  }).catch()
 
 }
 const report = () => {
 
+  let msg = ''
+  //  isShow 显示原因
+  if (!isShow.value) {
+    if (!message.value) {
+      showToast("请输入内容")
+      return;
+    } else {
+      msg = message.value
+    }
+  } else {
+    if (text.value == '其他') {
+      if (!message.value) {
+        showToast("请输入内容")
+        return;
+      } else {
+        msg = message.value
+      }
+    } else {
+      msg = text.value
+    }
+  }
+
+  CarReport({
+    order_no: props.orderNo,
+    id: props.vehicleId,
+    text: msg
+  }).then(res => {
+    if (res.code == 200) {
+      showToast("上报成功")
+    } else {
+      showToast(res.msg)
+    }
+  }).catch()
 }
+
+const setType = (val, flag) => {
+  type.value = val
+  if (flag) {
+    isShow.value = true
+  } else {
+    isShow.value = false
+  }
+}
+
+defineExpose({
+  setType,
+});
 </script>
 
 <style lang="scss" scoped>
@@ -218,18 +297,22 @@ const report = () => {
 .reason {
   display: flex;
   flex-wrap: wrap;
-  gap: 2px; /* 使用 gap 替代 margin，布局更整洁 */
+  gap: 2px;
+  /* 使用 gap 替代 margin，布局更整洁 */
   padding: 3px 0;
 }
 
 .reason-item {
   padding: 1px 2px;
-  border-radius: 2px; /* 胶囊形状，适合标签选择 */
+  border-radius: 2px;
+  /* 胶囊形状，适合标签选择 */
   color: #666666;
   font-size: 7px;
   cursor: pointer;
-  transition: all 0.2s ease; /* 添加过渡动画，使状态切换更平滑 */
-  user-select: none; /* 防止双击时文字被选中 */
+  transition: all 0.2s ease;
+  /* 添加过渡动画，使状态切换更平滑 */
+  user-select: none;
+  /* 防止双击时文字被选中 */
   border: 0.5px solid #666666;
   margin-top: 2px;
   margin-right: 7px;
@@ -237,7 +320,7 @@ const report = () => {
 }
 
 .reason-item:active {
-  opacity: 0.8; 
+  opacity: 0.8;
 }
 
 /* 选中状态的高亮样式 */

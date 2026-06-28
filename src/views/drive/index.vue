@@ -36,32 +36,13 @@
       <div class="side-menu-icon">
         <Ripple />
 
-        <img
-          src="@/assets/images/icon_sound_close@2x.png"
-          v-if="!showSound"
-          @click="showSound = true"
-          alt=""
-        />
-        <img
-          src="@/assets/images/icon_sound_open@2x.png"
-          v-if="showSound"
-          @click="showSound = false"
-          alt=""
-        />
+        <img src="@/assets/images/icon_sound_close@2x.png" v-if="!showSound" @click="showSound = true" alt="" />
+        <img src="@/assets/images/icon_sound_open@2x.png" v-if="showSound" @click="showSound = false" alt="" />
       </div>
       <div class="side-menu">
         <!-- 菜单项列表 -->
-        <div
-          class="menu-item"
-          v-for="(item, index) in menuList"
-          :key="index"
-          @click="handleIcon(item)"
-        >
-          <img
-            class="img"
-            mode="scaleToFill"
-            :src="activeKey.includes(item.key) ? item.iconSelect : item.icon"
-          />
+        <div class="menu-item" v-for="(item, index) in menuList" :key="index" @click="handleIcon(item)">
+          <img class="img" mode="scaleToFill" :src="activeKey.includes(item.key) ? item.iconSelect : item.icon" />
           <span class="label">{{ item.name }}</span>
         </div>
       </div>
@@ -71,40 +52,34 @@
             <template #button>
               <div class="custom-button-slider">{{ constSpeed }} km/h</div>
             </template>
-          </van-slider> -->
+</van-slider> -->
           <div class="slider-wrapper">
-                <div class="slider-label">
-                  <div class="num" :style="{ left: constSpeed + '%' }">
-                    {{ constSpeed }} km/h
-                  </div>
-                </div>
-                <van-slider
-                  v-model="constSpeed"
-                  :min="1"
-                  :max="100"
-                  @change="changeConstSpeed"
-                  active-color="#f5c542"
-                >
-                  <template #button>
-                    <div class="custom-sider-img">
-                      <img src="@/assets/images/icon_sider@2x.webp" alt="" />
-                    </div>
-                  </template>
-                </van-slider>
-                <div class="slider-label-bottom">
-                  <div class="num-text num-left">
-                    0
-                  </div>
-                  <div class="num-text num-right">
-                    100
-                  </div>
-                </div>
+            <div class="slider-label">
+              <div class="num" :style="{ left: constSpeed + '%' }">
+                {{ constSpeed }} km/h
               </div>
+            </div>
+            <van-slider v-model="constSpeed" :min="1" :max="100" @change="changeConstSpeed" active-color="#f5c542">
+              <template #button>
+                <div class="custom-sider-img">
+                  <img src="@/assets/images/icon_sider@2x.webp" alt="" />
+                </div>
+              </template>
+            </van-slider>
+            <div class="slider-label-bottom">
+              <div class="num-text num-left">
+                0
+              </div>
+              <div class="num-text num-right">
+                100
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
-       <LeftRight @action="handleLRDrive" :isLeft="operMode"></LeftRight> 
-      
+      <LeftRight @action="handleLRDrive" :isLeft="operMode"></LeftRight>
+
       <UpDown @action="handleFBDrive" :isLeft="!operMode"></UpDown>
 
       <div class="time">
@@ -112,42 +87,28 @@
         <TimeClock></TimeClock>
       </div>
 
-      <ALLPopup
-        v-model:show="tipVisible"
-        type="tip"
-        :orderNo="orderNo"
-        :vehicleId="vehicleId"
-        :count="count"
-        @action="handlePopupAction"
-      />
-      <ALLPopup
-        v-model:show="logoutVisible"
+      <ALLPopup ref="allPopup" v-model:show="allPopupVisible" type="tip" :count="count" :orderNo="orderNo"
+        :vehicleId="vehicleId" :isShow="showRepairReason" @action="handlePopupAction" />
+      <!-- <ALLPopup
+        v-model:show="allPopupVisible"
         type="logout"
-        :orderNo="orderNo"
-        :vehicleId="vehicleId"
-        @action="handlePopupAction"
-      />
-      <ALLPopup
-        v-model:show="repairVisible"
-        type="repair"
         :orderNo="orderNo"
         :vehicleId="vehicleId"
         :isShow="showRepairReason"
         @action="handlePopupAction"
       />
-      <SetPopup
-        v-model:show="setVisible"
-        :videoDefinition="videoDefinition"
-        :operFB="operFB"
-        :directionCenter="directionCenter"
-        :acceleratorDynamics="acceleratorDynamics"
-        :directionDynamics="directionDynamics"
-        :operDir="operDir"
-        :type="carType"
-        @action="handleOper"
-        @operAction="handleFBDir"
-        @changeValue="changeVal"
-      />
+      <ALLPopup
+        v-model:show="allPopupVisible"
+        type="repair"
+        :orderNo="orderNo"
+        :vehicleId="vehicleId"
+        :isShow="showRepairReason"
+        @action="handlePopupAction"
+      /> -->
+      <SetPopup v-model:show="setVisible" :videoDefinition="videoDefinition" :operFB="operFB"
+        :directionCenter="directionCenter" :acceleratorDynamics="acceleratorDynamics"
+        :directionDynamics="directionDynamics" :operDir="operDir" :type="carType" @action="handleOper"
+        @operAction="handleFBDir" @changeValue="changeVal" />
     </div>
   </div>
 </template>
@@ -193,9 +154,7 @@ import {
 // 方向设置 要发送ws信息s
 const route = useRoute();
 const isLandscape = ref(true);
-const tipVisible = ref(true);
-const logoutVisible = ref(false);
-const repairVisible = ref(false);
+const allPopupVisible = ref(true);
 
 const currentTime = ref();
 const showSpeed = ref(false);
@@ -214,11 +173,21 @@ const vehicleId = ref();
 const operMode = ref(false); // 操作模式
 const operFB = ref(0); // 操作前后 正常0 反向1
 const operDir = ref(0); // 操作方向 正常0 反向1
-
 const directionCenter = ref();
 const directionDynamics = ref();
 const acceleratorCenter = ref();
 const acceleratorDynamics = ref();
+const allPopup = ref()
+
+
+// 进入页面3s 定时器，拿中位值发不停发 0.04
+// 调三方接口，显示video
+// 摄像头 前置后置 要判断一下
+// 按次计费 30s 发一次 继续驾驶请求。剩余20s有若提示。剩余5s 弹窗提示结束。同时发送中位值。（停车）
+// 退出，再发送2s 中位值。
+// 按时间计费，eg：1分2电池，有11个电池。只能玩5分钟 3。0s 发一次 继续驾驶请求。剩余20s有若提示。剩余5s 弹窗提示结束。同时发送中位值。（停车）
+// 显示弹窗，发送中位值。
+// 180s 未操作 弹窗 
 
 const chValue = ref({
   ch1: "",
@@ -271,7 +240,6 @@ const menuList = ref([
 ]);
 const carDetails = ref();
 const videoDefinition = ref("1");
-const timer = ref();
 const carHandler = ref();
 
 onUnmounted(() => {
@@ -288,18 +256,7 @@ onMounted(() => {
   window.addEventListener("resize", checkOrientation);
   window.addEventListener("orientationchange", checkOrientation);
 
-  // 2. 修复 const 不能重新赋值的 bug
-  timer.value = setInterval(() => {
-    count.value -= 1;
-    console.log(12);
-    if (count.value == 0) {
-      count.value = 0;
-      clearInterval(timer.value);
-      timer.value = null;
-      tipVisible.value = false;
-      handlePopupAction("driving");
-    }
-  }, 1000);
+
 
   let num = 1;
   timerNum.value = setInterval(() => {
@@ -377,12 +334,11 @@ onMounted(() => {
 
 });
 
-watch(() => chValue.value,(val) => {
-    // 0.04 发一次数据
+watch(() => chValue.value, (val) => {
+  // 0.04 发一次数据
   timerSendMsg.value = setInterval(() => {
-    const val =  handleDriverSocketData(carDetails.value.app_transmitter_id, chValue.value.ch1, 
-    chValue.value.ch2, chValue.value.ch3, chValue.value.ch4, chValue.value.ch5, chValue.value.ch6,chValue.value.ch7,chValue.value.ch8)
-    console.log(val,"----")
+    const val = handleDriverSocketData(carDetails.value.app_transmitter_id, chValue.value.ch1,
+      chValue.value.ch2, chValue.value.ch3, chValue.value.ch4, chValue.value.ch5, chValue.value.ch6, chValue.value.ch7, chValue.value.ch8)
     ws.value.send(val);
   }, 3000);
 }, { immediate: true, deep: true });
@@ -391,10 +347,10 @@ const activeKey = ref([]);
 
 const handleIcon = (item) => {
 
-  // 1. 特殊功能拦截：维修项直接弹窗并返回，不参与状态切换
+  // 点击维修，显示上报原因，把原因显示出来
   if (item.key === "repairs") {
-    showRepairReason.value = true;
-    repairVisible.value = true;
+    allPopupVisible.value = true;
+    allPopup.value.setType('repair', true)
     return;
   }
 
@@ -445,22 +401,20 @@ const handlePopupAction = (type) => {
   console.log(type);
   // 退出上报故障
   if (type == "report") {
-    logoutVisible.value = false;
-    repairVisible.value = true;
+    allPopupVisible.value = false;
     showRepairReason.value = false;
     return;
   }
 
   // 有维修原因的
   if (type == "repair") {
-    logoutVisible.value = false;
-    repairVisible.value = true;
+
+    allPopupVisible.value = true;
     showRepairReason.value = true;
     return;
   }
 
   if (type == "driving") {
-    timer.value && clearInterval(timer.value);
     StartDrive({
       order_no: orderNo.value,
       type: 1,
@@ -468,11 +422,11 @@ const handlePopupAction = (type) => {
     })
       .then((res) => {
         if (res.code != 200) {
-          tipVisible.value = false;
+          allPopupVisible.value = false;
 
           showToast(res.msg);
         } else {
-          tipVisible.value = false;
+          allPopupVisible.value = false;
         }
       })
       .catch();
@@ -481,8 +435,8 @@ const handlePopupAction = (type) => {
 
 const handleOper = (type) => {
   console.log(type);
-  operMode.value = type == 'mode2' ? true: false; // 操作模式 箭头上下 在左
-  
+  operMode.value = type == 'mode2' ? true : false; // 操作模式 箭头上下 在左
+
   if (carType.value == 1) {
 
 
@@ -520,17 +474,19 @@ const changeVal = (value) => {
 
 const set = () => {
   setVisible.value = true;
-   // 点击退出，定速消失 重置车辆
+  // 点击退出，定速消失 重置车辆
   showSpeed.value = false
-  handleFBDrive({fb: false, value: 0})
+  handleFBDrive({ fb: false, value: 0 })
   handleIcon("speed")
 };
 
 const logout = () => {
-  logoutVisible.value = true;
+  allPopup.value.setType('logout')
+
+  allPopupVisible.value = true;
   // 点击退出，定速消失 重置车辆
   showSpeed.value = false
-  handleFBDrive({fb: false, value: 0})
+  handleFBDrive({ fb: false, value: 0 })
   handleIcon("speed")
 };
 
@@ -557,7 +513,7 @@ const handleFBDrive = (item) => {
 };
 
 const changeConstSpeed = () => {
-  carHandler.value.handleTwoDirectionControlChannel(true, 'upType', constSpeed.value/ 100);
+  carHandler.value.handleTwoDirectionControlChannel(true, 'upType', constSpeed.value / 100);
 }
 // 左右
 const handleLRDrive = (item) => {
@@ -713,7 +669,7 @@ const handleLRDrive = (item) => {
   }
 
   /* 电池及电量文字组合 */
-  .flex > div:nth-child(2) {
+  .flex>div:nth-child(2) {
     display: flex;
     align-items: center;
     gap: 2px;
@@ -871,47 +827,47 @@ const handleLRDrive = (item) => {
   flex-direction: column;
   gap: 4px;
   height: 40px;
+
   .num {
-  position: absolute;
-  top: 5px;
-  transform: translateX(-50%);
-  /* 关键：让标签的中心点对齐 left 值，实现完美居中 */
-  color: #fff;
-  font-size: 6px;
-  white-space: nowrap;
-  /* 防止数字换行 */
-  pointer-events: none;
-  text-align: left;
-  /* 防止标签拦截鼠标的拖拽事件 */
-}
-
-.slider-label {
-  position: relative;
-  height: 15px;
-}
-
-.slider-label-bottom {
-  display: flex;
-  justify-content: space-between;
-  margin-top: 2px;
-
-  .num-text {
+    position: absolute;
+    top: 5px;
+    transform: translateX(-50%);
+    /* 关键：让标签的中心点对齐 left 值，实现完美居中 */
     color: #fff;
     font-size: 6px;
+    white-space: nowrap;
+    /* 防止数字换行 */
+    pointer-events: none;
+    text-align: left;
+    /* 防止标签拦截鼠标的拖拽事件 */
   }
 
-  .num-left {
-    margin-left: -1px;
-  }
-  .nl {
-    margin-left: -4px;
+  .slider-label {
+    position: relative;
+    height: 15px;
   }
 
-  .num-right {
-    margin-right: -4px;
+  .slider-label-bottom {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 2px;
+
+    .num-text {
+      color: #fff;
+      font-size: 6px;
+    }
+
+    .num-left {
+      margin-left: -1px;
+    }
+
+    .nl {
+      margin-left: -4px;
+    }
+
+    .num-right {
+      margin-right: -4px;
+    }
   }
 }
-}
-
-
 </style>

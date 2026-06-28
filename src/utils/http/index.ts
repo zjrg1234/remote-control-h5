@@ -1,5 +1,6 @@
 import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from "axios";
-import { useUserStore } from "@/store/modules/user.ts";
+import { useUserStore } from '@/store/modules/user';
+import { useLoadingStore } from '@/store/modules/loading';
 
 import router from "@/router";
 // 1. 定义后端统一响应数据类型（根据实际后端接口调整）
@@ -23,7 +24,7 @@ const whiteList = ["/api/login/loginIn"];
 
 // 4. 请求拦截器
 service.interceptors.request.use(
-  (config: AxiosRequestConfig & { noLoading?: boolean }) => {
+  (config: AxiosRequestConfig & { loading?: boolean }) => {
     const userStore = useUserStore();
     const token = userStore.token;
 
@@ -43,9 +44,10 @@ service.interceptors.request.use(
     }
 
     // 显示 loading（通过自定义配置控制）
-    if (!config.noLoading) {
+    if (config.loading) {
       // 这里可以替换为你项目中使用的 UI 库的 Loading 方法
       // 例如: ElLoading.service({ text: '加载中...', lock: true })
+      useLoadingStore().setLoading(true)
     }
 
     return config;
@@ -57,9 +59,10 @@ service.interceptors.request.use(
 service.interceptors.response.use(
   (response: AxiosResponse<ApiResponse>) => {
     const config = response.config as any;
-    if (!config.noLoading) {
+    if (config.loading) {
       // 这里可以替换为你项目中关闭 Loading 的方法
       // 例如: ElLoading.service().close()
+      useLoadingStore().setLoading(false)
     }
 
     const res = response.data;
@@ -77,9 +80,11 @@ service.interceptors.response.use(
   (error) => {
     // 网络异常或超时处理
     const config = error.config as any;
-    if (!config?.noLoading) {
+    if (!config?.loading) {
       // 关闭 Loading
     }
+    
+    useLoadingStore().setLoading(false)
 
     // Message.error('网络异常，请稍后重试')
     return Promise.reject(error);
@@ -103,7 +108,7 @@ const routerOpera = () => {
 export const get = <T = any>(
   url: string,
   data: Record<string, any> = {},
-  opts: AxiosRequestConfig & { noLoading?: boolean } = {},
+  opts: AxiosRequestConfig & { loading?: boolean } = {},
 ) =>
   service.get<T, ApiResponse<T>>(url, {
     params: { ...data, ...getParam() },
@@ -113,19 +118,19 @@ export const get = <T = any>(
 export const post = <T = any>(
   url: string,
   data: Record<string, any> = {},
-  opts: AxiosRequestConfig & { noLoading?: boolean } = {},
+  opts: AxiosRequestConfig & { loading?: boolean } = {},
 ) => service.post<T, ApiResponse<T>>(url, { ...data, ...getParam() }, opts);
 
 export const put = <T = any>(
   url: string,
   data: Record<string, any> = {},
-  opts: AxiosRequestConfig & { noLoading?: boolean } = {},
+  opts: AxiosRequestConfig & { loading?: boolean } = {},
 ) => service.put<T, ApiResponse<T>>(url, { ...data, ...getParam() }, opts);
 
 export const del = <T = any>(
   url: string,
   data: Record<string, any> = {},
-  opts: AxiosRequestConfig & { noLoading?: boolean } = {},
+  opts: AxiosRequestConfig & { loading?: boolean } = {},
 ) =>
   service.delete<T, ApiResponse<T>>(url, {
     params: { ...data, ...getParam() },
