@@ -31,25 +31,28 @@ class WebSocketClient {
   private onErrorCallback: ((event: Event) => void) | null = null;
 
   constructor(url: string, options?: WebSocketClientOptions) {
-    this.url = this._formatUrl(url);
+    this.url = WebSocketClient.formatUrl(url);
     this.maxReconnectCount = options?.maxReconnectCount ?? 10;
     this.reconnectInterval = options?.reconnectInterval ?? 3000;
     this.heartBeatInterval = options?.heartBeatInterval ?? 30000;
   }
 
-  private _formatUrl(url: string): string {
+  /**
+   * 静态方法：格式化 URL，避免实例化即可调用
+   */
+  static formatUrl(url: string): string {
     if (!url) return url;
     const hasPort = /:\d+(?=[/\s]|$)/.test(url);
     if (hasPort) {
       return url;
     }
     if (url.startsWith("wss://")) {
-      return `wss://${url.replace("wss://", "")}:8899`;
+      return `wss://${url.replace("wss://", "")}`;
     } else if (url.startsWith("ws://")) {
-      return `ws://${url.replace("ws://", "")}:8899`;
+      return `ws://${url.replace("ws://", "")}`;
     }
-    // 4. 默认情况：补全 wss 协议并拼接端口
-    return `wss://${url}:8899`;
+    // 默认情况：补全 ws 协议并拼接端口
+    return `ws://${url}`;
   }
 
   public connect(): void {
@@ -60,11 +63,10 @@ class WebSocketClient {
 
     console.log(`[WebSocket] 正在连接: ${this.url}`);
     this.isManualClose = false;
-    this.isAlive = true; // 初始化心跳状态
+    this.isAlive = true;
 
     try {
       this.ws = new WebSocket(this.url);
-      console.log(this.ws)
       this._bindEvents();
     } catch (err) {
       console.error("[WebSocket] 连接请求异常:", err);
@@ -118,15 +120,16 @@ class WebSocketClient {
   }
 
   public send(data: string | object): void {
-    console.log(this.isConnected, !this.ws, this.ws, WebSocket.OPEN)
-    // if (
-    //   !this.isConnected ||
-    //   !this.ws
-    // ) {
-    //   console.warn("[WebSocket] 连接未建立，消息已加入队列");
-    //   this.messageQueue.push(data);
-    //   return;
-    // }
+    // 连接未建立或 WebSocket 未就绪时，消息加入队列
+    if (
+      !this.isConnected ||
+      !this.ws ||
+      this.ws.readyState !== WebSocket.OPEN
+    ) {
+      console.warn("[WebSocket] 连接未建立，消息已加入队列");
+      this.messageQueue.push(data);
+      return;
+    }
 
     const message = typeof data === "object" ? JSON.stringify(data) : data;
 
@@ -159,7 +162,6 @@ class WebSocketClient {
     console.log(
       `[WebSocket] 正在发送队列中的 ${this.messageQueue.length} 条消息`,
     );
-    // 使用 _rawSend 避免再次触发入队逻辑
     const queueCopy = [...this.messageQueue];
     this.messageQueue = [];
     queueCopy.forEach((data) => this._rawSend(data));
@@ -216,10 +218,7 @@ class WebSocketClient {
     this.onErrorCallback?.(err as Event);
     this.isConnected = false;
     this._stopHeartBeat();
-
-    if (!this.isManualClose) {
-      this._reconnect();
-    }
+    // 不在此处调用 _reconnect()，由 onclose 统一处理重连，避免双重触发
   }
 
   public close(): void {
@@ -263,7 +262,8 @@ export function getWebSocket(
   url: string,
   options?: WebSocketClientOptions,
 ): WebSocketClient {
-  const formattedUrl = new WebSocketClient(url, options)["url"]; // 简单复用格式化逻辑获取真实URL
+  // 使用静态方法获取格式化后的 URL，无需创建临时实例
+  const formattedUrl = WebSocketClient.formatUrl(url);
 
   if (wsInstance && currentWsUrl === formattedUrl) {
     return wsInstance;

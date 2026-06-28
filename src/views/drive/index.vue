@@ -362,29 +362,13 @@ onMounted(() => {
 
   const url = localStorage.wssUrl;
   const port = localStorage.wssPort;
-
-  console.log("ws://" + url + ":" + port);
-  let a = ""
-  const socket = new WebSocket(a);
-
-// 2. 监听核心事件
-// 连接成功建立时触发
-socket.onopen = function() {
-    console.log('✅ WebSocket 连接成功！');
-    // 连接建立后，主动向服务器发送消息
-    socket.send('Hello, server!');
-};
-
-// 收到服务端消息时触发
-socket.onmessage = function(event) {
-    console.log('收到消息:', event.data);
-};
-
-  // ws.value = getWebSocket("ws://" + url + ":" + port, {
-  //   maxReconnectCount: 5, // 最大重连次数
-  //   reconnectInterval: 3000, // 基础重连间隔（实际会乘以重连次数）
-  //   heartBeatInterval: 30000, // 心跳间隔（毫秒）
-  // });
+  const wsUrl = "ws://" + url + ":" + port;
+  ws.value = getWebSocket("ws://zksjtest.zksjyk.cn/ws", {
+    maxReconnectCount: 5, // 最大重连次数
+    reconnectInterval: 3000, // 基础重连间隔（实际会乘以重连次数）
+    heartBeatInterval: 30000, // 心跳间隔（毫秒）
+  });
+  ws.value.connect();
 
   // ws.value.onOpen((event) => {
   //   console.log("连接成功，可以开始发送消息了！");
