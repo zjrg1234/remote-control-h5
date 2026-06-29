@@ -74,7 +74,6 @@ const router = useRouter();
 
 const props = defineProps({
   show: { type: Boolean, default: false },
-  count: { type: Number, default: 0 },
   orderNo: { type: String, default: '' },
   vehicleId: { type: String, default: '' },
 })

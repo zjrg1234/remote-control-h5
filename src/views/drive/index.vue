@@ -2,7 +2,7 @@
   <div class="landscape-page">
     <div class="page-content">
       <div class="bg">
-        <video src=""></video>
+        <iframe src=""></iframe>
       </div>
 
       <div class="logout" @click="logout">
@@ -87,7 +87,7 @@
         <TimeClock></TimeClock>
       </div>
 
-      <ALLPopup ref="allPopup" v-model:show="allPopupVisible" type="tip" :count="count" :orderNo="orderNo"
+      <ALLPopup ref="allPopup" v-model:show="allPopupVisible" type="tip" :orderNo="orderNo"
         :vehicleId="vehicleId" :isShow="showRepairReason" @action="handlePopupAction" />
       <!-- <ALLPopup
         v-model:show="allPopupVisible"
@@ -118,6 +118,7 @@ import { ref, onMounted, onUnmounted, watch } from "vue";
 import { useRoute } from "vue-router";
 import { showToast } from "vant";
 import { StartDrive } from "@/api/index";
+import { LoginTop } from "@/api/video";
 
 import ALLPopup from "./components/ALLPopup.vue";
 import SetPopup from "./components/SetPopup.vue";
@@ -128,9 +129,11 @@ import UpDown from "./components/UpDown.vue";
 import LeftRight from "./components/LeftRight.vue";
 import { formatTime, mapToPer } from "@/utils/utils";
 import { getWebSocket } from "@/utils/socket";
+import { handleDriverSocketData } from "@/utils/socketHelper";
+import { encryptAES } from "@/utils/crypto";
+
 import { CarControlHandler } from "./control/siqu.js";
 
-import { handleDriverSocketData } from "@/utils/socketHelper";
 
 import {
   ch1,
@@ -159,8 +162,7 @@ const allPopupVisible = ref(true);
 const currentTime = ref();
 const showSpeed = ref(false);
 const showRepairReason = ref(false);
-const count = ref(15);
-const constSpeed = ref(5);
+const constSpeed = ref(1);
 const setVisible = ref(false);
 const showSound = ref(false);
 

@@ -122,7 +122,6 @@ onMounted(async () => {
     }
     const res = await GetHomeBanner();
     if (imgUrl.value !== res.data[0]?.image) {
-      debugger
       localStorage.setItem('imgUrl', res.data[0]?.image)
       imgUrl.value = localStorage.imgUrl
     }
