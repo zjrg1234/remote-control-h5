@@ -36,13 +36,32 @@
       <div class="side-menu-icon">
         <Ripple />
 
-        <img src="@/assets/images/icon_sound_close@2x.png" v-if="!showSound" @click="showSound = true" alt="" />
-        <img src="@/assets/images/icon_sound_open@2x.png" v-if="showSound" @click="showSound = false" alt="" />
+        <img
+          src="@/assets/images/icon_sound_close@2x.png"
+          v-if="!showSound"
+          @click="showSound = true"
+          alt=""
+        />
+        <img
+          src="@/assets/images/icon_sound_open@2x.png"
+          v-if="showSound"
+          @click="showSound = false"
+          alt=""
+        />
       </div>
       <div class="side-menu">
         <!-- 菜单项列表 -->
-        <div class="menu-item" v-for="(item, index) in menuList" :key="index" @click="handleIcon(item)">
-          <img class="img" mode="scaleToFill" :src="activeKey.includes(item.key) ? item.iconSelect : item.icon" />
+        <div
+          class="menu-item"
+          v-for="(item, index) in menuList"
+          :key="index"
+          @click="handleIcon(item)"
+        >
+          <img
+            class="img"
+            mode="scaleToFill"
+            :src="activeKey.includes(item.key) ? item.iconSelect : item.icon"
+          />
           <span class="label">{{ item.name }}</span>
         </div>
       </div>
@@ -59,7 +78,13 @@
                 {{ constSpeed }} km/h
               </div>
             </div>
-            <van-slider v-model="constSpeed" :min="1" :max="100" @change="changeConstSpeed" active-color="#f5c542">
+            <van-slider
+              v-model="constSpeed"
+              :min="1"
+              :max="100"
+              @change="changeConstSpeed"
+              active-color="#f5c542"
+            >
               <template #button>
                 <div class="custom-sider-img">
                   <img src="@/assets/images/icon_sider@2x.webp" alt="" />
@@ -67,12 +92,8 @@
               </template>
             </van-slider>
             <div class="slider-label-bottom">
-              <div class="num-text num-left">
-                0
-              </div>
-              <div class="num-text num-right">
-                100
-              </div>
+              <div class="num-text num-left">0</div>
+              <div class="num-text num-right">100</div>
             </div>
           </div>
         </div>
@@ -87,8 +108,15 @@
         <TimeClock></TimeClock>
       </div>
 
-      <ALLPopup ref="allPopup" v-model:show="allPopupVisible" type="tip" :orderNo="orderNo"
-        :vehicleId="vehicleId" :isShow="showRepairReason" @action="handlePopupAction" />
+      <ALLPopup
+        ref="allPopup"
+        v-model:show="allPopupVisible"
+        type="tip"
+        :orderNo="orderNo"
+        :vehicleId="vehicleId"
+        :isShow="showRepairReason"
+        @action="handlePopupAction"
+      />
       <!-- <ALLPopup
         v-model:show="allPopupVisible"
         type="logout"
@@ -105,10 +133,19 @@
         :isShow="showRepairReason"
         @action="handlePopupAction"
       /> -->
-      <SetPopup v-model:show="setVisible" :videoDefinition="videoDefinition" :operFB="operFB"
-        :directionCenter="directionCenter" :acceleratorDynamics="acceleratorDynamics"
-        :directionDynamics="directionDynamics" :operDir="operDir" :type="carType" @action="handleOper"
-        @operAction="handleFBDir" @changeValue="changeVal" />
+      <SetPopup
+        v-model:show="setVisible"
+        :videoDefinition="videoDefinition"
+        :operFB="operFB"
+        :directionCenter="directionCenter"
+        :acceleratorDynamics="acceleratorDynamics"
+        :directionDynamics="directionDynamics"
+        :operDir="operDir"
+        :type="carType"
+        @action="handleOper"
+        @operAction="handleFBDir"
+        @changeValue="changeVal"
+      />
     </div>
   </div>
 </template>
@@ -179,17 +216,16 @@ const directionCenter = ref();
 const directionDynamics = ref();
 const acceleratorCenter = ref();
 const acceleratorDynamics = ref();
-const allPopup = ref()
-
+const allPopup = ref();
 
 // 进入页面3s 定时器，拿中位值发不停发 0.04
 // 调三方接口，显示video
 // 摄像头 前置后置 要判断一下
 // 按次计费 30s 发一次 继续驾驶请求。剩余20s有若提示。剩余5s 弹窗提示结束。同时发送中位值。（停车）
 // 退出，再发送2s 中位值。
-// 按时间计费，eg：1分2电池，有11个电池。只能玩5分钟 3。0s 发一次 继续驾驶请求。剩余20s有若提示。剩余5s 弹窗提示结束。同时发送中位值。（停车）
+// 按时间计费，eg：1分2电池，有11个电池。只能玩5分钟 30s 发一次 继续驾驶请求。剩余20s有若提示。剩余5s 弹窗提示结束。同时发送中位值。（停车）
 // 显示弹窗，发送中位值。
-// 180s 未操作 弹窗 
+// 180s 未操作 弹窗
 
 const chValue = ref({
   ch1: "",
@@ -201,11 +237,6 @@ const chValue = ref({
   ch7: "",
   ch8: "",
 });
-
-// 检测屏幕方向
-const checkOrientation = () => {
-  isLandscape.value = window.innerWidth > window.innerHeight;
-};
 
 const menuList = ref([
   { name: "报修", icon: repairs, key: "repairs", iconSelect: repairs, type: 1 },
@@ -248,41 +279,56 @@ onUnmounted(() => {
   window.removeEventListener("resize", checkOrientation);
   window.removeEventListener("orientationchange", checkOrientation);
   clearInterval(timerNum.value);
-  clearInterval(timerSendMsg.value)
+  clearSendTimer(); // 清理发送定时器
+  if (ws.value) ws.value.close();
 });
 
-const timerSendMsg = ref();
 
+let sendMsgTimer = null;
+
+// --- 初始化与生命周期 ---
 onMounted(() => {
+  initOrientation();
+  initTimer();
+  initRouteData();
+  initVehicleConfig();
+  initWebSocket();
+  initThreeSend();
+});
+const checkOrientation = () => {
+  isLandscape.value = window.innerWidth > window.innerHeight;
+};
+const initOrientation = () => {
   checkOrientation();
   window.addEventListener("resize", checkOrientation);
   window.addEventListener("orientationchange", checkOrientation);
+};
 
-
-
+const initTimer = () => {
   let num = 1;
   timerNum.value = setInterval(() => {
     currentTime.value = formatTime(++num);
   }, 1000);
+};
 
+const initRouteData = () => {
   orderNo.value = route.query.order_no || "";
   vehicleId.value = route.query.vehicle_id || "";
-  carDetails.value = JSON.parse(localStorage.carDetails);
-  videoDefinition.value = carDetails.value.video_definition;
-  // 四驱车
-  if (
-    carDetails.value.vehicle_type >= 10 &&
-    carDetails.value.vehicle_type <= 19
-  ) {
-    carType.value = "1";
-  }
-  // 挖机
-  if (
-    carDetails.value.vehicle_type >= 20 &&
-    carDetails.value.vehicle_type <= 29
-  ) {
-    carType.value = "2";
-  }
+  const details = JSON.parse(localStorage.carDetails || "{}");
+  carDetails.value = details;
+  videoDefinition.value = details.video_definition; // 视频清晰度
+
+  // 车辆类型判断
+  const type = details.vehicle_type;
+  if (type >= 10 && type <= 19) carType.value = "1";
+  else if (type >= 20 && type <= 29) carType.value = "2";
+  else carType.value = "3";
+};
+
+const initVehicleConfig = () => {
+  const details = carDetails.value;
+  if (!details) return;
+
   operFB.value = carDetails.value.reverse_left_right;
   operDir.value = carDetails.value.reverse_up_down;
   directionCenter.value = carDetails.value.direction_center; // 方向中位
@@ -290,24 +336,16 @@ onMounted(() => {
   acceleratorCenter.value = carDetails.value.accelerator_center; // 油门中位
   acceleratorDynamics.value = carDetails.value.accelerator_dynamics; // 油门
 
-  // 除了ch3～ch8 拿开关值
-  chValue.value.ch3 =
-    carDetails.value.vehicle_config_detail.ch3.close_value.current_value;
-  chValue.value.ch4 =
-    carDetails.value.vehicle_config_detail.ch4.close_value.current_value;
-  chValue.value.ch5 =
-    carDetails.value.vehicle_config_detail.ch5.close_value.current_value;
-  chValue.value.ch6 =
-    carDetails.value.vehicle_config_detail.ch6.close_value.current_value;
-  chValue.value.ch7 =
-    carDetails.value.vehicle_config_detail.ch7.close_value.current_value;
-  chValue.value.ch8 =
-    carDetails.value.vehicle_config_detail.ch8.close_value.current_value;
+  const config = carDetails.value.vehicle_config_detail;
+  ["ch3", "ch4", "ch5", "ch6", "ch7", "ch8"].forEach((key) => {
+    if (config[key]) {
+      chValue.value[key] = config[key].close_value.current_value;
+    }
+  });
 
   chValue.value.ch1 = directionCenter.value.current_value;
-  chValue.value.ch2 = acceleratorCenter.value.current_value;
-  console.log(chValue.value);
-
+  chValue.value.ch2 = acceleratorCenter.value.current_value; // 油门中位值
+ 
   carHandler.value = new CarControlHandler({
     reverseUpDownState: operFB.value == 0 ? false : true,
     reverseLeftRightState: operDir.value == 0 ? false : true,
@@ -318,41 +356,97 @@ onMounted(() => {
     2: { ...directionDynamics.value },
     3: { ...acceleratorDynamics.value },
   });
+};
 
+const initWebSocket = () => {
   const url = localStorage.wssUrl;
   const port = localStorage.wssPort;
   const wsUrl = "ws://" + url + ":" + port;
+  console.log(wsUrl)
   ws.value = getWebSocket("ws://zksjtest.zksjyk.cn/ws", {
-    maxReconnectCount: 5, // 最大重连次数
-    reconnectInterval: 3000, // 基础重连间隔（实际会乘以重连次数）
-    heartBeatInterval: 30000, // 心跳间隔（毫秒）
+    maxReconnectCount: 5,
+    reconnectInterval: 3000,
+    heartBeatInterval: 30000,
   });
   ws.value.connect();
+};
 
-  // ws.value.onOpen((event) => {
-  //   console.log("连接成功，可以开始发送消息了！");
-  //   // ws.value.send();
-  // });
+// 假设这是你想实现的功能：在3秒内，每40ms发送一次数据
+const initThreeSend = () => {
+  // 3000ms / 40ms = 75次
+  const maxCount = 75;
+  let count = 0;
 
-});
+  // 首先，清除可能已存在的旧定时器，避免重复创建
+  if (sendMsgTimer) {
+    clearInterval(sendMsgTimer);
+  }
 
-watch(() => chValue.value, (val) => {
-  // 0.04 发一次数据
-  timerSendMsg.value = setInterval(() => {
-    const val = handleDriverSocketData(carDetails.value.app_transmitter_id, chValue.value.ch1,
-      chValue.value.ch2, chValue.value.ch3, chValue.value.ch4, chValue.value.ch5, chValue.value.ch6, chValue.value.ch7, chValue.value.ch8)
-    ws.value.send(val);
-  }, 3000);
-}, { immediate: true, deep: true });
+  sendMsgTimer = setInterval(() => {
+    count++;
+    
+    // 发送数据的逻辑
+    if (ws.value && ws.value.readyState === 1) {
+      const val = handleDriverSocketData(
+        carDetails.value.app_transmitter_id,
+        chValue.value.ch1,
+        chValue.value.ch2,
+        chValue.value.ch3,
+        chValue.value.ch4,
+        chValue.value.ch5,
+        chValue.value.ch6,
+        chValue.value.ch7,
+        chValue.value.ch8
+      );
+      ws.value.send(val);
+    }
+
+    // 达到指定次数后，清除定时器
+    if (count >= maxCount) {
+      clearInterval(sendMsgTimer);
+      sendMsgTimer = null; // 重置定时器变量
+      initSendLoop()
+    }
+  }, 40); // 每40毫秒执行一次
+};
+
+const initSendLoop = () => {
+  clearSendTimer();
+  sendMsgTimer = setInterval(() => {
+  
+
+      // 确保连接已打开
+      const val = handleDriverSocketData(
+        carDetails.value.app_transmitter_id,
+        chValue.value.ch1,
+        chValue.value.ch2,
+        chValue.value.ch3,
+        chValue.value.ch4,
+        chValue.value.ch5,
+        chValue.value.ch6,
+        chValue.value.ch7,
+        chValue.value.ch8
+      );
+      ws.value.send(val);
+    
+  }, 3000); // 3秒发送一次
+};
+
+const clearSendTimer = () => {
+  if (sendMsgTimer) {
+    clearInterval(sendMsgTimer);
+    sendMsgTimer = null;
+  }
+};
+
 
 const activeKey = ref([]);
 
 const handleIcon = (item) => {
-
   // 点击维修，显示上报原因，把原因显示出来
   if (item.key === "repairs") {
     allPopupVisible.value = true;
-    allPopup.value.setType('repair', true)
+    allPopup.value.setType("repair", true);
     return;
   }
 
@@ -410,7 +504,6 @@ const handlePopupAction = (type) => {
 
   // 有维修原因的
   if (type == "repair") {
-
     allPopupVisible.value = true;
     showRepairReason.value = true;
     return;
@@ -437,11 +530,9 @@ const handlePopupAction = (type) => {
 
 const handleOper = (type) => {
   console.log(type);
-  operMode.value = type == 'mode2' ? true : false; // 操作模式 箭头上下 在左
+  operMode.value = type == "mode2" ? true : false; // 操作模式 箭头上下 在左
 
   if (carType.value == 1) {
-
-
   } else {
   }
 };
@@ -477,24 +568,24 @@ const changeVal = (value) => {
 const set = () => {
   setVisible.value = true;
   // 点击退出，定速消失 重置车辆
-  showSpeed.value = false
-  handleFBDrive({ fb: false, value: 0 })
-  handleIcon("speed")
+  showSpeed.value = false;
+  handleFBDrive({ fb: false, value: 0 });
+  handleIcon("speed");
 };
 
 const logout = () => {
-  allPopup.value.setType('logout')
+  allPopup.value.setType("logout");
 
   allPopupVisible.value = true;
   // 点击退出，定速消失 重置车辆
-  showSpeed.value = false
-  handleFBDrive({ fb: false, value: 0 })
-  handleIcon("speed")
+  showSpeed.value = false;
+  handleFBDrive({ fb: false, value: 0 });
+  handleIcon("speed");
 };
 
 // 前进后退
 const handleFBDrive = (item) => {
-  showSpeed.value = false
+  showSpeed.value = false;
   let type = "";
   let ratioValue = 0;
   if (item.fb == true) {
@@ -512,14 +603,20 @@ const handleFBDrive = (item) => {
   }
 
   carHandler.value.handleTwoDirectionControlChannel(true, type, ratioValue);
+  console.log(carHandler.value.ch2,"-----------------");
+  chValue.value.ch2 = carHandler.value.ch2
+
 };
 
 const changeConstSpeed = () => {
-  carHandler.value.handleTwoDirectionControlChannel(true, 'upType', constSpeed.value / 100);
-}
+  carHandler.value.handleTwoDirectionControlChannel(
+    true,
+    "upType",
+    constSpeed.value / 100,
+  );
+};
 // 左右
 const handleLRDrive = (item) => {
-
   let type = "endType";
   let ratioValue = 0;
   if (item.lr == true) {
@@ -539,7 +636,9 @@ const handleLRDrive = (item) => {
   }
 
   carHandler.value.handleTwoDirectionControlChannel(false, type, ratioValue);
-  console.log(carHandler.value.ch1);
+  console.log(carHandler.value.ch1,"-----------------");
+  chValue.value.ch1 = carHandler.value.ch1
+
 };
 </script>
 
@@ -671,7 +770,7 @@ const handleLRDrive = (item) => {
   }
 
   /* 电池及电量文字组合 */
-  .flex>div:nth-child(2) {
+  .flex > div:nth-child(2) {
     display: flex;
     align-items: center;
     gap: 2px;
@@ -820,8 +919,6 @@ const handleLRDrive = (item) => {
   fill: #fff;
   /* Vant 4 的主题色 */
 }
-
-
 
 .slider-wrapper {
   flex: 1;
