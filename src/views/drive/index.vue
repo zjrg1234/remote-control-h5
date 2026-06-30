@@ -698,59 +698,103 @@ const handleLRDrive = (item) => {
   chValue.value.ch1 = carHandler.value.ch1;
 };
 
-let sendFlag = null;
+
 // 30s 发一次请求
-
-// // 按次计费 30s 发一次 继续驾驶请求。剩余20s有若提示。剩余5s 弹窗提示结束。同时发送中位值。（停车）
-
-// 按时间计费，eg：1分2电池，有11个电池。只能玩5分钟 30s 发一次 继续驾驶请求。剩余20s有若提示。剩余5s 弹窗提示结束。同时发送中位值。（停车）
+//  按次计费 30s 发一次 继续驾驶请求。剩余20s有若提示。剩余5s 弹窗提示结束。同时发送中位值。（停车）
+// 按时间计费，eg：2分3电池，有11个电池。只能玩5分钟 30s 发一次 继续驾驶请求。剩余20s有若提示。剩余5s 弹窗提示结束。同时发送中位值。（停车）
 // 显示弹窗，发送中位值。 按次 60分钟45
-let  billingTimer = null
-let  tipTimer = null
-const sendConDrive = () => {
-  billingTimer && clearInterval(billingTimer)
-  tipTimer && clearInterval(tipTimer)
-  let num = 0;
-  let count = 1;
-  const carInfo = JSON.parse(localStorage.getItem("carInfo"));
+let billingTimer = null;
+let tipTimer = null;
+let isRequesting = false; // 防止网络慢导致请求堆积
 
-  //  billing_method 0 按时间计费 1 按次计费
+const sendConDrive = () => {
+  // 1. 彻底清理旧定时器
+  clearAllTimers();
+  
+  const carInfo = JSON.parse(localStorage.getItem("carInfo"));
+  if (!carInfo) return;
+
+  let count = 0; 
   if (carInfo.billing_method == 0) {
-    // payment_type 1 电池 2 能量
-    if (carInfo.payment_type == 1) {
-      // 向下取整
-      count = Math.trunc(balance.value / carInfo.billing_rules.battery) * 2;
-    } else {
-      count = Math.trunc(energy.value / carInfo.billing_rules.battery) * 2;
-    }
+    // 【按时间计费】
+    const balanceVal = carInfo.payment_type == 1 ? balance.value : energy.value;
+    const totalCycles = Math.trunc(balanceVal / carInfo.billing_rules.battery);
+    count = totalCycles * (carInfo.billing_rules.time * 2); 
   } else {
-    // 按次计费
-    count = carInfo.billing_rules.time * 60;
+    // 【按次计费】
+    count = carInfo.billing_rules.time * 2; 
   }
 
-  billingTimer = setInterval(() => {
-    ++num;
-    //最后30s
-    if (num == count - 1) {
-      // 若提示
-     let numTip = 1;
+  // 2. 防御性判断
+  if (count <= 0) {
+    handleDriveEnd();
+    return;
+  }
+
+  let num = 0;
+  let hasTriggeredTip = false; // 防止重复弹窗
+
+  billingTimer = setInterval(async () => {
+    // 如果上一个请求还没回来，跳过本次心跳，防止请求堆积
+    if (isRequesting) return; 
+    
+    num++;
+    isRequesting = true;
+
+    // 3. 进入最后 30s 倒计时
+    if (num >= count - 1) {
+      clearInterval(billingTimer);
+      billingTimer = null;
+
+      let numTip = 0;
       tipTimer = setInterval(() => {
         numTip++;
-        // 剩余5s 提示
-        if (numTip == 25) {
-          allPopup.value.setType('countTip')
-          allPopupVisible.value = true
-
+        // 剩余 5s 提示 (30s - 25s = 5s)
+        if (numTip === 25 && !hasTriggeredTip) {
+          hasTriggeredTip = true;
+          allPopup.value.setType('countTip');
+          allPopupVisible.value = true;
         }
-
-      }, 1000)
+        // 剩余 0s，清理定时器并触发结束逻辑
+        if (numTip >= 30) {
+          clearInterval(tipTimer);
+          tipTimer = null;
+          handleDriveEnd();
+        }
+      }, 1000);
     }
-    StartDrive({
-      order_no: orderNo.value,
-      type: 2,
-      vehicle_id: vehicleId.value,
-    });
+
+    // 4. 发送继续驾驶请求
+    try {
+      await StartDrive({
+        order_no: orderNo.value,
+        type: 2,
+        vehicle_id: vehicleId.value,
+      });
+    } catch (error) {
+      console.error("继续驾驶请求失败:", error);
+    } finally {
+      isRequesting = false; // 无论成功失败，解锁
+    }
   }, 30 * 1000);
+};
+
+// 封装全局清理函数（供组件卸载或用户主动结束驾驶时调用）
+const clearAllTimers = () => {
+  if (billingTimer) {
+    clearInterval(billingTimer);
+    billingTimer = null;
+  }
+  if (tipTimer) {
+    clearInterval(tipTimer);
+    tipTimer = null;
+  }
+};
+
+// 封装结束逻辑
+const handleDriveEnd = () => {
+  clearAllTimers(); // 确保结束时彻底清理
+  console.log("触发结束逻辑：发送中位值、停车");
 };
 </script>
 
