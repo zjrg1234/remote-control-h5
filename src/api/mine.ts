@@ -17,11 +17,6 @@ export function getUserInfoApi() {
 }
 
 
-// 获取我的
-export function GetMine() {
-  return post('/api/user/mine')
-}
-
 // 获取专区列表
 export function GetSpecialList() {
   return post('/api/user/special/list',{},{loading: true})

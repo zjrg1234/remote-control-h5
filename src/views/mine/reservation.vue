@@ -132,6 +132,7 @@ const handleAction = (item) => {
 
     if (res.code == 200) {
 
+      localStorage.setItem('carInfo', JSON.stringify(item))
       localStorage.setItem('carDetails', JSON.stringify(res.data))
       router.push({
         path: "/drive",

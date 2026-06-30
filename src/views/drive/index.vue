@@ -28,7 +28,8 @@
             <span class="time-text">{{ currentTime }}</span>
           </div>
         </div>
-      </div>
+        <div class="tip">若提示</div>
+      </div> 
       <div class="right-cont" @click="set">
         <img src="@/assets/images/icon_set@2x.png" alt="" />
       </div>
@@ -151,11 +152,12 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted, watch } from "vue";
+import { ref, onMounted, onUnmounted } from "vue";
 import { useRoute } from "vue-router";
 import { showToast } from "vant";
+import { useUserStore } from "@/store/modules/user";
 import { StartDrive } from "@/api/index";
-import { LoginTop } from "@/api/video";
+import { LoginTop, DeviceDetails } from "@/api/video";
 
 import ALLPopup from "./components/ALLPopup.vue";
 import SetPopup from "./components/SetPopup.vue";
@@ -170,7 +172,6 @@ import { handleDriverSocketData } from "@/utils/socketHelper";
 import { encryptAES } from "@/utils/crypto";
 
 import { CarControlHandler } from "./control/siqu.js";
-
 
 import {
   ch1,
@@ -217,6 +218,19 @@ const directionDynamics = ref();
 const acceleratorCenter = ref();
 const acceleratorDynamics = ref();
 const allPopup = ref();
+
+const userStore = useUserStore();
+
+// 余额
+const balance = computed(() => {
+  return userStore.getUserInfo().wallet.balance;
+});
+const enery = computed(() => {
+  return userStore.getUserInfo().wallet.enery;
+});
+
+const billMethod = ref(); // 0 时间 1 按次
+const payType = ref(); // 1电池 2能量
 
 // 进入页面3s 定时器，拿中位值发不停发 0.04
 // 调三方接口，显示video
@@ -283,7 +297,6 @@ onUnmounted(() => {
   if (ws.value) ws.value.close();
 });
 
-
 let sendMsgTimer = null;
 
 // --- 初始化与生命周期 ---
@@ -294,6 +307,7 @@ onMounted(() => {
   initVehicleConfig();
   initWebSocket();
   initThreeSend();
+  initTopVideo();
 });
 const checkOrientation = () => {
   isLandscape.value = window.innerWidth > window.innerHeight;
@@ -345,7 +359,7 @@ const initVehicleConfig = () => {
 
   chValue.value.ch1 = directionCenter.value.current_value;
   chValue.value.ch2 = acceleratorCenter.value.current_value; // 油门中位值
- 
+
   carHandler.value = new CarControlHandler({
     reverseUpDownState: operFB.value == 0 ? false : true,
     reverseLeftRightState: operDir.value == 0 ? false : true,
@@ -362,7 +376,7 @@ const initWebSocket = () => {
   const url = localStorage.wssUrl;
   const port = localStorage.wssPort;
   const wsUrl = "ws://" + url + ":" + port;
-  console.log(wsUrl)
+  console.log(wsUrl);
   ws.value = getWebSocket("ws://zksjtest.zksjyk.cn/ws", {
     maxReconnectCount: 5,
     reconnectInterval: 3000,
@@ -384,7 +398,7 @@ const initThreeSend = () => {
 
   sendMsgTimer = setInterval(() => {
     count++;
-    
+
     // 发送数据的逻辑
     if (ws.value && ws.value.readyState === 1) {
       const val = handleDriverSocketData(
@@ -396,7 +410,7 @@ const initThreeSend = () => {
         chValue.value.ch5,
         chValue.value.ch6,
         chValue.value.ch7,
-        chValue.value.ch8
+        chValue.value.ch8,
       );
       ws.value.send(val);
     }
@@ -405,7 +419,7 @@ const initThreeSend = () => {
     if (count >= maxCount) {
       clearInterval(sendMsgTimer);
       sendMsgTimer = null; // 重置定时器变量
-      initSendLoop()
+      initSendLoop();
     }
   }, 40); // 每40毫秒执行一次
 };
@@ -413,22 +427,19 @@ const initThreeSend = () => {
 const initSendLoop = () => {
   clearSendTimer();
   sendMsgTimer = setInterval(() => {
-  
-
-      // 确保连接已打开
-      const val = handleDriverSocketData(
-        carDetails.value.app_transmitter_id,
-        chValue.value.ch1,
-        chValue.value.ch2,
-        chValue.value.ch3,
-        chValue.value.ch4,
-        chValue.value.ch5,
-        chValue.value.ch6,
-        chValue.value.ch7,
-        chValue.value.ch8
-      );
-      ws.value.send(val);
-    
+    // 确保连接已打开
+    const val = handleDriverSocketData(
+      carDetails.value.app_transmitter_id,
+      chValue.value.ch1,
+      chValue.value.ch2,
+      chValue.value.ch3,
+      chValue.value.ch4,
+      chValue.value.ch5,
+      chValue.value.ch6,
+      chValue.value.ch7,
+      chValue.value.ch8,
+    );
+    ws.value.send(val);
   }, 3000); // 3秒发送一次
 };
 
@@ -439,6 +450,32 @@ const clearSendTimer = () => {
   }
 };
 
+const initTopVideo = () => {
+  LoginTop({
+    username: carDetails.value.web_camera_user_name,
+    password: encryptAES(carDetails.value.web_camera_user_password),
+    usertype: "0",
+  })
+    .then((res) => {
+      console.log(res, "---");
+      if (res.code == 200) {
+        GetDeviceInfo(res.data);
+      }
+    })
+    .catch();
+};
+// 获取设备信息，拿到视频
+const GetDeviceInfo = () => {
+  DeviceDetails({})
+    .then((res) => {
+      console.log(res);
+      let url = "";
+      if (res.data && res.data.rows && res.data.rows.length) {
+        url = "" + res.data.rows[0].id;
+      }
+    })
+    .catch();
+};
 
 const activeKey = ref([]);
 
@@ -516,12 +553,34 @@ const handlePopupAction = (type) => {
       vehicle_id: vehicleId.value,
     })
       .then((res) => {
+        allPopupVisible.value = false;
         if (res.code != 200) {
-          allPopupVisible.value = false;
-
           showToast(res.msg);
         } else {
-          allPopupVisible.value = false;
+          sendConDrive();
+        }
+      })
+      .catch()
+      .finally(() => {
+        allPopupVisible.value = false;
+      });
+    return;
+  }
+
+  if (type == "logout") {
+    StartDrive({
+      order_no: orderNo.value,
+      type: 3,
+      vehicle_id: vehicleId.value,
+    })
+      .then((res) => {
+        if (res.code != 200) {
+          showToast(res.msg);
+        } else {
+          // 发送2s 中未值 ,在退出
+          setTimeout(() => {
+            router.push("/reservation");
+          }, 2000);
         }
       })
       .catch();
@@ -603,9 +662,8 @@ const handleFBDrive = (item) => {
   }
 
   carHandler.value.handleTwoDirectionControlChannel(true, type, ratioValue);
-  console.log(carHandler.value.ch2,"-----------------");
-  chValue.value.ch2 = carHandler.value.ch2
-
+  console.log(carHandler.value.ch2, "-----------------");
+  chValue.value.ch2 = carHandler.value.ch2;
 };
 
 const changeConstSpeed = () => {
@@ -636,9 +694,63 @@ const handleLRDrive = (item) => {
   }
 
   carHandler.value.handleTwoDirectionControlChannel(false, type, ratioValue);
-  console.log(carHandler.value.ch1,"-----------------");
-  chValue.value.ch1 = carHandler.value.ch1
+  console.log(carHandler.value.ch1, "-----------------");
+  chValue.value.ch1 = carHandler.value.ch1;
+};
 
+let sendFlag = null;
+// 30s 发一次请求
+
+// // 按次计费 30s 发一次 继续驾驶请求。剩余20s有若提示。剩余5s 弹窗提示结束。同时发送中位值。（停车）
+
+// 按时间计费，eg：1分2电池，有11个电池。只能玩5分钟 30s 发一次 继续驾驶请求。剩余20s有若提示。剩余5s 弹窗提示结束。同时发送中位值。（停车）
+// 显示弹窗，发送中位值。 按次 60分钟45
+let  billingTimer = null
+let  tipTimer = null
+const sendConDrive = () => {
+  billingTimer && clearInterval(billingTimer)
+  tipTimer && clearInterval(tipTimer)
+  let num = 0;
+  let count = 1;
+  const carInfo = JSON.parse(localStorage.getItem("carInfo"));
+
+  //  billing_method 0 按时间计费 1 按次计费
+  if (carInfo.billing_method == 0) {
+    // payment_type 1 电池 2 能量
+    if (carInfo.payment_type == 1) {
+      // 向下取整
+      count = Math.trunc(balance.value / carInfo.billing_rules.battery) * 2;
+    } else {
+      count = Math.trunc(energy.value / carInfo.billing_rules.battery) * 2;
+    }
+  } else {
+    // 按次计费
+    count = carInfo.billing_rules.time * 60;
+  }
+
+  billingTimer = setInterval(() => {
+    ++num;
+    //最后30s
+    if (num == count - 1) {
+      // 若提示
+     let numTip = 1;
+      tipTimer = setInterval(() => {
+        numTip++;
+        // 剩余5s 提示
+        if (numTip == 25) {
+          allPopup.value.setType('countTip')
+          allPopupVisible.value = true
+
+        }
+
+      }, 1000)
+    }
+    StartDrive({
+      order_no: orderNo.value,
+      type: 2,
+      vehicle_id: vehicleId.value,
+    });
+  }, 30 * 1000);
 };
 </script>
 
