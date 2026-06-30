@@ -66,10 +66,12 @@
 </template>
 
 <script setup>
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, ref, onUnmounted } from 'vue'
 import { showToast } from "vant";
 import { useRouter } from "vue-router";
-import { CarReport } from "@/api/index"
+import { CarReport , StartDrive } from "@/api/index"
+
+
 const router = useRouter();
 
 const props = defineProps({
@@ -85,6 +87,8 @@ const message = ref('');
 const timer = ref();
 const text = ref()
 
+let countdownTimer = null;
+
 const list = ref([
   "车辆翻车", "画面卡顿", "无视频信号", "车辆无法控制", "画面黑屏", "电量低",
   "其他"
@@ -96,15 +100,15 @@ const selectReason = (index, item) => {
 }
 
 onMounted(() => {
-
+clearCountdown()
   // 2. 修复 const 不能重新赋值的 bug
-  timer.value = setInterval(() => {
+  countdownTimer = setInterval(() => {
     count.value -= 1;
     console.log(12);
     if (count.value == 0) {
       count.value = 0;
-      clearInterval(timer.value);
-      timer.value = null;
+      clearInterval(countdownTimer);
+      countdownTimer = null;
       visible.value = false;
       handleAction("driving");
     }
@@ -112,6 +116,19 @@ onMounted(() => {
   text.value = "车辆翻车"
 
 })
+
+
+const clearCountdown = () => {
+  if (countdownTimer) {
+    clearInterval(countdownTimer);
+    countdownTimer = null;
+  }
+};
+
+// 组件销毁时务必清理定时器
+onUnmounted(() => {
+  clearCountdown();
+});
 
 const emit = defineEmits(['update:show', 'action'])
 
@@ -130,7 +147,7 @@ const handleAction = (actionType) => {
   // 维修上报都是一起的
   if (actionType == "repair" || actionType == 'report') {
     type.value = "repair"
-    clearInterval(timer.value);
+    countdownTimer && clearInterval(countdownTimer);
     return
   }
 
@@ -198,12 +215,12 @@ const report = () => {
 }
 
 const setType = (val, flag) => {
-  type.value = val
-  if (flag) {
-    isShow.value = true
-  } else {
-    isShow.value = false
-  }
+
+  type.value = val;
+  isShow.value = !!flag;
+  message.value = ''; // 重置输入框
+  selectedIndex.value = 0;
+  text.value = list.value[0]; // 重置默认选项
 }
 
 defineExpose({
