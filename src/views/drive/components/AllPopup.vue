@@ -184,13 +184,14 @@ const visible = computed({
 
 // 统一处理按钮点击，向父组件抛出动作类型
 const handleAction = (actionType) => {
+  countdownTimer && clearInterval(countdownTimer);
+
   // 维修上报都是一起的
   if (actionType == "repair" || actionType == "report") {
     type.value = "repair";
     countdownTimer && clearInterval(countdownTimer);
     return;
   }
-
   emit("action", actionType);
 };
 

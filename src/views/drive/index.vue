@@ -153,7 +153,7 @@
 
 <script setup>
 import { ref, onMounted, onUnmounted, computed } from "vue";
-import { useRoute } from "vue-router";
+import { useRoute, useRouter} from "vue-router";
 import { showToast } from "vant";
 import { useUserStore } from "@/store/modules/user";
 import { StartDrive } from "@/api/index";
@@ -218,8 +218,9 @@ const directionDynamics = ref();
 const acceleratorCenter = ref();
 const acceleratorDynamics = ref();
 const allPopup = ref();
-
 const userStore = useUserStore();
+const router = useRouter();
+
 
 // 余额
 const balance = computed(() => {
@@ -574,7 +575,8 @@ const handlePopupAction = (type) => {
       vehicle_id: vehicleId.value,
     })
       .then((res) => {
-        if (res.code != 200) {
+        // 2000 是正确的
+        if (res.code != 2000) {
           showToast(res.msg);
         } else {
           // 发送2s 中未值 ,在退出
