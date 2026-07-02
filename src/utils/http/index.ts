@@ -35,11 +35,12 @@ service.interceptors.request.use(
       return Promise.reject(new Error("未登录"));
     }
 
+    console.log(config.headers)
     // 注入 Token
     if (token) {
       config.headers = {
-        ...config.headers,
         Authorization: `${token}`,
+        ...config.headers,
       };
     }
 

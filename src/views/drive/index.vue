@@ -152,7 +152,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted } from "vue";
+import { ref, onMounted, onUnmounted, computed } from "vue";
 import { useRoute } from "vue-router";
 import { showToast } from "vant";
 import { useUserStore } from "@/store/modules/user";
@@ -225,12 +225,10 @@ const userStore = useUserStore();
 const balance = computed(() => {
   return userStore.getUserInfo().wallet.balance;
 });
-const enery = computed(() => {
-  return userStore.getUserInfo().wallet.enery;
+const energy = computed(() => {
+  return userStore.getUserInfo().wallet.energy;
 });
 
-const billMethod = ref(); // 0 时间 1 按次
-const payType = ref(); // 1电池 2能量
 
 // 进入页面3s 定时器，拿中位值发不停发 0.04
 // 调三方接口，显示video
@@ -465,8 +463,10 @@ const initTopVideo = () => {
     .catch();
 };
 // 获取设备信息，拿到视频
-const GetDeviceInfo = () => {
-  DeviceDetails({})
+const GetDeviceInfo = (data) => {
+  DeviceDetails({
+    ...data,
+  })
     .then((res) => {
       console.log(res);
       let url = "";
