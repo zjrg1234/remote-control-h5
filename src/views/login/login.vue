@@ -190,10 +190,9 @@ const goto = (url) => router.push(url);
   left: 50%;
   transform: translateX(-50%);
   display: flex;
-  align-items: center;
   justify-content: center;
   width: 100%;
-
+ align-items: baseline;
   .text {
     font-size: 12px;
     color: #29220a;
