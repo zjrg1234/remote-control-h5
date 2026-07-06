@@ -28,8 +28,9 @@
             <span class="time-text">{{ currentTime }}</span>
           </div>
         </div>
-        <div class="tip">若提示</div>
-      </div> 
+      
+      </div>
+      <div class="tip">距离本次结束驾驶还有{{ 30 - numTip }}s</div>
       <div class="right-cont" @click="set">
         <img src="@/assets/images/icon_set@2x.png" alt="" />
       </div>
@@ -172,7 +173,7 @@ import { handleDriverSocketData } from "@/utils/socketHelper";
 import { encryptAES } from "@/utils/crypto";
 
 import { CarControlHandler } from "./control/siqu.js";
-
+import { useInactivityAlarm } from './control/useInactivityAlarm.js';
 import {
   ch1,
   speeds,
@@ -195,7 +196,7 @@ import {
 // 方向设置 要发送ws信息s
 const route = useRoute();
 const isLandscape = ref(true);
-const allPopupVisible = ref(true);
+const allPopupVisible = ref(false);
 
 const currentTime = ref();
 const showSpeed = ref(false);
@@ -294,12 +295,26 @@ onUnmounted(() => {
   clearInterval(timerNum.value);
   clearSendTimer(); // 清理发送定时器
   if (ws.value) ws.value.close();
+
 });
 
 let sendMsgTimer = null;
 
+
+const handleInactivityAlarm = () => {
+  allPopupVisible.value = true
+  allPopup.value.setType('longTimeTip')
+};
+
+// 3. 使用组合式函数
+const { resetTimer: resetInactivityTimer } = useInactivityAlarm(180 * 1000, handleInactivityAlarm);
+
+
 // --- 初始化与生命周期 ---
 onMounted(() => {
+  if (!sessionStorage.sendNum) {
+    sessionStorage.setItem('sendNum', 0)
+  }
   initOrientation();
   initTimer();
   initRouteData();
@@ -307,6 +322,7 @@ onMounted(() => {
   initWebSocket();
   initThreeSend();
   initTopVideo();
+
 });
 const checkOrientation = () => {
   isLandscape.value = window.innerWidth > window.innerHeight;
@@ -708,7 +724,7 @@ const handleLRDrive = (item) => {
 let billingTimer = null;
 let tipTimer = null;
 let isRequesting = false; // 防止网络慢导致请求堆积
-
+const numTip = ref(0);
 const sendConDrive = () => {
   // 1. 彻底清理旧定时器
   clearAllTimers();
@@ -733,7 +749,7 @@ const sendConDrive = () => {
     return;
   }
 
-  let num = 0;
+  let num = Number(sessionStorage.sendNum);
   let hasTriggeredTip = false; // 防止重复弹窗
 
   billingTimer = setInterval(async () => {
@@ -741,6 +757,7 @@ const sendConDrive = () => {
     if (isRequesting) return; 
     
     num++;
+    sessionStorage.setItem('sendNum', num)
     isRequesting = true;
 
     // 3. 进入最后 30s 倒计时
@@ -748,17 +765,17 @@ const sendConDrive = () => {
       clearInterval(billingTimer);
       billingTimer = null;
 
-      let numTip = 0;
+      numTip.value = 0;
       tipTimer = setInterval(() => {
-        numTip++;
+        numTip.value++;
         // 剩余 5s 提示 (30s - 25s = 5s)
-        if (numTip === 25 && !hasTriggeredTip) {
+        if (numTip.value === 25 && !hasTriggeredTip) {
           hasTriggeredTip = true;
           allPopup.value.setType('countTip');
           allPopupVisible.value = true;
         }
         // 剩余 0s，清理定时器并触发结束逻辑
-        if (numTip >= 30) {
+        if (numTip.value >= 30) {
           clearInterval(tipTimer);
           tipTimer = null;
           handleDriveEnd();
@@ -954,6 +971,20 @@ const handleDriveEnd = () => {
   }
 }
 
+.tip {
+  background: rgba(0, 0, 0, 0.5);
+  border-radius: 10px;
+  position: absolute;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  /* 优化：使用 transform 替代负 margin，居中更精准 */
+  padding: 0 5px;
+  /* 优化：提供合适的上下和左右内边距 */
+  box-sizing: border-box;
+  white-space: nowrap;
+   color: #ccc;
+}
 // 在 style 中定义
 .mini-forbidden {
   display: inline-block;

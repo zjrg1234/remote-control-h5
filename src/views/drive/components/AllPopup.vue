@@ -105,16 +105,34 @@
         </div>
       </div>
     </template>
+
+
+    <template v-if="type === 'longTimeTip'">
+      <div class="tip-content">
+        <p class="time">【警告】您180秒无操作！</p>
+        <p class="tit">温馨提示</p>
+        <div class="text">
+          <p>您已长时间未操作，即将退出驾驶模式。</p>
+        </div>
+      </div>
+      <div class="footer">
+        <div class="flex mt">
+          <span class="btn right" @click.stop="handleAction('logout')"
+            >退出驾驶</span
+          >
+        </div>
+      </div>
+    </template>
   </van-popup>
 </template>
 
 <script setup>
 import { computed, onMounted, ref, onUnmounted } from "vue";
 import { showToast } from "vant";
-import { useRouter } from "vue-router";
+// import { useRouter } from "vue-router";
 import { CarReport } from "@/api/index";
 
-const router = useRouter();
+// const router = useRouter();
 
 const props = defineProps({
   show: { type: Boolean, default: false },
@@ -147,18 +165,26 @@ const selectReason = (index, item) => {
 
 onMounted(() => {
   clearCountdown();
-  // 2. 修复 const 不能重新赋值的 bug
-  countdownTimer = setInterval(() => {
-    count.value -= 1;
-    console.log(12);
-    if (count.value == 0) {
-      count.value = 0;
-      clearInterval(countdownTimer);
-      countdownTimer = null;
-      visible.value = false;
-      handleAction("driving");
-    }
-  }, 1000);
+
+  if (sessionStorage.loadingOne !== "1") {
+    visible.value = true;
+    countdownTimer = setInterval(() => {
+      count.value -= 1;
+      console.log(12);
+      if (count.value == 0) {
+        count.value = 0;
+        clearInterval(countdownTimer);
+        countdownTimer = null;
+        visible.value = false;
+        handleAction("driving");
+        sessionStorage.setItem("loadingOne", "1");
+      }
+    }, 1000);
+  } else {
+    visible.value = false;
+  }
+
+
   text.value = "车辆翻车";
 });
 
