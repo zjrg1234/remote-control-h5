@@ -138,6 +138,9 @@ const handleAction = (item) => {
         path: "/drive",
         query: { order_no: item.order_no, vehicle_id: item.vehicle_id },
       })
+      // 清理驾驶页面的缓存
+      sessionStorage.clear();
+
     } else {
       showToast("联系客服，报错原因：" + res.msg)
     }
