@@ -30,7 +30,7 @@
         </div>
       
       </div>
-      <div class="tip">距离本次结束驾驶还有{{ 30 - numTip }}s</div>
+      <div class="tip" v-if=" numTip>0 ">距离本次结束驾驶还有{{ 31 - numTip }}s</div>
       <div class="right-cont" @click="set">
         <img src="@/assets/images/icon_set@2x.png" alt="" />
       </div>
