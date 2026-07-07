@@ -2,29 +2,47 @@
   <div class="container">
     <!-- 顶部 Banner -->
     <div class="banner-section">
-      <!-- <img :src="imgUrl" class="banner-img" alt="" /> -->
-
       <van-image width="100%" fit="cover" :src="imgUrl" radius="0">
         <template #loading>
           <van-loading type="spinner" size="20" />
         </template>
       </van-image>
-
     </div>
 
     <!-- 分类导航栏 -->
-
-    <van-tabs v-model:active="currentTabIndex" sticky offset-top="0" @click-tab="handleCategoryClick"
-      class="sticky-nav">
-      <van-tab v-for="(item, index) in categories" :key="index" :title="item.name" :name="item.id" />
+    <van-tabs 
+      v-model:active="currentTabIndex" 
+      sticky 
+      offset-top="0" 
+      @click-tab="handleCategoryClick"
+      class="sticky-nav"
+    >
+      <van-tab 
+        v-for="(item, index) in categories" 
+        :key="index" 
+        :title="item.name" 
+        :name="item.id" 
+      />
     </van-tabs>
 
-    <div v-if="list.length === 0 && !loading" class="empty-state">
+    <!-- 【优化 1】：全局加载状态（仅在首次加载或切换分类且列表为空时显示） -->
+    <!-- <div v-if="loading && list.length === 0" class="loading-state">
+      <van-loading type="spinner" size="24" vertical>加载中...</van-loading>
+    </div> -->
+
+    <!-- 【优化 2】：空状态（严格限制：列表为空、不在加载中、且请求已完成） -->
+    <div v-if="list.length === 0 && !loading && noMore" class="empty-state">
       <van-empty description="暂无相关数据" />
     </div>
 
-    <div class="list-container" v-if="list.length != 0">
-      <div v-for="(item, index) in list" :key="index" class="card-item" @click="handleCar(item)">
+    <!-- 列表渲染 -->
+    <div v-else-if="list.length !== 0" class="list-container">
+      <div 
+        v-for="(item, index) in list" 
+        :key="index" 
+        class="card-item" 
+        @click="handleCar(item)"
+      >
         <img :src="item.image || item.venue_image?.[0]" class="card-img" />
         <div class="meta">
           <span class="status online"></span>
@@ -60,7 +78,6 @@ const categories = ref([]);
 const currentTabIndex = ref(0);
 const currentCategoryId = ref("");
 
-// 【修改】：合并为一个统一的列表数组
 const list = ref([]);
 const loading = ref(false);
 const noMore = ref(false);
@@ -68,26 +85,28 @@ const imgUrl = ref("");
 
 // --- 核心请求逻辑 ---
 const fetchData = async () => {
+  // 如果已经明确没有更多数据，直接返回
   if (noMore.value) {
     loading.value = false;
     return;
   }
+  
+  // 【关键优化】：发起请求时，务必将 loading 设为 true，防止空状态提前闪现
+  loading.value = true; 
+  
   try {
-    const {
-      code,
-      data: { venueList },
-    } = await GetHomeDataList({
+    const { code, data: { venueList } } = await GetHomeDataList({
       type: currentCategoryId.value,
     });
 
     if (code == 200 && venueList.length) {
-      // 【修改】：直接将新数据追加到统一列表中
       list.value.push(...venueList);
+      // 根据实际接口逻辑判断是否还有更多数据（这里假设每次返回20条，若小于20条则没有更多了）
+      noMore.value = venueList.length < 20; 
     } else {
       noMore.value = true;
     }
   } catch (error) {
-
     noMore.value = true;
   } finally {
     loading.value = false;
@@ -96,14 +115,13 @@ const fetchData = async () => {
 
 // --- 事件处理 ---
 const handleCategoryClick = ({ name }) => {
-  noMore.value = false;
-  loading.value = true
   const item = categories.value.find((cat) => cat.id === name);
   if (item && currentCategoryId.value !== item.id) {
     currentCategoryId.value = item.id;
-    // 切换分类时清空列表并重新加载
+    // 切换分类时重置状态
     list.value = [];
-
+    noMore.value = false;
+    // 注意：这里不需要手动 loading.value = true，fetchData 内部会处理
     fetchData();
   }
 };
@@ -118,12 +136,12 @@ onMounted(async () => {
   categories.value = [{ name: "全部", id: "" }];
   try {
     if (localStorage.imgUrl) {
-      imgUrl.value = localStorage.imgUrl
+      imgUrl.value = localStorage.imgUrl;
     }
     const res = await GetHomeBanner();
     if (imgUrl.value !== res.data[0]?.image) {
-      localStorage.setItem('imgUrl', res.data[0]?.image)
-      imgUrl.value = localStorage.imgUrl
+      localStorage.setItem('imgUrl', res.data[0]?.image);
+      imgUrl.value = localStorage.imgUrl;
     }
     
     const res1 = await GetHomeTabTitle();
@@ -139,8 +157,6 @@ onMounted(async () => {
 <style lang="scss" scoped>
 .container {
   min-height: 100vh;
-  // background-color: #f5f6fa;
-  // padding-bottom: 40px;
 }
 
 .banner-section {
@@ -166,7 +182,15 @@ onMounted(async () => {
   }
 }
 
-/* 【修改】：单列列表布局 */
+/* 【新增】：加载状态样式 */
+.loading-state {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 300px;
+}
+
+/* 单列列表布局 */
 .list-container {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
@@ -175,13 +199,12 @@ onMounted(async () => {
   background-color: #fff;
 }
 
-/* 卡片样式 (单列下建议改为横向或保持纵向，这里保持原有的纵向卡片) */
+/* 卡片样式 */
 .card-item {
   position: relative;
   background: #e9e9e9;
   border-radius: 8px;
   height: 200px;
-  /* 单列建议适当调整高度，避免卡片过高 */
   overflow: hidden;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03);
 

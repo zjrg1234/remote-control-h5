@@ -58,7 +58,7 @@
 
         <div class="status-tag" :class="car.vehicle_state == 1 ? 'tag-green' : 'tag-blue'">
           {{
-            car.vehicle_state === 1
+            car.vehicle_state == 1
               ? "空闲"
               : "排队" + car.vehicle_queue + "人"
           }}

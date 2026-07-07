@@ -20,7 +20,7 @@ export function GetHomeTabTitle(params) {
 
 //获取场地数据
 export function GetHomeDataList(params) {
-  return post('/api/user/index', params)
+  return post('/api/user/index', params, {loading: true})
 }
 
 //获取场地数据
