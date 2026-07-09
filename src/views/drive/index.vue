@@ -119,22 +119,7 @@
         :isShow="showRepairReason"
         @action="handlePopupAction"
       />
-      <!-- <ALLPopup
-        v-model:show="allPopupVisible"
-        type="logout"
-        :orderNo="orderNo"
-        :vehicleId="vehicleId"
-        :isShow="showRepairReason"
-        @action="handlePopupAction"
-      />
-      <ALLPopup
-        v-model:show="allPopupVisible"
-        type="repair"
-        :orderNo="orderNo"
-        :vehicleId="vehicleId"
-        :isShow="showRepairReason"
-        @action="handlePopupAction"
-      /> -->
+     
       <SetPopup
         v-model:show="setVisible"
         :videoDefinition="videoDefinition"
