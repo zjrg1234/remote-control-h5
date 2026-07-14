@@ -32,14 +32,14 @@ const statusClass = computed(() => {
 });
 
 onMounted(() => {
-  if (props.percent !== null) return; 
-  if (navigator.getBattery) {
-    navigator.getBattery().then(battery => {
-      batteryInstance = battery;
-      realBatteryLevel.value = battery.level * 100;
-      battery.addEventListener('levelchange', handleLevelChange);
-    }).catch(() => {});
-  }
+  // if (props.percent !== null) return; 
+  // if (navigator.getBattery) {
+  //   navigator.getBattery().then(battery => {
+  //     batteryInstance = battery;
+  //     realBatteryLevel.value = battery.level * 100;
+  //     battery.addEventListener('levelchange', handleLevelChange);
+  //   }).catch(() => {});
+  // }
 });
 
 onUnmounted(() => {
