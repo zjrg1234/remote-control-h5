@@ -72,23 +72,7 @@ export function CarReport(data) {
 }
 
 
-// /* 竖屏时的样式 */
-// @media screen and (orientation: portrait) {
-//   .my-element {
-//     width: 100%;
-//   }
-// }
-
-// /* 横屏时的样式 */
-// @media screen and (orientation: landscape) {
-//   .my-element {
-//     width: 50%;
-//   }
-// }
-
-// body {
-//   font-size: 16px !important; 
-//   -webkit-text-size-adjust: 100% !important; /* 禁止字体自动缩放 */
-//   text-size-adjust: 100% !important;
-// }
-
+// 获取公告
+export function GetNotice(data) {
+  return post("/api/user/notice", data);
+}
