@@ -4,7 +4,7 @@
       <img class="avatar" src="@/assets/logo.png" mode="aspectFill" />
     </div>
 
-    <div class="form">
+    <form class="form">
       <!-- 手机号 -->
       <div class="input-item">
         <span class="prefix">+86</span>
@@ -12,7 +12,7 @@
           class="input"
           type="number"
           maxlength="11"
-          placeholder="请输入手机号"
+          :placeholder="$t('请输入手机号')"
           v-model="form.phone"
         />
       </div>
@@ -23,7 +23,8 @@
           class="input"
           type="password"
           maxlength="10"
-          placeholder="请输入密码"
+         :placeholder="$t('请输入密码')"
+          autocomplete="password"
           v-model="form.password"
         />
       </div>
@@ -41,7 +42,7 @@
       <div class="register-link" @click="goRegister">
         <span>注册帐号</span>
       </div>
-    </div>
+    </form>
 
     <div class="agreement">
       <div class="checkbox" :class="{ checked: agree }" @click="agree = !agree">
