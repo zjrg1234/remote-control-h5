@@ -18,7 +18,7 @@
       </div>
 
       <!-- 密码 -->
-      <div class="input-item">
+      <div class="input-item input-item--last">
         <input
           class="input"
           type="password"
@@ -61,11 +61,11 @@
       <span class="span">
         我已同意<span
           class="highlight"
-          @click="goto('/subpkg_set/pages/set/userPolicy')"
+          @click="goto('/set/userPolicy')"
           >用户协议</span
         >
         和
-        <span @click="goto('/subpkg_set/pages/set/privacy')" class="highlight"
+        <span @click="goto('/set/privacy')" class="highlight"
           >隐私条款</span
         >
       </span>
@@ -144,15 +144,15 @@ const handleLogin = async () => {
 };
 
 const goForgetPwd = () => {
-  router.push("/subpkg_login/pages/login/forgetPwd");
+  router.push("/forgetPwd");
 };
 
 const goCodeLogin = () => {
-  router.push("/subpkg_login/pages/login/loginCode");
+  router.push("/loginCode");
 };
 
 const goRegister = () => {
-  router.push("/subpkg_register/pages/register/index");
+  router.push("/register");
 };
 
 const goto = (url) => {
@@ -161,19 +161,17 @@ const goto = (url) => {
 </script>
 
 <style lang="scss" scoped>
-
 .page {
-  padding: 69px 32px 20px;
+  padding: 138px 32px 68px;
   box-sizing: border-box;
   position: relative;
   height: 100vh;
   background-color: #fff;
 }
-
 /* 头像 */
 .avatar-wrap {
   text-align: center;
-  margin-bottom: 30px;
+  margin-bottom: 64px;
 
   .avatar {
     width: 128px;
@@ -189,57 +187,69 @@ const goto = (url) => {
 }
 
 .input-item {
+  font-family: PingFangSC, PingFang SC;
   display: flex;
   align-items: center;
-  background-color: #f7f7f7;
-  border-radius: 6px;
+  background-color: #f8f8f8;
+  font-size: 28px;
+  border-radius: 16px;
   padding: 0 12px;
-  height: 48px;
-  margin-bottom: 12px;
+  height: 96px;
+  margin-bottom: 32px;
+  &--last {
+    margin-bottom: 18px;
+  }
 
   .prefix {
-    font-size: 14px;
-    color: #333;
+    font-weight: 400;
+    font-size: 28px;
+    color: #0e0e0e;
     margin-right: 8px;
   }
 
   .input {
     flex: 1;
-    height: 48px;
-    font-size: 18px;
+    font-size: 28px;
     background: transparent;
     padding-left: 5px;
+    height: 96px;
+
+    color: #0e0e0e;
   }
 }
 
 .row-link {
   display: flex;
   justify-content: space-between;
-  margin-bottom: 25px;
-
+  margin-bottom: 55px;
   .link {
-    font-size: 13px;
-    color: #999;
+    font-family: PingFangSC, PingFang SC;
+    font-weight: 400;
+    font-size: 24px;
+    color: #999999;
   }
 }
 
 .login-btn {
   background: linear-gradient(90deg, #ffc838 0%, #ffc838 100%);
-  border-radius: 12px;
+  border-radius: 24px;
   font-family: PingFangSC, PingFang SC;
   font-weight: 400;
-  font-size: 16px;
+  font-size: 32px;
   color: #1a1a1a;
   text-align: center;
-  margin-bottom: 25px;
-  padding: 12.5px 0;
+  margin-bottom: 48px;
+  height: 96px;
+  line-height: 96px;
+  font-style: normal;
 }
 
 .register-link {
   text-align: center;
-  font-size: 14px;
-  color: #999;
-  margin-bottom: 30px;
+  font-family: PingFangSC, PingFang SC;
+  font-weight: 400;
+  font-size: 28px;
+  color: #999999;
 }
 
 .other-login {
@@ -281,7 +291,7 @@ const goto = (url) => {
 
 .agreement {
   position: absolute;
-  bottom: 25px;
+  bottom: 68px;
   left: 50%;
   width: 100%;
   transform: translatex(-50%);
@@ -290,29 +300,29 @@ const goto = (url) => {
   justify-content: center;
 
   .checkbox {
-    width: 23px;
-    height: 23px;
-    border-radius: 2px;
+    width: 46px;
+    height: 46px;
+    border-radius: 50%;
     margin-right: 6px;
     display: flex;
     align-items: center;
     justify-content: center;
 
     .check-icon {
-      width: 20px;
-      height: 20px;
+      width: 40px;
+      height: 40px;
     }
 
     .un-check-icon {
-      width: 23px;
-      height: 23px;
+      width: 46px;
+      height: 46px;
     }
   }
 
   .span {
     font-family: PingFangSC, PingFang SC;
     font-weight: 400;
-    font-size: 12px;
+    font-size: 24px;
     color: #29220a;
 
     .highlight {

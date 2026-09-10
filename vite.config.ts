@@ -53,6 +53,13 @@ export default defineConfig(({ mode }) => {
       // 生产环境默认不启用 CDN 加速
       enableCDN(env.VITE_CDN_DEPS),
     ],
+    css: {
+    preprocessorOptions: {
+      scss: {
+        api: 'modern-compiler' // 或 "modern"
+      }
+    }
+  },
     resolve: {
       alias: {
         "@": fileURLToPath(new URL("./src", import.meta.url)),
