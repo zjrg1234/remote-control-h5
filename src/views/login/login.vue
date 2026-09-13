@@ -4,60 +4,50 @@
     <div class="avatar-wrap">
       <img class="avatar" src="@/assets/logo.png" alt="logo" />
     </div>
-
-    <!-- 表单 -->
-    <div class="form">
-      <van-form @submit="handleLogin">
-        <van-field
-          v-model="form.phone"
-          type="tel"
-          label="手机号"
-          placeholder="请输入手机号"
-        />
-
-        <van-field
-          v-model="form.password"
-          type="password"
-          maxlength="20"
-          label="密码"
-          placeholder="请输入密码"
-        />
-
-        <!-- 忘记密码 / 验证码登录 -->
-        <div class="row-link">
-          <span class="link" @click="goForgetPwd">忘记密码</span>
-          <span class="link" @click="goCodeLogin">验证码登录</span>
+    <div class="login-card">
+      <!-- 顶部Tab切换 -->
+      <div class="tab-switch">
+        <div class="tab-item" :class="{ active: loginType === 'code' }" @click="loginType = 'code'">
+          验证码登录
         </div>
-
-        <!-- 登录按钮 -->
-        <div class="btn-wrap">
-          <van-button
-            round
-            block
-            type="primary"
-            native-type="submit"
-            color="linear-gradient(90deg, #ffc838 0%, #ffc838 100%)"
-            text-color="#1a1a1a"
-          >
-            登录
-          </van-button>
+        <div class="tab-item" :class="{ active: loginType === 'password' }" @click="loginType = 'password'">
+          密码登录
         </div>
-      </van-form>
-
-      <!-- 注册账号 -->
-      <div class="register-link" @click="goRegister">
-        <span>注册帐号</span>
       </div>
+
+      <!-- 表单输入区 -->
+      <div class="form-area">
+        <!-- 手机号输入框 -->
+        <div class="input-group">
+          <input type="tel" v-model="formData.phone" placeholder="手机号" maxlength="11" />
+        </div>
+
+        <!-- 验证码登录模式 -->
+        <template v-if="loginType === 'code'">
+          <VerificationCode v-model="formData.code" :phone="formData.phone"></VerificationCode>
+          <!-- 未注册提示 -->
+          <p class="register-hint">若该手机号未注册，我们将自动为您注册</p>
+        </template>
+
+        <!-- 密码登录模式 -->
+        <template v-else>
+          <div class="input-group">
+            <input type="password" v-model="formData.password" placeholder="密码" />
+          </div>
+          <div class="forgot-password">
+            <a href="javascript:void(0)">忘记密码</a>
+          </div>
+        </template>
+      </div>
+
+      <!-- 登录按钮 -->
+      <button class="submit-btn" @click="handleLogin">
+        登录
+      </button>
     </div>
 
-    <!-- 协议勾选 -->
     <div class="agreement">
-      <van-checkbox
-        v-model="agree"
-        shape="round"
-        icon-size="16px"
-        checked-color="#ffc838"
-      />
+      <van-checkbox v-model="agree" shape="round" icon-size="16px" checked-color="#34D2A5" />
       <span class="text">
         我已同意
         <span class="highlight" @click="goto('/userPolicy')">用户协议</span>
@@ -69,44 +59,67 @@
 </template>
 
 <script setup>
-import { ref } from "vue";
+import { reactive, ref } from 'vue'
 import { useRouter } from "vue-router";
 import { showToast } from "vant";
 import { Login, GetUserInfo } from "@/api/index";
 import { useUserStore } from "@/store/modules/user";
 
-const router = useRouter();
-const userStore = useUserStore();
+import VerificationCode from '@/components/Code/index.vue' // 引入组件
 
-const form = ref({
-  phone: "",
-  password: "",
-});
+
+const userStore = useUserStore();
+const router = useRouter();
+// 当前登录方式，默认验证码登录
+const loginType = ref('code')
+
+// 表单数据
+const formData = ref({
+  phone: '',
+  password: '',
+  code: ''
+})
 const agree = ref(true);
+
+// 验证码倒计时
+const countdown = ref(0)
+
+
 
 // 登录逻辑
 const handleLogin = async () => {
-  if (!form.value.phone) {
-    showToast({
-      title: "请输入手机号",
-      icon: "none",
-    });
-    return;
-  }
-  if (!form.value.password) {
-    showToast({
-      title: "请输入密码",
-      icon: "none",
-    });
-    return;
-  }
   if (!agree.value) {
     showToast("请先同意用户协议和隐私条款");
     return;
   }
 
+  if (!formData.value.phone) {
+    showToast('请输入手机号');
+    return;
+  }
+
+  if (loginType.value == 'code') {
+    if (!formData.value.code) {
+      showToast('请输入验证码');
+      return;
+    }
+  } else {
+    if (!formData.value.password) {
+      showToast("请输入密码");
+      return;
+    }
+  }
+
   try {
-    const res = await Login({ ...form.value, type: 1 });
+    let obj = {};
+    obj.phone = formData.value.phone;
+    if (loginType.value == 'code') {
+
+      obj.noteVerify = formData.value.code;
+    } else {
+      obj.password = formData.value.password;
+    }
+    const res = await Login({ ...obj, type: 1 });
     if (res.code === 200) {
       userStore.setToken(res.data.session_key);
       localStorage.setItem('token', res.data.session_key)
@@ -118,22 +131,18 @@ const handleLogin = async () => {
 
       // 替换 uni.switchTab，跳转到首页
       router.replace("/index");
+    } else {
+      showToast(res.msg)
     }
   } catch (error) {
     console.error("登录失败", error);
   }
 };
-
-// 路由跳转封装
-const goForgetPwd = () => router.push("/forgetPwd");
-const goCodeLogin = () => router.push("/loginCode");
-const goRegister = () => router.push("/register");
-const goto = (url) => router.push(url);
 </script>
 
 <style lang="scss" scoped>
 .page {
-  padding: 60px 16px 40px;
+  padding: 120px 0 80px;
   box-sizing: border-box;
   min-height: 100vh;
   background-color: #fff;
@@ -143,63 +152,202 @@ const goto = (url) => router.push(url);
 /* 头像 */
 .avatar-wrap {
   text-align: center;
-  margin-bottom: 30px;
   display: flex;
-  flex-direction: column; /* 让内部元素垂直排列 */
-  align-items: center; /* 垂直居中 */
-  justify-content: center; /* 水平居中 */
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
   .avatar {
-    width: 60px;
-    height: 60px;
-    border-radius: 8px;
+    width: 160px;
+    height: 160px;
+    border-radius: 16px;
   }
 }
 
-/* 链接行 */
-.row-link {
+
+.login-card {
+  width: 100%;
+  padding: 115px 60px;
+  box-sizing: border-box;
+}
+
+/* Tab 切换 */
+.tab-switch {
   display: flex;
-  justify-content: space-between;
-  padding: 12px 24px;
-  margin-bottom: 25px;
-
-  .link {
-    font-size: 13px;
-    color: #999;
-    cursor: pointer;
-  }
+  background: #EDEDED;
+  margin: 0 100px;
+  margin-bottom: 60px;
+  border-radius: 40px;
 }
 
-/* 按钮区域 */
-.btn-wrap {
-  padding: 0 16px;
-  margin-bottom: 25px;
-}
-
-.register-link {
+.tab-item {
+  flex: 1;
   text-align: center;
-  font-size: 14px;
-  color: #999;
-  margin-bottom: 30px;
+  padding: 14px 0;
+  border-radius: 36px;
   cursor: pointer;
+  transition: all 0.3s ease;
+  font-family: PingFangSC, PingFang SC;
+  font-weight: 400;
+  font-size: 28px;
+  color: #666666;
+
+}
+
+.tab-item.active {
+  color: #1a202c;
+  /* 选中时的文字为深色 */
+  font-weight: 500;
+  box-shadow: 0 2px 6px rgba(91, 211, 168, 0.3);
+
+  background: #34D2A5;
+  border-radius: 34px;
+  font-family: PingFangSC, PingFang SC;
+  font-weight: 500;
+  font-size: 28px;
+  color: #1A1A1A;
+}
+
+/* 输入框通用样式 */
+.form-area {
+  margin-bottom: 68px;
+}
+
+.input-group {
+  position: relative;
+  margin-bottom: 20px;
+}
+
+.input-group input {
+  width: 100%;
+  height: 96px;
+  padding: 0 24px;
+  box-sizing: border-box;
+  font-family: PingFangSC, PingFang SC;
+  font-weight: 400;
+  font-size: 30px;
+  color: #1A1A1A;
+  background-color: #fff;
+  outline: none;
+  transition: border-color 0.3s;
+  border-radius: 16px;
+  border: 1px solid rgba(0, 0, 0, 0.2);
+
+}
+
+.input-group input:focus {
+  border-color: #5bd3a8;
+}
+
+.input-group input::placeholder {
+  color: #2d3748;
+}
+
+/* 验证码输入框内部布局 */
+.code-input-group {
+  display: flex;
+  align-items: center;
+  position: relative;
+}
+
+.code-input-group input {
+  padding-right: 110px;
+  /* 给右侧的获取验证码文字留出空间 */
+}
+
+/* 获取验证码文字链接 */
+.get-code-text {
+  position: absolute;
+  right: 16px;
+  font-size: 15px;
+  color: #5bd3a8;
+  cursor: pointer;
+  user-select: none;
+}
+
+.get-code-text.disabled {
+  color: #a0aec0;
+  cursor: not-allowed;
+}
+
+/* 注册提示文本 */
+.register-hint {
+  font-family: PingFangSC, PingFang SC;
+  font-weight: 400;
+  font-size: 26px;
+  color: #999999;
+  line-height: 37px;
+  text-align: justify;
+  font-style: normal;
+
+}
+
+/* 忘记密码 */
+.forgot-password {
+  text-align: right;
+  margin-top: -10px;
+  margin-bottom: 20px;
+}
+
+.forgot-password a {
+
+  text-decoration: none;
+  font-family: PingFangSC, PingFang SC;
+  font-weight: 400;
+  font-size: 24px;
+  color: #34D2A5;
+
+}
+
+/* 登录按钮 */
+.submit-btn {
+  width: 100%;
+  height: 94px;
+  background-color: #5bd3a8;
+
+  border: none;
+  border-radius: 47px;
+  cursor: pointer;
+  transition: opacity 0.3s;
+
+  font-family: PingFangSC, PingFang SC;
+  font-weight: 500;
+  font-size: 32px;
+  color: #1A1A1A;
+
+}
+
+.submit-btn:active {
+  opacity: 0.8;
 }
 
 /* 协议区域 */
 .agreement {
+  display: flex;
+  align-items: center;
+  /* 关键：垂直居中对齐 */
+  justify-content: center;
+  /* 水平居中 */
   position: absolute;
-  bottom: calc(20px + env(safe-area-inset-bottom));
+  bottom: calc(40px + env(safe-area-inset-bottom));
   left: 50%;
   transform: translateX(-50%);
   display: flex;
   justify-content: center;
   width: 100%;
- align-items: baseline;
+  align-items: baseline;
+
   .text {
-    font-size: 12px;
-    color: #29220a;
-    margin-left: 6px;
+    margin-left: 12px;
+
+    font-family: PingFangSC, PingFang SC;
+    font-weight: 400;
+    font-size: 26px;
+    color: #1A1A1A;
+
 
     .highlight {
-      color: #ffc838;
+      color: #34D2A5;
       cursor: pointer;
     }
   }

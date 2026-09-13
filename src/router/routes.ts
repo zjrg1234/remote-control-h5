@@ -44,7 +44,7 @@ const routes: Array<RouteRecordRaw> = [
       {
         path: "forgetPwd",
         name: "ForgetPwd",
-        component: () => import("@/views/login/forgetPwd.vue"),
+        component: () => import("@/views/login1/forgetPwd.vue"),
         meta: {
           title: "忘记密码",
           noCache: true,
@@ -54,7 +54,7 @@ const routes: Array<RouteRecordRaw> = [
       {
         path: "loginCode",
         name: "LoginCode",
-        component: () => import("@/views/login/loginCode.vue"),
+        component: () => import("@/views/login1/loginCode.vue"),
         meta: {
           title: "验证码登录",
           noCache: true,
