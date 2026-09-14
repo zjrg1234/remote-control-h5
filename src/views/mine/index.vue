@@ -41,18 +41,21 @@
       </div>
     </div>
 
-    <!-- 资产卡片 -->
     <div class="asset-card">
-
       <div class="card-content">
-        <div class="asset-item">
+        <!-- 左侧：电池卡片 -->
+        <div class="asset-item battery-item">
           <span class="asset-num">{{ userInfo.wallet?.balance }}</span>
-          <div class="asset-label" @click="goBattery">
-            <span>我的电池</span>
-            <van-icon name="arrow" size="12px" color="#333" />
+
+          <span class="asset-label">我的电池</span>
+          <!-- 充值按钮（绝对定位或根据需要调整） -->
+          <div class="recharge-btn" @click="goBattery">
+            充值 <van-icon name="arrow" />
           </div>
         </div>
-        <div class="asset-item">
+
+        <!-- 右侧：能量卡片 -->
+        <div class="asset-item energy-item">
           <span class="asset-num">{{ userInfo.wallet?.energy }}</span>
           <span class="asset-label">我的能量</span>
         </div>
@@ -62,15 +65,103 @@
     <!-- 功能列表 -->
     <van-cell-group inset class="menu-list">
       <van-cell
-        v-for="(item, index) in menuList"
+        v-for="(item, index) in menuList1"
+        :key="index"
+        is-link
+        center
+        @click="handleClick(item)"
+        class="menu-item"
+      >
+        <template #title>
+          <span class="menu-title">{{ item.name }}</span>
+        </template>
+        <template #icon>
+          <img class="menu-left-icon" :src="item.icon" alt="" />
+        </template>
+
+        <template #right-icon>
+          <img
+            class="menu-right-icon"
+            src="@/assets/images/common/icon_arrows@2x.png"
+            alt=""
+          />
+        </template>
+      </van-cell>
+    </van-cell-group>
+
+    <van-cell-group inset class="menu-list">
+      <van-cell
+        v-for="(item, index) in menuList2"
+        :key="index"
+        is-link
+        center
+        @click="handleClick(item)"
+        class="menu-item"
+      >
+        <template #title>
+          <span class="menu-title">{{ item.name }}</span>
+        </template>
+
+        <template #icon>
+          <img class="menu-left-icon" :src="item.icon" alt="" />
+        </template>
+        <template #right-icon>
+          <img
+            class="menu-right-icon"
+            src="@/assets/images/common/icon_arrows@2x.png"
+            alt=""
+          />
+        </template>
+      </van-cell>
+    </van-cell-group>
+
+    <van-cell-group inset class="menu-list">
+      <van-cell
+        v-for="(item, index) in menuList3"
+        :key="index"
+        is-link
+        center
+        @click="handleClick(item)"
+        class="menu-item"
+      >
+        <template #title>
+          <span class="menu-title">{{ item.name }}</span>
+        </template>
+        <template #icon>
+          <img class="menu-left-icon" :src="item.icon" alt="" />
+        </template>
+        <template #right-icon>
+          <img
+            class="menu-right-icon"
+            src="@/assets/images/common/icon_arrows@2x.png"
+            alt=""
+          />
+        </template>
+      </van-cell>
+    </van-cell-group>
+
+    <van-cell-group inset class="menu-list">
+      <van-cell
+        v-for="(item, index) in menuList4"
         :key="index"
         :title="item.name"
         is-link
         center
         @click="handleClick(item)"
+        class="menu-item"
       >
+        <template #title>
+          <span class="menu-title">{{ item.name }}</span>
+        </template>
         <template #icon>
-          <img class="menu-icon" :src="item.icon" alt="" />
+          <img class="menu-left-icon" :src="item.icon" alt="" />
+        </template>
+        <template #right-icon>
+          <img
+            class="menu-right-icon"
+            src="@/assets/images/common/icon_arrows@2x.png"
+            alt=""
+          />
         </template>
       </van-cell>
     </van-cell-group>
@@ -113,7 +204,7 @@ const showModal = ref(false);
 const serviceModal = ref(false);
 const serviceTip = ref("是否打开微信，联系在线客服");
 
-const menuList = ref([
+const menuList1 = ref([
   {
     name: "变更专区",
     icon: new URL("@/assets/images/mine/icon_change@2x.png", import.meta.url)
@@ -121,20 +212,9 @@ const menuList = ref([
     key: "area",
     url: "changeArea",
   },
-  {
-    name: "预约订单",
-    icon: new URL("@/assets/images/mine/icon_book@2x.png", import.meta.url)
-      .href,
-    key: "order",
-    url: "/reservation",
-  },
-  {
-    name: "申诉记录",
-    icon: new URL("@/assets/images/mine/icon_appeal@2x.png", import.meta.url)
-      .href,
-    key: "appeal",
-    url: "/appeal",
-  },
+]);
+
+const menuList2 = ref([
   {
     name: "驾驶记录",
     icon: new URL("@/assets/images/mine/icon_record@2x.png", import.meta.url)
@@ -143,21 +223,40 @@ const menuList = ref([
     url: "/driveRecord",
   },
   {
+    name: "我的预约",
+    icon: new URL("@/assets/images/mine/icon_book@2x.png", import.meta.url)
+      .href,
+    key: "order",
+    url: "/reservation",
+  },
+  {
+    name: "我的申诉",
+    icon: new URL("@/assets/images/mine/icon_appeal@2x.png", import.meta.url)
+      .href,
+    key: "appeal",
+    url: "/appeal",
+  },
+]);
+
+const menuList3 = ref([
+  {
+    name: "我的卡券",
+    icon: new URL("@/assets/images/mine/icon_course@2x.png", import.meta.url)
+      .href,
+    key: "service",
+    url: "",
+  },
+]);
+
+const menuList4 = ref([
+  {
     name: "在线客服",
     icon: new URL("@/assets/images/mine/icon_service@2x.png", import.meta.url)
       .href,
     key: "service",
     url: "",
   },
-  {
-    name: "商务合作",
-    icon: new URL(
-      "@/assets/images/mine/icon_cooperation@2x.png",
-      import.meta.url,
-    ).href,
-    key: "cooperation",
-    url: "",
-  },
+
   {
     name: "设置",
     icon: new URL("@/assets/images/mine/icon_set@2x.png", import.meta.url).href,
@@ -335,54 +434,149 @@ const onFileChange = async (fileDetail) => {
   line-height: 33px;
 }
 
+.asset-card {
+  position: relative;
+  z-index: 1;
+  margin: 35px 30px;
+  border-radius: 12px;
+  overflow: hidden;
+  /* 如果背景图需要保留，可以解开注释 */
+  /* background-image: url("@/assets/images/mine/bg_car@2x.png"); */
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: cover;
+}
 
-/* 资产卡片 */
 .card-content {
   display: flex;
-  justify-content: center;
+  justify-content: space-between;
   align-items: center;
-  gap: 17px; /* 还原为 17px 间距 */
-  /* 如果父容器宽度不够，建议加上横向滚动防止挤压 */
-  /* overflow-x: auto; */
+  gap: 15px;
 }
 
 .asset-item {
-  /* 核心：固定 430px 宽度，且不允许被 flex 压缩 */
-  flex: 0 0 430px; 
-  
+  height: 172px;
+  border-radius: 20px;
+  padding: 15px 34px 15px 20px;
+  box-sizing: border-box;
   display: flex;
   flex-direction: column;
-  align-items: center; /* 内部内容居中 */
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+}
+
+/* 左侧电池卡片样式 */
+.battery-item {
+  background: linear-gradient(135deg, #35e1a0 0%, #33c5aa 100%);
+  flex: 0 0 430px;
+  border-radius: 20px;
+}
+
+/* 右侧能量卡片样式 */
+.energy-item {
+  background: linear-gradient(140deg, #fde5a6 0%, #ffba9e 100%);
+  flex: 0 0 240px;
+  border-radius: 20px;
+}
+
+/* 装饰折角效果 */
+.battery-item::after {
+  content: "";
+  // position: absolute;
+  // top: -20px;
+  // right: -20px;
+  // width: 80px;
+  // height: 80px;
+  // background: rgba(255, 255, 255, 0.2);
+  // transform: rotate(45deg);
 }
 
 .asset-num {
-  font-size: 20px; /* 同步改回原来的 20px（如果你之前乘2了，这里也需要恢复，假设现在也是 1:1） */
+  font-size: 28px;
   font-weight: bold;
-  color: #333;
   line-height: 1;
-  margin-bottom: 6px;
+  margin-bottom: 12px;
+  font-family: Impact;
+  font-size: 40px;
+  color: #222222;
+  line-height: 48px;
+  text-align: left;
+  font-style: normal;
 }
 
 .asset-label {
   display: flex;
   align-items: center;
-  justify-content: center;
-  gap: 2px;
-  font-weight: 400;
-  font-size: 12px;
-  color: #333;
+  gap: 12px;
+
   cursor: pointer;
+  font-family: PingFangSC, PingFang SC;
+  font-weight: 400;
+  font-size: 24px;
+  color: #666666;
+  line-height: 33px;
+  text-align: left;
+  font-style: normal;
+}
+
+/* 充值按钮 */
+.recharge-btn {
+  position: absolute;
+  right: 20px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(255, 255, 255, 0);
+  border-radius: 24px;
+  border: 1px solid #222222;
+  padding: 4px 12px;
+
+  font-size: 24px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+
+  font-family: PingFangSC, PingFang SC;
+  font-weight: 400;
+  font-size: 24px;
+  color: #222222;
+  line-height: 33px;
+  text-align: left;
+  font-style: normal;
 }
 /* 菜单列表 */
 .menu-list {
-  margin: 0;
-  margin-top: 80px;
+  margin: 25px 30px;
 
-  .menu-icon {
+  .menu-title {
+    font-family: PingFangSC, PingFang SC;
+    font-weight: 400;
+    font-size: 28px;
+    color: #1a1a1a;
+    line-height: 40px;
+    text-align: left;
+    font-style: normal;
+  }
+  .menu-left-icon {
+    width: 40px;
+    height: 40px;
+    margin-right: 12px;
+    display: block;
+  }
+
+  .menu-right-icon {
     width: 32px;
     height: 32px;
-    margin-right: 16px;
     display: block;
+  }
+
+  .menu-item {
+    height: 108px;
+    background: rgba(255, 255, 255, 0.6);
+    border-radius: 20px;
+  }
+  :deep(.van-cell:after) {
+    border: none;
   }
 }
 </style>
