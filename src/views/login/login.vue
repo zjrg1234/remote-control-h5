@@ -8,10 +8,11 @@
       <!-- 顶部Tab切换 -->
       <div class="tab-switch">
         <div class="tab-item" :class="{ active: loginType === 'code' }" @click="loginType = 'code'">
-          验证码登录
+          {{ $t('验证码登录') }}
         </div>
         <div class="tab-item" :class="{ active: loginType === 'password' }" @click="loginType = 'password'">
-          密码登录
+          
+           {{ $t('密码登录') }}
         </div>
       </div>
 
@@ -19,30 +20,30 @@
       <div class="form-area">
         <!-- 手机号输入框 -->
         <div class="input-group">
-          <input type="tel" v-model="formData.phone" placeholder="手机号" maxlength="11" />
+          <input type="tel" v-model="formData.phone" :placeholder="$t('手机号')" maxlength="11" />
         </div>
 
         <!-- 验证码登录模式 -->
         <template v-if="loginType === 'code'">
           <VerificationCode v-model="formData.code" :phone="formData.phone"></VerificationCode>
           <!-- 未注册提示 -->
-          <p class="register-hint">若该手机号未注册，我们将自动为您注册</p>
+          <p class="register-hint">{{ $t("若该手机号未注册我们将自动为您注册") }}</p>
         </template>
 
         <!-- 密码登录模式 -->
         <template v-else>
           <div class="input-group">
-            <input type="password" v-model="formData.password" placeholder="密码" />
+            <input type="password" v-model="formData.password" :placeholder="$t('密码')" />
           </div>
           <div class="forgot-password">
-            <a href="javascript:void(0)">忘记密码</a>
+            <a href="javascript:void(0)">{{$t('忘记密码')}}</a>
           </div>
         </template>
       </div>
 
       <!-- 登录按钮 -->
       <button class="submit-btn" @click="handleLogin">
-        登录
+        {{$t("登录")}}
       </button>
     </div>
 
@@ -89,12 +90,12 @@ const countdown = ref(0)
 // 登录逻辑
 const handleLogin = async () => {
   if (!agree.value) {
-    showToast("请先同意用户协议和隐私条款");
+    showToast($t("请先同意用户协议和隐私条款"));
     return;
   }
 
   if (!formData.value.phone) {
-    showToast('请输入手机号');
+    showToast($t("请输入手机号"));
     return;
   }
 
@@ -105,7 +106,7 @@ const handleLogin = async () => {
     }
   } else {
     if (!formData.value.password) {
-      showToast("请输入密码");
+      showToast($t('请输入密码'));
       return;
     }
   }

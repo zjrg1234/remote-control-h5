@@ -12,16 +12,17 @@
       :class="{ disabled: countdown > 0 }"
       @click="handleGetCode"
     >
-      {{ countdown > 0 ? `${countdown}s后重新获取` : '获取验证码' }}
+      {{ countdown > 0 ?  $t('ns后重新获取',{num:countdown }) :$t('获取验证码') }}
     </span>
   </div>
 </template>
 
 <script setup>
-// import { ref, onUnmounted } from 'vue'
+
 import { ref, watch, onMounted, onUnmounted } from 'vue';
 import { showToast } from 'vant';
 import { GetPhoneCode } from '@/api/index';
+import { $t } from "@/locales"
 // 定义 Props
 const props = defineProps({
   modelValue: {
@@ -34,7 +35,7 @@ const props = defineProps({
   },
   placeholder: {
     type: String,
-    default: '验证码'
+    default: $t('验证码')
   },
   countdownSeconds: {
     type: Number,
@@ -54,7 +55,7 @@ const handleGetCode = () => {
   if (countdown.value > 0) return
   
   if (!props.phone) {
-    showToast('请先输入手机号')
+    showToast($t('请输入手机号'))
     return
   }
   
@@ -74,7 +75,7 @@ const sendRequest = async () => {
   try {
     await GetPhoneCode({ phone: props.phone });
     
-    showToast('发送成功');
+    showToast($t('发送成功'));
     emit('success');
     startCountdown();
   } catch (err) {
