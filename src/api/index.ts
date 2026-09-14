@@ -71,6 +71,12 @@ export function CarReport(data) {
   return post('/api/user/processing/alarm/create',data)
 }
 
+// 获取公告
+export function GetNotice(data) {
+  return post("/api/user/notice", data);
+}
+
+
 
 // /* 竖屏时的样式 */
 // @media screen and (orientation: portrait) {

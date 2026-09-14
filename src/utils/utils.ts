@@ -145,3 +145,48 @@ export const mapToPer = (value) => {
   // 3. 四舍五入取整（根据需求也可以保留小数）
   return (Math.round(percentage)/ 100).toFixed(2); 
 }
+
+
+
+type AnyFunc = (...args: any[]) => any
+
+/**
+ * 防抖函数 (Debounce)
+ * @param func 需要执行的函数
+ * @param delay 延迟时间(ms)，默认300ms
+ * @returns 包装后的函数
+ */
+export const debounce = <T extends AnyFunc>(
+  func: T,
+  delay: number = 300
+): ((...args: Parameters<T>) => void) => {
+  let timer: ReturnType<typeof setTimeout> | null = null
+
+  return function (this: any, ...args: Parameters<T>) {
+    if (timer) clearTimeout(timer)
+    timer = setTimeout(() => {
+      ;(func as AnyFunc).apply(this, args)
+    }, delay)
+  }
+}
+
+/**
+ * 节流函数 (Throttle)
+ * @param func 需要执行的函数
+ * @param interval 间隔时间(ms)，默认500ms
+ * @returns 包装后的函数
+ */
+export const throttle = <T extends AnyFunc>(
+  func: T,
+  interval: number = 500
+): ((...args: Parameters<T>) => void) => {
+  let lastTime = 0
+
+  return function (this: any, ...args: Parameters<T>) {
+    const now = Date.now()
+    if (now - lastTime >= interval) {
+      lastTime = now
+      ;(func as AnyFunc).apply(this, args)
+    }
+  }
+}

@@ -2,299 +2,435 @@
   <div class="container">
     <!-- 顶部 Banner -->
     <div class="banner-section">
-      <van-image width="100%" fit="cover" :src="imgUrl" radius="0">
+      <van-image :src="imgUrl" class="banner-img" fit="cover">
         <template #loading>
-          <van-loading type="spinner" size="20" />
+          <div class="img-placeholder">
+            <img :src="imgUrl" alt="" />
+          </div>
+        </template>
+        <template #error>
+          <div class="img-placeholder">
+            <img src="@/assets/images/banner@2x.png" alt="" />
+          </div>
         </template>
       </van-image>
     </div>
 
-    <!-- 分类导航栏 -->
-    <van-tabs 
-      v-model:active="currentTabIndex" 
-      sticky 
-      offset-top="0" 
-      @click-tab="handleCategoryClick"
-      class="sticky-nav"
-    >
-      <van-tab 
-        v-for="(item, index) in categories" 
-        :key="index" 
-        :title="item.name" 
-        :name="item.id" 
-      />
-    </van-tabs>
-
-    <!-- 【优化 1】：全局加载状态（仅在首次加载或切换分类且列表为空时显示） -->
-    <!-- <div v-if="loading && list.length === 0" class="loading-state">
-      <van-loading type="spinner" size="24" vertical>加载中...</van-loading>
-    </div> -->
-
-    <!-- 【优化 2】：空状态（严格限制：列表为空、不在加载中、且请求已完成） -->
-    <div v-if="list.length === 0 && !loading && noMore" class="empty-state">
-      <van-empty description="暂无相关数据" />
-    </div>
-
-    <!-- 列表渲染 -->
-    <div v-else-if="list.length !== 0" class="list-container">
-      <div 
-        v-for="(item, index) in list" 
-        :key="index" 
-        class="card-item" 
-        @click="handleCar(item)"
-      >
-        <img :src="item.image || item.venue_image?.[0]" class="card-img" />
-        <div class="meta">
-          <span class="status online"></span>
-          <span>在线{{ item.online }}</span>
-          <span class="divider">|</span>
-          <span>驾驶{{ item.drivers || item.driving }}</span>
-        </div>
-        <div class="card-info">
-          <div class="title-tags">
-            <span class="title">{{ item.title || item.venue_name }}</span>
-            <span class="tag">{{ item.tag || item.labels }}</span>
-          </div>
-          <div class="num">
-            <img src="@/assets/images/common/icon_queue@2x.png" class="icon" />
-            <span class="text">{{ item.online || item.queue }}人排队</span>
+    <!-- 分类导航栏 (Sticky 吸顶 + 横向滚动) -->
+    <!-- <div class="nav">
+      <div class="sticky-nav-wrapper">
+        <div class="nav-scroll">
+          <div class="nav-list">
+            <div
+              v-for="(item, index) in categories"
+              :key="index"
+              class="nav-item"
+              :class="{ active: currentCategory === item.id }"
+              @click="handleCategoryClick(item)"
+            >
+              {{ item.name }}
+            </div>
           </div>
         </div>
       </div>
-    </div>
+    </div> -->
+    <p class="cont-tit">
+      {{ $t("场地列表") }}
+    </p>
+
+    <!-- 核心改动：下拉刷新包裹瀑布流区域 -->
+    <van-pull-refresh
+      v-model="isRefreshing"
+      @refresh="onRefresh"
+      class="waterfall-scroll"
+      success-text="刷新成功"
+    >
+      <!-- 骨架屏 -->
+      <div v-if="loading && list.length == 0" class="skeleton-wrapper">
+        <SkeletonCard v-for="i in 6" :key="'s-' + i"  />
+      </div>
+
+      <!-- 瀑布流列表区域 -->
+      <div v-else class="waterfall-container">
+        <div v-if="list.length === 0 && !loading" class="empty-state">
+          <img
+            class="empty-img"
+            src="@/assets/images/common/car@2x.png"
+            alt="empty"
+          />
+          <span class="empty-text">暂时没有内容哦～</span>
+        </div>
+
+        <!-- 直接 v-for，不再用 column 包裹 -->
+        <div
+          v-for="(item, index) in list"
+          :key="index"
+          class="card-item"
+          @click="handleCar(item)"
+        >
+          <img
+            :src="item.venue_image[0]"
+            class="card-img"
+            loading="lazy"
+            alt="venue"
+          />
+
+          <div class="card-info">
+            <div class="title">{{ item.venue_name }}</div>
+            <div class="meta">
+              <span class="status online">在线 {{ item.online }} 辆</span>
+              <span class="drivers">驾驶中 {{ item.driving }} 辆</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </van-pull-refresh>
+
+    <!-- <NoticePopup v-model="showNotice" title="公告" :content="noticeContent" :is-rich-text="false" /> -->
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted } from "vue";
+import { ref, nextTick, onMounted } from "vue";
 import { useRouter } from "vue-router";
-import { showToast } from "vant";
-import { GetHomeBanner, GetHomeTabTitle, GetHomeDataList } from "@/api/index";
+
+import {
+  GetHomeBanner,
+  GetHomeTabTitle,
+  GetHomeDataList,
+  GetNotice,
+} from "@/api/index";
+
+// import NoticePopup from '@/components/notice-popup/notice-popup.vue';
+import SkeletonCard from "@/components/skeleton-card/skeleton-card.vue";
+import { shouldFetchNotice, resetNoticeFlag } from "@/utils/notice";
 
 const router = useRouter();
 
 // --- 数据定义 ---
 const categories = ref([]);
-const currentTabIndex = ref(0);
-const currentCategoryId = ref("");
-
+const currentCategory = ref("");
 const list = ref([]);
+
+const page = ref(1);
 const loading = ref(false);
 const noMore = ref(false);
 const imgUrl = ref("");
+const isRefreshing = ref(false);
+const totalData = ref([]);
 
-// --- 核心请求逻辑 ---
-const fetchData = async () => {
-  // 如果已经明确没有更多数据，直接返回
-  if (noMore.value) {
-    loading.value = false;
-    return;
-  }
-  
-  // 【关键优化】：发起请求时，务必将 loading 设为 true，防止空状态提前闪现
-  loading.value = true; 
-  
-  try {
-    const { code, data: { venueList } } = await GetHomeDataList({
-      type: currentCategoryId.value,
+const showNotice = ref(false);
+const noticeContent = ref("");
+const isLoggedIn = ref(!!localStorage.getItem("token"));
+
+const fetchData = async (isRefresh = false) => {
+  if (loading.value || noMore.value) return;
+
+  loading.value = true;
+  if (isRefresh) {
+    page.value = 1;
+    noMore.value = false;
+    await nextTick(() => {
+      list.value = [];
     });
+  }
 
-    if (code == 200 && venueList.length) {
-      list.value.push(...venueList);
-      // 根据实际接口逻辑判断是否还有更多数据（这里假设每次返回20条，若小于20条则没有更多了）
-      noMore.value = venueList.length < 20; 
-    } else {
+  try {
+    const {
+      code,
+      data: { venueList },
+    } = await GetHomeDataList({ type: currentCategory.value, size: 9999 });
+    if (venueList && currentCategory.value == "") {
+      totalData.value = venueList;
+    }
+    if (code == 200) {
+      if (venueList && venueList.length) {
+        venueList.forEach((item, index) => {
+          list.value.push(item);
+        });
+      }
+    } else if (isRefresh) {
       noMore.value = true;
     }
   } catch (error) {
-    noMore.value = true;
+    console.error("获取数据失败", error);
   } finally {
     loading.value = false;
   }
 };
 
-// --- 事件处理 ---
-const handleCategoryClick = ({ name }) => {
-  const item = categories.value.find((cat) => cat.id === name);
-  if (item && currentCategoryId.value !== item.id) {
-    currentCategoryId.value = item.id;
-    // 切换分类时重置状态
-    list.value = [];
-    noMore.value = false;
-    // 注意：这里不需要手动 loading.value = true，fetchData 内部会处理
-    fetchData();
+// 下拉刷新逻辑 (配合 van-pull-refresh)
+const onRefresh = async () => {
+  try {
+    await fetchData(true);
+  } finally {
+    isRefreshing.value = false; // 关闭刷新状态
   }
 };
 
 const handleCar = (item) => {
-  localStorage.setItem("carTitle", item.venue_name || item.title);
-  router.push(`/carDetails?id=${item.id}`);
+  localStorage.setItem("carTitle", item.venue_name);
+  // Vue 3 路由跳转
+  router.push({ path: "/car", query: { id: item.id } });
 };
 
-// --- 生命周期 ---
-onMounted(async () => {
+// 生命周期 (替代 uni-app 的 onLoad)
+onMounted(() => {
   categories.value = [{ name: "全部", id: "" }];
-  try {
-    if (localStorage.imgUrl) {
-      imgUrl.value = localStorage.imgUrl;
-    }
-    const res = await GetHomeBanner();
-    if (imgUrl.value !== res.data[0]?.image) {
-      localStorage.setItem('imgUrl', res.data[0]?.image);
-      imgUrl.value = localStorage.imgUrl;
-    }
-    
-    const res1 = await GetHomeTabTitle();
-    categories.value = [...categories.value, ...res1.data];
-  } catch (err) {
-    showToast("页面初始化失败");
-    console.log(err, "---");
-  }
+
+  GetHomeBanner()
+    .then((res) => {
+      imgUrl.value = res.data[0]?.image;
+    })
+    .catch(() => {});
+  GetHomeTabTitle()
+    .then((res) => {
+      categories.value = [...categories.value, ...res.data];
+    })
+    .catch(() => {});
   fetchData();
+
+  if (shouldFetchNotice(isLoggedIn.value)) {
+    getNotice();
+  }
 });
+
+const getNotice = () => {
+  GetNotice()
+    .then((res) => {
+      if (res.data && res.data.status == 1) {
+        showNotice.value = true;
+        noticeContent.value = res.data.content;
+      }
+    })
+    .catch(() => {
+      resetNoticeFlag();
+    });
+};
 </script>
 
 <style lang="scss" scoped>
+/* 全局容器：撑满屏幕 */
 .container {
-  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  background: linear-gradient(236deg, #34d2a5 0%, #e3ffe6 100%);
+  overflow: hidden;
+  padding: 0 20px;
 }
 
 .banner-section {
   width: 100%;
+  height: 200px;
+  flex-shrink: 0;
   overflow: hidden;
-  height: 140px;
+  border-radius: 10px;
 
   .banner-img {
     width: 100%;
-    display: block;
     height: 100%;
-    object-fit: cover;
+    display: block;
   }
 }
 
-.sticky-nav {
-  top: -10px;
+.img-placeholder {
+  width: 100%;
+  height: 100%;
 
-  :deep(.van-tabs__nav) {
-    background-color: #fff;
-    border-radius: 20px 20px 0 0;
-    box-shadow: 0px -2px 10px rgba(0, 0, 0, 0.1);
-  }
-}
-
-/* 【新增】：加载状态样式 */
-.loading-state {
   display: flex;
-  justify-content: center;
   align-items: center;
-  height: 300px;
+  justify-content: center;
+
+  font-size: 12px;
 }
 
-/* 单列列表布局 */
-.list-container {
+.nav {
+  margin-top: -30px; /* -60rpx / 2 */
+}
+
+/* 导航栏核心样式 */
+.sticky-nav-wrapper {
+  position: sticky;
+  top: 0;
+  z-index: 99;
+  background-color: #fff;
+  box-shadow: 0px -2px 10px 0px rgba(0, 0, 0, 0.1); /* -4rpx 20rpx / 2 */
+  border-radius: 20px 20px 0px 0px; /* 40rpx / 2 */
+  flex-shrink: 0;
+  border-bottom: 0.5px solid #f6f6f6; /* 1rpx / 2 */
+}
+
+.cont-tit {
+  font-family: YouSheBiaoTiHei;
+  font-size: 30px;
+  color: #222222;
+  line-height: 39px;
+  text-align: left;
+  font-style: normal;
+  font-weight: 700;
+  padding-top: 35px;
+  position: relative;
+  min-width: 100px;
+  padding-bottom: 5px;
+
+  &::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    height: 5px;
+    min-width: 100px;
+    background: linear-gradient(270deg, rgba(52, 210, 165, 0) 0%, #34d2a5 100%);
+    border-radius: 3px; /* 可选：圆角让横线更柔和 */
+  }
+}
+/* 隐藏横向滚动条 */
+.nav-scroll {
+  width: 100%;
+  white-space: nowrap;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+.nav-list {
+  display: inline-flex;
+  padding: 0 10px; /* 20rpx / 2 */
+  height: 44px; /* 88rpx / 2 */
+  align-items: center;
+}
+
+.nav-item {
+  font-family: PingFangSC, PingFang SC;
+  font-weight: 400;
+  display: inline-block;
+  padding: 0 15px; /* 30rpx / 2 */
+  font-size: 14px; /* 28rpx / 2 */
+  color: #777;
+  position: relative;
+  flex-shrink: 0;
+  line-height: 44px; /* 88rpx / 2 */
+  cursor: pointer;
+
+  &.active {
+    color: #1a1a1a;
+    font-weight: 500;
+    font-size: 15px; /* 30rpx / 2 */
+
+    &::after {
+      content: "";
+      position: absolute;
+      bottom: 5px; /* 10rpx / 2 */
+      left: 50%;
+      transform: translateX(-50%);
+      width: 15.5px; /* 31rpx / 2 */
+      height: 2.5px; /* 5rpx / 2 */
+      background-color: #000;
+      border-radius: 1px; /* 2rpx / 2 */
+    }
+  }
+}
+
+/* 下拉刷新容器占据剩余空间 */
+.waterfall-scroll {
+  flex: 1;
+  height: 0;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* 骨架屏：两列 Grid */
+.skeleton-wrapper {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
   padding: 10px;
-  gap: 10px;
-  background-color: #fff;
+}
+
+/* 瀑布流：两列 Grid */
+.waterfall-container {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
+  padding-top: 15px; 
+  padding-bottom: 165px;
+}
+
+/* 空状态：跨满两列 */
+.empty-state {
+  grid-column: 1 / -1; /* 关键：让空状态占据整行 */
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 50px 0;
+
+  .empty-img {
+    width: 150px;
+    margin-bottom: 10px;
+  }
+
+  .empty-text {
+    font-size: 14px;
+    color: #999;
+  }
 }
 
 /* 卡片样式 */
 .card-item {
-  position: relative;
-  background: #e9e9e9;
-  border-radius: 8px;
-  height: 200px;
   overflow: hidden;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03);
+  background: linear-gradient(253deg, #ffffff 0%, #d9fff2 100%);
+  box-shadow: 0px 0px 10px 0px rgba(0, 0, 0, 0.1);
+  border-radius: 20px;
+  cursor: pointer;
+  height: 476px;
 
   .card-img {
-    width: 100%;
-    height: 100%;
+    width: 345px;
+    height: 345px;
     display: block;
+
     object-fit: cover;
   }
 
   .card-info {
-    padding: 10px;
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    right: 0;
-
-    .title-tags {
-      margin-bottom: 5px;
-      display: flex;
-      align-items: center;
-
-      .title {
-        font-weight: 600;
-        font-size: 18px;
-        color: #fff;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-        max-width: 100%;
-      }
-
-      .tag {
-        font-size: 10px;
-        color: #1a1a1a;
-        padding: 2px 4px;
-        background: #fee2a2;
-        border-radius: 2px;
-        margin-left: 8px;
-        white-space: nowrap;
-        flex-shrink: 0;
-      }
+    padding: 20px 0 8px 20px;
+    width: 100%;
+    box-sizing: border-box;
+    .title {
+      font-family: PingFangSC, PingFang SC;
+      font-weight: 600;
+      font-size: 30px;
+      color: #222222;
+      line-height: 42px;
+      text-align: left;
+      font-style: normal;
     }
 
-    .num {
-      display: flex;
-      align-items: center;
-
-      .icon {
-        width: 12px;
-        height: 12px;
-        display: block;
+    .meta {
+      padding-top: 8px;
+      span {
+        font-family: PingFangSC, PingFang SC;
+        font-weight: 400;
+        font-size: 24px;
+        color: #ffffff;
+        line-height: 33px;
+        padding: 4px 20px;
       }
-
-      .text {
-        font-size: 12px;
-        color: #ffc838;
-        margin-left: 4px;
+      .online {
+        background: #3dbf9a;
+        border-radius: 20px;
+      }
+      .drivers {
+        background: #58bbf1;
+        border-radius: 20px;
+        margin-left: 12px;
       }
     }
   }
-
-  .meta {
-    position: absolute;
-    right: 10px;
-    top: 10px;
-    display: flex;
-    align-items: center;
-    background: rgba(0, 0, 0, 0.5);
-    border-radius: 10px;
-    font-size: 12px;
-    color: #ffffff;
-    padding: 2px 8px;
-
-    .online {
-      width: 6px;
-      height: 6px;
-      border-radius: 50%;
-      margin-right: 4px;
-      background: #15cb50;
-    }
-
-    .divider {
-      margin: 0 6px;
-      color: #ddd;
-    }
-  }
-}
-
-.empty-state {
-  padding: 50px 0;
 }
 </style>
