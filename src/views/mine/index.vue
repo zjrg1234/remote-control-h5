@@ -50,7 +50,14 @@
           <span class="asset-label">我的电池</span>
           <!-- 充值按钮（绝对定位或根据需要调整） -->
           <div class="recharge-btn" @click="goBattery">
-            充值 <van-icon name="arrow" />
+            <span> 充值 </span>
+
+            <img
+              class="img"
+              src="@/assets/images/common/icon_arrows2@2x.png"
+              alt=""
+            />
+            <!-- <van-icon name="arrow" /> -->
           </div>
         </div>
 
@@ -526,12 +533,12 @@ const onFileChange = async (fileDetail) => {
   right: 20px;
   top: 50%;
   transform: translateY(-50%);
-  background: rgba(255, 255, 255, 0);
+
   border-radius: 24px;
   border: 1px solid #222222;
-  padding: 4px 12px;
+  padding: 4px 20px;
 
-  font-size: 24px;
+
   display: flex;
   align-items: center;
   gap: 4px;
@@ -543,6 +550,11 @@ const onFileChange = async (fileDetail) => {
   line-height: 33px;
   text-align: left;
   font-style: normal;
+
+  img {
+    width: 24px;
+    height: 24px;
+  }
 }
 /* 菜单列表 */
 .menu-list {

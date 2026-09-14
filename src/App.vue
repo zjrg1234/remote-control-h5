@@ -16,4 +16,9 @@ import { useLoadingStore } from '@/store/modules/loading';
 const loadingStore = useLoadingStore();
 
 </script>
-<style></style>
+<style>
+/* 注意：没有 scoped！这是全局样式 */
+.van-tabbar__placeholder {
+  height: 0 !important;
+}
+</style>

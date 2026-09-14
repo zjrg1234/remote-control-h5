@@ -9,7 +9,7 @@
       <template #icon="props">
         <img class="image" :src="props.active ? item.active : item.inactive" />
       </template>
-      {{ item.title }}
+       {{ item.title }}
     </van-tabbar-item>
   </van-tabbar>
 </template>
@@ -45,19 +45,6 @@ const tabbarData = ref([
 ]);
 </script>
 <style scoped>
-.image {
-  width: 54px;
-  height: 54px;
-}
-:deep(.van-tabbar-item--active) {
- 
-
-  font-family: PingFangSC, PingFang SC;
-font-weight: 400;
-font-size: 24px;
-color: #34D2A5;
-  background: none;
-}
 
 :deep(.van-tabbar) {
   width: 420px;
@@ -66,5 +53,25 @@ color: #34D2A5;
   border-radius: 68px;
   filter: blur(0px);
   bottom: 34px;
+  left: 50%;
+  transform: translateX(-50%);
 }
+.image {
+  width: 54px;
+  height: 54px;
+}
+
+:deep(.van-tabbar-item) {
+  font-family: PingFangSC, PingFang SC;
+  font-weight: 400;
+  font-size: 24px;
+  color: #999;
+  background: none;
+}
+
+:deep(.van-tabbar-item--active) {
+  color: #34d2a5;
+}
+
+
 </style>
