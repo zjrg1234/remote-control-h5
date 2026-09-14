@@ -76,6 +76,11 @@ export function GetNotice(data) {
   return post("/api/user/notice", data);
 }
 
+//  取消预约
+export function CancelReservation(data) {
+  return post("/api/user/cancel/reservation", data);
+}
+
 
 
 // /* 竖屏时的样式 */

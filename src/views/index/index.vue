@@ -171,7 +171,7 @@ const onRefresh = async () => {
 const handleCar = (item) => {
   localStorage.setItem("carTitle", item.venue_name);
   // Vue 3 路由跳转
-  router.push({ path: "/car", query: { id: item.id } });
+  router.push({ path: "/carDetails", query: { id: item.id } });
 };
 
 // 生命周期 (替代 uni-app 的 onLoad)

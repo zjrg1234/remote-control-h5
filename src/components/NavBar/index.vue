@@ -1,21 +1,4 @@
-<script setup lang="ts">
-import { useDarkMode, useToggleDarkMode } from "@/hooks/useToggleDarkMode";
-import { ref } from "vue";
-import { setLocale } from "@/locales";
 
-const onClickDarkMode = () => {
-  useToggleDarkMode();
-};
-
-const showPopover = ref(false);
-const langOptions = [
-  { text: "简体中文", key: "zh-cn" },
-  { text: "English", key: "en" }
-];
-const onSelectLang = action => {
-  setLocale(action.key);
-};
-</script>
 
 <template>
   <van-nav-bar fixed placeholder>
@@ -39,5 +22,25 @@ const onSelectLang = action => {
     </template>
   </van-nav-bar>
 </template>
+
+
+<script setup>
+import { useDarkMode, useToggleDarkMode } from "@/hooks/useToggleDarkMode";
+import { ref } from "vue";
+import { setLocale } from "@/locales";
+
+const onClickDarkMode = () => {
+  useToggleDarkMode();
+};
+
+const showPopover = ref(false);
+const langOptions = [
+  { text: "简体中文", key: "zh-cn" },
+  { text: "English", key: "en" }
+];
+const onSelectLang = action => {
+  setLocale(action.key);
+};
+</script>
 
 <style scoped></style>

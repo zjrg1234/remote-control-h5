@@ -1,5 +1,5 @@
 <template>
-  <div class="custom-nav-bar" :style="{ height: safeHeight + 'px'}">
+  <div class="custom-nav-bar">
     <!-- 左侧区域：默认显示返回按钮 -->
     <div class="nav-left" @click="handleBack">
       <slot name="left">
@@ -20,30 +20,30 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
-import { Icon as VanIcon } from 'vant'; // 引入 Vant 图标
-import 'vant/lib/icon/style';
+import { ref, onMounted } from "vue";
+import { Icon as VanIcon } from "vant"; // 引入 Vant 图标
+import "vant/lib/icon/style";
 
 // 定义 Props
 const props = defineProps({
   title: {
     type: String,
-    default: ''
+    default: "",
   },
   // 是否自动处理返回逻辑
   backable: {
     type: Boolean,
-    default: true
+    default: true,
   },
   // 背景颜色
   bgColor: {
     type: String,
-    default: '#fff'
-  }
+    default: "#fff",
+  },
 });
 
 // 定义 Emits
-const emit = defineEmits(['click-back']);
+const emit = defineEmits(["click-back"]);
 
 // 状态栏高度适配（模拟移动端沉浸式效果）
 const statusBarHeight = ref(0);
@@ -53,10 +53,13 @@ onMounted(() => {
   // 简单获取状态栏高度，实际项目中建议用专门的 hook 或 css env()
   // 这里为了演示，如果是 H5 环境通常不需要 paddingTop，小程序/App 需要
   // 假设是普通 Web 页面，设为 0；如果是 App/小程序，可能需要动态计算
-  const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+  const isMobile =
+    /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+      navigator.userAgent,
+    );
   if (isMobile) {
-     // 简单的估算，实际项目建议引入 vant 的 useRect 或 css var(--van-nav-bar-height)
-     statusBarHeight.value = 20;
+    // 简单的估算，实际项目建议引入 vant 的 useRect 或 css var(--van-nav-bar-height)
+    statusBarHeight.value = 20;
   }
 });
 
@@ -64,10 +67,10 @@ onMounted(() => {
 const handleBack = () => {
   if (props.backable) {
     // 优先触发父组件自定义事件
-    emit('click-back');
+    emit("click-back");
     // 如果没有监听事件，且处于浏览器环境，执行默认后退
     if (!emit || window.history.length > 1) {
-       window.history.back();
+      window.history.back();
     }
   }
 };
@@ -83,9 +86,14 @@ const handleBack = () => {
   background-color: v-bind(bgColor); /* 使用 CSS v-bind */
   box-sizing: border-box;
   z-index: 100;
+
+  height: 88px;
+  background: #ffffff;
+  box-shadow: inset 0px -1px 0px 0px #eaeaea;
 }
 
-.nav-left, .nav-right {
+.nav-left,
+.nav-right {
   width: 80px; /* 左右区域宽度一致，保证标题绝对居中 */
   height: 100%;
   display: flex;
@@ -106,12 +114,18 @@ const handleBack = () => {
   top: 50%;
   transform: translate(-50%, -50%);
   max-width: 60%;
-  font-size: 17px;
-  font-weight: 500;
-  color: #333;
+
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   text-align: center;
+
+  font-family: PingFangSC, PingFang SC;
+  font-weight: 500;
+  font-size: 32px;
+  color: #333333;
+  line-height: 45px;
+  text-align: center;
+  font-style: normal;
 }
 </style>
