@@ -1,173 +1,209 @@
 <template>
   <div class="page">
     <NavBar :title="$t('场地详情')"></NavBar>
-    <!-- 1. 顶部背景图与基础信息 -->
-    <div class="header-section">
-      <van-image class="banner-img" :src="imageUrl" fit="cover" lazy-load />
-      <div class="info-box">
-        <div class="title-row">
-          <span class="main-title">{{ detailData.venue_name }}</span>
-          <span class="tag">● 营业中</span>
-        </div>
-      </div>
-    </div>
+    <div class="content">
+      <div class="header-section">
+        <van-image class="banner-img" :src="imageUrl" fit="cover" />
+        <div class="info-box">
+          <div class="title-row">
+            <span class="main-title">{{ detailData.venue_name }}</span>
+            <span class="tag">● 营业中</span>
+          </div>
 
-    <!-- 2. 统计数据 -->
-    <div class="stats-container">
-      <div class="stat-item">
-        <div class="num-box">
-          <span class="stat-num">{{ stats.queue }}</span>
-          <span class="stat-unit">人</span>
-        </div>
-        <span class="stat-label">总排队人数</span>
-      </div>
-      <div class="divider"></div>
-      <div class="stat-item">
-        <div class="num-box">
-          <span class="stat-num">{{ stats.online }}</span>
-          <span class="stat-unit">辆</span>
-        </div>
-        <span class="stat-label">在线车辆</span>
-      </div>
-      <div class="divider"></div>
-      <div class="stat-item">
-        <div class="num-box">
-          <span class="stat-num">{{ stats.drive }}</span>
-          <span class="stat-unit">辆</span>
-        </div>
-        <span class="stat-label">驾驶中</span>
-      </div>
-    </div>
+          <!-- 2. 统计数据 -->
+          <div class="stats-container">
+            <div class="stat-item">
+              <div class="num-box">
+                <span class="stat-num">{{ stats.queue }}</span>
+              </div>
+              <span class="stat-label">总排队人数(人)</span>
+            </div>
 
-    <div class="section-title">车辆列表</div>
+            <div class="stat-item">
+              <div class="num-box">
+                <span class="stat-num">{{ stats.online }}</span>
+              </div>
+              <span class="stat-label">在线车辆(辆)</span>
+            </div>
 
-    <!-- 3. 车辆列表 -->
-    <div class="car-list">
-      <div class="car-card" v-for="car in carList" :key="car.id">
-        <!-- 排队状态标签 (右上角) -->
-        <div class="queue-tag" v-if="car.vehicle_state == 2">
-          {{ car.vehicle_queue }}人等待
-        </div>
-
-        <!-- 左侧图片区域 -->
-        <div class="img-wrapper">
-          <van-image class="car-img" :src="car.vehicle_image" fit="cover" lazy-load />
-          <div class="lock-mask" v-if="car.is_password == 1">
-            <van-icon name="lock" size="24" color="#ffffff" />
+            <div class="stat-item">
+              <div class="num-box">
+                <span class="stat-num">{{ stats.drive }}</span>
+              </div>
+              <span class="stat-label">驾驶中(辆)</span>
+            </div>
           </div>
         </div>
+      </div>
 
-        <!-- 右侧信息区域 -->
-        <div class="info-wrapper">
-          <div class="top-row">
-            <span class="car-name">{{ car.vehicle_name }}</span>
-            <span class="status-dot" :class="car.vehicle_state == 1 ? 'online' : 'offline'">
-              {{ car.vehicle_state == 1 ? '在线' : '离线' }}
-            </span>
+      <div class="section-title">车辆列表</div>
+
+      <!-- 3. 车辆列表 -->
+      <div class="car-list">
+        <div class="car-card" v-for="car in carList" :key="car.id">
+          <!-- 排队状态标签 (右上角) -->
+          <div class="queue-tag" v-if="car.vehicle_state == 2">
+            {{ car.vehicle_queue }}人等待
           </div>
-          <div class="desc">{{ car.vehicle_introduction }}</div>
-          <div class="battery-row">
-            <van-icon name="location-o" size="12" color="#3dbf9a" />
-            <span class="battery-text">{{ car.vehicle_battery.includes("%") ? car.vehicle_battery : car.vehicle_battery + "%" }}</span>
+
+          <!-- 左侧图片区域 -->
+          <div class="img-wrapper">
+            <van-image
+              class="car-img"
+              :src="car.vehicle_image"
+              fit="cover"
+              lazy-load
+            />
+            <div class="lock-mask" v-if="car.is_password == 1">
+              <van-icon name="lock" size="24" color="#ffffff" />
+            </div>
           </div>
-          <div class="action-row">
-            <van-button 
-              class="action-btn" 
-              :class="car.vehicle_state == 1 ? 'btn-green' : 'btn-orange'"
-              @click="handleDrive(car)"
+
+          <!-- 右侧信息区域 -->
+          <div class="info-wrapper">
+            <div class="top-row">
+              <span class="car-name">{{ car.vehicle_name }}</span>
+              <span
+                class="status-dot"
+                :class="car.vehicle_state == 1 ? 'online' : 'offline'"
+              >
+                {{ car.vehicle_state == 1 ? "在线" : "离线" }}
+              </span>
+            </div>
+            <div class="desc">{{ car.vehicle_introduction }}</div>
+            <div class="battery-row">
+              <van-icon name="location-o" size="12" color="#3dbf9a" />
+              <span class="battery-text">{{
+                car.vehicle_battery.includes("%")
+                  ? car.vehicle_battery
+                  : car.vehicle_battery + "%"
+              }}</span>
+            </div>
+            <div class="action-row">
+              <van-button
+                class="action-btn"
+                :class="car.vehicle_state == 1 ? 'btn-green' : 'btn-orange'"
+                @click="handleDrive(car)"
+              >
+                {{ car.vehicle_state == 1 ? "开始驾驶" : "驾驶中" }}
+              </van-button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 底部弹窗替换 (使用 Vant 4 的 van-popup / van-dialog 或直接复用原有组件) -->
+      <!-- 注：为保持逻辑完整，这里保留原有的 TipModal 组件用法，但在 Vue3+Vant4 项目中建议替换为 van-dialog -->
+      <TipModal
+        title="用户驾驶协议"
+        v-model:visible="agree"
+        key="1"
+        :cancelFlag="false"
+        confirmText="已阅读"
+        @confirm="handleAgree"
+      >
+        <template #content>
+          <div class="custom-content">
+            <div class="cont">禁止未成年人充值使用。</div>
+            <div class="cont">
+              用户充值消费驾驶后不支持退余额，充值的金额只能在平台消费，如果排队没玩到车，保留到后面场地有车继续消费。
+            </div>
+            <div class="cont">
+              车辆预约会扣费，如没排队上，预约取消会自动退回账户里。
+            </div>
+            <div class="cont">如有疑问请联系客服。</div>
+          </div>
+        </template>
+      </TipModal>
+
+      <TipModal
+        title="输入密码"
+        v-model:visible="pwdVisible"
+        key="2"
+        @confirm="handlePwd"
+      >
+        <template #content>
+          <div class="custom-input">
+            <input
+              class="input"
+              type="password"
+              maxlength="6"
+              placeholder="请输入密码"
+              v-model="password"
+            />
+          </div>
+        </template>
+      </TipModal>
+
+      <TipModal
+        title="车辆预约"
+        v-model:visible="orderVisible"
+        key="2"
+        cancelText="取消预约"
+        @cancel="cancelOrder"
+        @confirm="gotoUrl"
+      >
+        <template #content>
+          <div class="order-cont">
+            <div class="img">
+              <van-image
+                class="car-image"
+                :src="selectCar.vehicle_image"
+                fit="cover"
+              />
+            </div>
+            <span class="main-status"
+              >已成功预约 {{ orderCar.vehicle_name }} 车辆</span
             >
-              {{ car.vehicle_state == 1 ? '开始驾驶' : '驾驶中' }}
-            </van-button>
+            <span class="sub-status" v-if="orderCar.people_number > 0"
+              >当前还有 {{ orderCar.people_number }} 人排队，请耐心等待</span
+            >
+            <span class="sub-status" v-if="orderCar.people_number == 0"
+              >当前排在首位，请尽快去驾驶</span
+            >
+            <div class="info-card">
+              <div class="info-item">
+                <span class="label">预约类型：</span>
+                <span class="value"
+                  >按{{
+                    orderCar.billing_method == "0" ? "时间" : "次"
+                  }}计费</span
+                >
+              </div>
+              <div class="info-item">
+                <span class="label">预约时间：</span>
+                <span class="value">{{ orderCar.time }}</span>
+              </div>
+            </div>
+            <span class="tip-text">请在【我的-预约订单】中查看</span>
           </div>
-        </div>
-      </div>
+        </template>
+      </TipModal>
+
+      <TipModal
+        title="存在已预约的订单"
+        v-model:visible="orderedVisible"
+        key="3"
+        cancelText="驾驶已有"
+        @cancel="gotoUrl"
+        confirmText="继续支付"
+        @confirm="continuePay"
+      >
+        <template #content>
+          <div class="order-cont">
+            <div class="order-text">
+              您有预约单还未驾驶，如果继续支付，将取消之前的预约单，请选择
+            </div>
+          </div>
+        </template>
+      </TipModal>
+
+      <BillingPopup
+        ref="billingPopupRef"
+        :billData="billingMethod"
+        @confirm="onBillingConfirm"
+      />
     </div>
-
-    <!-- 底部弹窗替换 (使用 Vant 4 的 van-popup / van-dialog 或直接复用原有组件) -->
-    <!-- 注：为保持逻辑完整，这里保留原有的 TipModal 组件用法，但在 Vue3+Vant4 项目中建议替换为 van-dialog -->
-    <TipModal
-      title="用户驾驶协议"
-      v-model:visible="agree"
-      key="1"
-      :cancelFlag="false"
-      confirmText="已阅读"
-      @confirm="handleAgree"
-    >
-      <template #content>
-        <div class="custom-content">
-          <div class="cont">禁止未成年人充值使用。</div>
-          <div class="cont">用户充值消费驾驶后不支持退余额，充值的金额只能在平台消费，如果排队没玩到车，保留到后面场地有车继续消费。</div>
-          <div class="cont">车辆预约会扣费，如没排队上，预约取消会自动退回账户里。</div>
-          <div class="cont">如有疑问请联系客服。</div>
-        </div>
-      </template>
-    </TipModal>
-
-    <TipModal
-      title="输入密码"
-      v-model:visible="pwdVisible"
-      key="2"
-      @confirm="handlePwd"
-    >
-      <template #content>
-        <div class="custom-input">
-          <input class="input" type="password" maxlength="6" placeholder="请输入密码" v-model="password" />
-        </div>
-      </template>
-    </TipModal>
-
-    <TipModal
-      title="车辆预约"
-      v-model:visible="orderVisible"
-      key="2"
-      cancelText="取消预约"
-      @cancel="cancelOrder"
-      @confirm="gotoUrl"
-    >
-      <template #content>
-        <div class="order-cont">
-          <div class="img">
-            <van-image class="car-image" :src="selectCar.vehicle_image" fit="cover" />
-          </div>
-          <span class="main-status">已成功预约 {{ orderCar.vehicle_name }} 车辆</span>
-          <span class="sub-status" v-if="orderCar.people_number > 0">当前还有 {{ orderCar.people_number }} 人排队，请耐心等待</span>
-          <span class="sub-status" v-if="orderCar.people_number == 0">当前排在首位，请尽快去驾驶</span>
-          <div class="info-card">
-            <div class="info-item">
-              <span class="label">预约类型：</span>
-              <span class="value">按{{ orderCar.billing_method == "0" ? "时间" : "次" }}计费</span>
-            </div>
-            <div class="info-item">
-              <span class="label">预约时间：</span>
-              <span class="value">{{ orderCar.time }}</span>
-            </div>
-          </div>
-          <span class="tip-text">请在【我的-预约订单】中查看</span>
-        </div>
-      </template>
-    </TipModal>
-
-    <TipModal
-      title="存在已预约的订单"
-      v-model:visible="orderedVisible"
-      key="3"
-      cancelText="驾驶已有"
-      @cancel="gotoUrl"
-      confirmText="继续支付"
-      @confirm="continuePay"
-    >
-      <template #content>
-        <div class="order-cont">
-          <div class="order-text">您有预约单还未驾驶，如果继续支付，将取消之前的预约单，请选择</div>
-        </div>
-      </template>
-    </TipModal>
-
-    <BillingPopup
-      ref="billingPopupRef"
-      :billData="billingMethod"
-      @confirm="onBillingConfirm"
-    />
   </div>
 </template>
 
@@ -180,7 +216,12 @@ import TipModal from "@/components/TipModal/index.vue";
 import BillingPopup from "@/components/BillingPopup/index.vue";
 import NavBar from "@/components/CustomNavBar/index.vue";
 
-import { GetVenueDetail, OrderCar, CancelReservation, StartDrive } from "@/api/index";
+import {
+  GetVenueDetail,
+  OrderCar,
+  CancelReservation,
+  StartDrive,
+} from "@/api/index";
 import { GetReservationList } from "@/api/mine";
 
 const router = useRouter();
@@ -196,9 +237,29 @@ const password = ref("");
 const billingPopupRef = ref(null);
 const imageUrl = ref("");
 const billingMethod = ref({});
-const detailData = ref({ venue_name: "", labels: "", start_time: "", end_time: "" });
-const selectCar = ref({ vehicle_id: "", vehicle_name: "", venue_id: "", billing_rules: "", venue_name: "", vehicle_image: "" });
-const orderCar = ref({ vehicle_name: "", time: "", payment_type: 1, billing_method: 0, order_no: "", transmitter_id: 0, people_number: 0 });
+const detailData = ref({
+  venue_name: "",
+  labels: "",
+  start_time: "",
+  end_time: "",
+});
+const selectCar = ref({
+  vehicle_id: "",
+  vehicle_name: "",
+  venue_id: "",
+  billing_rules: "",
+  venue_name: "",
+  vehicle_image: "",
+});
+const orderCar = ref({
+  vehicle_name: "",
+  time: "",
+  payment_type: 1,
+  billing_method: 0,
+  order_no: "",
+  transmitter_id: 0,
+  people_number: 0,
+});
 const currentCar = ref({});
 const carList = ref([]);
 const selectParam = ref({});
@@ -207,9 +268,8 @@ const route = useRoute();
 onMounted(() => {
   // 路由参数处理
 
-  const venueId =  route.query.id;
+  const venueId = route.query.id;
 
-  
   // 从 storage 获取标题
   const storedTitle = localStorage.getItem("carTitle") || "车辆详情";
   title.value = storedTitle;
@@ -293,13 +353,23 @@ const onBillingConfirm = async (params) => {
   const res = await GetReservationList({ size: 99 });
   if (res.code == 200 && res.data.content && res.data.content.length) {
     const firstData = res.data.content.find((item) => {
-      if (item.reservation_status == 3 && item.vehicle_id == selectCar.value.vehicle_id) {
+      if (
+        item.reservation_status == 3 &&
+        item.vehicle_id == selectCar.value.vehicle_id
+      ) {
         return item;
       }
     });
 
     if (firstData) {
-      await StartDrive({ order_no: firstData.order_no, type: 3, vehicle_id: firstData.vehicle_id }, false);
+      await StartDrive(
+        {
+          order_no: firstData.order_no,
+          type: 3,
+          vehicle_id: firstData.vehicle_id,
+        },
+        false,
+      );
     }
   }
 
@@ -388,20 +458,25 @@ const continuePay = async () => {
 <style lang="scss" scoped>
 /* 全局容器 */
 .page {
-  background-color: #f5f5f5;
+  background: #e8fff8;
   min-height: 100vh;
-  padding-bottom: 30px;
+}
+.content {
+  padding: 25px;
 }
 
 /* 1. 头部样式 */
 .header-section {
   position: relative;
-  background-color: #ffffff;
+  border-radius: 16px;
+  height: 675px;
+  overflow: hidden;
 
   .banner-img {
-    width: 100%;
-    height: 340px; /* 340rpx / 2 */
     display: block;
+    width: 100%;
+    height: 660px;
+    padding: 1px;
   }
 
   .info-box {
@@ -409,33 +484,41 @@ const continuePay = async () => {
     bottom: 0;
     left: 0;
     width: 100%;
-    padding: 30px;
-    box-sizing: border-box;
-    background: linear-gradient(to top, rgba(0, 0, 0, 0.6), transparent);
+    height: 226px;
+    padding-top: 30px;
+    background: rgba(209, 230, 224, 0.6); /* 半透明白 */
+    backdrop-filter: blur(12px); /* 磨砂模糊 */
+    -webkit-backdrop-filter: blur(12px); /* Safari 兼容 */
+    border-top: 1px solid rgba(123, 130, 133, 0.15); /* 顶部高光边 */
+    border-radius: 40px 40px 16px 16px;
 
     .title-row {
       display: flex;
       align-items: center;
-
+      padding-left: 35px;
       .main-title {
         font-family: PingFangSC, PingFang SC;
-        font-weight: 600;
-        font-size: 36px; /* 36rpx / 2 */
-        color: #ffffff;
-        margin-right: 16px;
+        font-weight: 700;
+        font-size: 32px;
+        color: #1a1a1a;
+        line-height: 45px;
+        text-align: left;
+        font-style: normal;
       }
 
       .tag {
         font-family: PingFangSC, PingFang SC;
         font-weight: 400;
-        font-size: 22px; /* 22rpx / 2 */
+        font-size: 22px;
         color: #ffffff;
         padding: 4px 12px;
-        background: rgba(64, 209, 165, 0.8);
-        border-radius: 8px;
+        background: #00a5ff;
+        border-radius: 20px 20px 20px 0px;
+
         display: flex;
         align-items: center;
-        gap: 8px;
+
+        margin-left: 12px;
       }
     }
   }
@@ -445,11 +528,10 @@ const continuePay = async () => {
 .stats-container {
   display: flex;
   flex-direction: row;
-  justify-content: space-around;
+  justify-content: space-between;
   align-items: center;
-  background-color: #ffffff;
+
   padding: 30px 0;
-  margin-bottom: 20px;
 
   .stat-item {
     display: flex;
@@ -468,8 +550,11 @@ const continuePay = async () => {
   .stat-num {
     font-family: DINAlternate, DINAlternate;
     font-weight: bold;
-    font-size: 48px; /* 48rpx / 2 */
+    font-size: 42px;
     color: #1a1a1a;
+    line-height: 48px;
+    text-align: left;
+    font-style: normal;
   }
 
   .stat-unit {
@@ -479,9 +564,11 @@ const continuePay = async () => {
   }
 
   .stat-label {
+    font-family: PingFangSC, PingFang SC;
+    font-weight: 400;
     font-size: 24px;
-    color: #999999;
-    margin-top: 8px;
+    color: #1a1a1a;
+    line-height: 33px;
   }
 
   .divider {

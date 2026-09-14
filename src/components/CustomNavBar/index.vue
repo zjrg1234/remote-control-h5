@@ -121,7 +121,7 @@ const handleBack = () => {
   text-align: center;
 
   font-family: PingFangSC, PingFang SC;
-  font-weight: 500;
+  font-weight: 700;
   font-size: 32px;
   color: #333333;
   line-height: 45px;
