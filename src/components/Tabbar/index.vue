@@ -7,7 +7,7 @@
       :to="item.to"
     >
       <template #icon="props">
-        <img :src="props.active ? item.active : item.inactive" />
+        <img class="image" :src="props.active ? item.active : item.inactive" />
       </template>
       {{ item.title }}
     </van-tabbar-item>
@@ -32,7 +32,7 @@ const tabbarData = ref([
     name: "Home",
     active: homeActiveIcon,
     inactive: homeIcon,
-    title: computed(() => $t("demo.tabbar.home")),
+    title: computed(() => $t("首页")),
     to: { name: "Home" }, // ✅ 这里补上了 to 属性
   },
   {
@@ -45,7 +45,26 @@ const tabbarData = ref([
 ]);
 </script>
 <style scoped>
+.image {
+  width: 54px;
+  height: 54px;
+}
 :deep(.van-tabbar-item--active) {
-  color: #ffc838;
+ 
+
+  font-family: PingFangSC, PingFang SC;
+font-weight: 400;
+font-size: 24px;
+color: #34D2A5;
+  background: none;
+}
+
+:deep(.van-tabbar) {
+  width: 420px;
+  height: 126px;
+  background: #fff;
+  border-radius: 68px;
+  filter: blur(0px);
+  bottom: 34px;
 }
 </style>
