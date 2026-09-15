@@ -227,7 +227,7 @@ const getNotice = () => {
   height: 100vh;
   background: linear-gradient(236deg, #34d2a5 0%, #e3ffe6 100%);
   overflow: hidden;
-  padding: 0 20px;
+  padding: 20px;
 }
 
 .banner-section {

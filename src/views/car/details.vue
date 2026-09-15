@@ -7,7 +7,7 @@
         <div class="info-box">
           <div class="title-row">
             <span class="main-title">{{ detailData.venue_name }}</span>
-            <span class="tag">● {{$t('营业中')}}</span>
+            <span class="tag">● {{ $t("营业中") }}</span>
           </div>
 
           <!-- 2. 统计数据 -->
@@ -30,20 +30,25 @@
               <div class="num-box">
                 <span class="stat-num">{{ stats.drive }}</span>
               </div>
-              <span class="stat-label">{{ $t("驾驶中(辆)") }}  </span>
+              <span class="stat-label">{{ $t("驾驶中(辆)") }} </span>
             </div>
           </div>
         </div>
       </div>
 
-      <div class="section-title">{{$t("车辆列表")}}</div>
-
       <!-- 3. 车辆列表 -->
       <div class="car-list">
         <div class="car-card" v-for="car in carList" :key="car.id">
           <!-- 排队状态标签 (右上角) -->
-          <div class="queue-tag" v-if="car.vehicle_state == 2">
-            {{ $t("n人等待",{num: car.vehicle_queue}) }}
+          <div
+            class="queue-tag"
+            :class="car.vehicle_state == 1 ? 'tag1' : 'tag2'"
+          >
+            {{
+              car.vehicle_state == 1
+                ? $t("在线")
+                : $t("n人等待", { num: car.vehicle_queue })
+            }}
           </div>
 
           <!-- 左侧图片区域 -->
@@ -63,16 +68,14 @@
           <div class="info-wrapper">
             <div class="top-row">
               <span class="car-name">{{ car.vehicle_name }}</span>
-              <span
-                class="status-dot"
-                :class="car.vehicle_state == 1 ? 'online' : 'offline'"
-              >
-                {{ car.vehicle_state == 1 ? $t("在线") : $t("离线") }}
-              </span>
             </div>
             <div class="desc">{{ car.vehicle_introduction }}</div>
             <div class="battery-row">
-              <van-icon name="location-o" size="12" color="#3dbf9a" />
+              <img
+                class="img"
+                src="@/assets/images/icon_car_battery@2x.png"
+                alt=""
+              />
               <span class="battery-text">{{
                 car.vehicle_battery.includes("%")
                   ? car.vehicle_battery
@@ -85,7 +88,7 @@
                 :class="car.vehicle_state == 1 ? 'btn-green' : 'btn-orange'"
                 @click="handleDrive(car)"
               >
-                {{ car.vehicle_state == 1 ? $("开始驾驶") : $t("驾驶中") }}
+                {{ car.vehicle_state == 1 ? $t("开始驾驶") : $t("驾驶中") }}
               </van-button>
             </div>
           </div>
@@ -94,7 +97,7 @@
 
       <!-- 底部弹窗替换 (使用 Vant 4 的 van-popup / van-dialog 或直接复用原有组件) -->
       <!-- 注：为保持逻辑完整，这里保留原有的 TipModal 组件用法，但在 Vue3+Vant4 项目中建议替换为 van-dialog -->
-     <TipModal
+      <TipModal
         :title="$t('用户驾驶协议')"
         v-model:visible="agree"
         key="1"
@@ -104,14 +107,14 @@
       >
         <template #content>
           <div class="custom-content">
-            <div class="cont">{{ $t('禁止未成年人充值使用') }}</div>
+            <div class="cont">{{ $t("禁止未成年人充值使用") }}</div>
             <div class="cont">
-              {{ $t('充值desc1') }}
+              {{ $t("充值desc1") }}
             </div>
             <div class="cont">
-              {{ $t('充值desc2') }}
+              {{ $t("充值desc2") }}
             </div>
-            <div class="cont">{{ $t('充值desc3') }}</div>
+            <div class="cont">{{ $t("充值desc3") }}</div>
           </div>
         </template>
       </TipModal>
@@ -152,30 +155,30 @@
                 fit="cover"
               />
             </div>
-            <span class="main-status"
-              >{{ $t('成功预约车辆',{name: orderCar.vehicle_name}) }}</span
-            >
-            <span class="sub-status" v-if="orderCar.people_number > 0"
-              >{{ $t("排队人数",{num: orderCar.people_number}) }}</span
-            >
-            <span class="sub-status" v-if="orderCar.people_number == 0"
-              >{{ $t('排在首位') }}</span
-            >
+            <span class="main-status">{{
+              $t("成功预约车辆", { name: orderCar?.vehicle_name })
+            }}</span>
+            <span class="sub-status" v-if="orderCar?.people_number > 0">{{
+              $t("排队人数", { num: orderCar.people_number })
+            }}</span>
+            <span class="sub-status" v-if="orderCar?.people_number == 0">{{
+              $t("排在首位")
+            }}</span>
             <div class="info-card">
               <div class="info-item">
-                <span class="label">{{ $t('预约类型') }}:</span>
-                <span class="value"
-                  >{{ 
-                    orderCar.billing_method == "0" ? $t('按时间计费') : $t('按次计费')
-                  }}</span
-                >
+                <span class="label">{{ $t("预约类型") }}:</span>
+                <span class="value">{{
+                  orderCar.billing_method == "0"
+                    ? $t("按时间计费")
+                    : $t("按次计费")
+                }}</span>
               </div>
               <div class="info-item">
-                <span class="label">{{ $t('预约时间') }}:</span>
+                <span class="label">{{ $t("预约时间") }}:</span>
                 <span class="value">{{ orderCar.time }}</span>
               </div>
             </div>
-            <span class="tip-text">{{ $t('预约查看') }}</span>
+            <span class="tip-text">{{ $t("预约查看") }}</span>
           </div>
         </template>
       </TipModal>
@@ -192,7 +195,7 @@
         <template #content>
           <div class="order-cont">
             <div class="order-text">
-              {{ $t('已有预约单提示') }}
+              {{ $t("已有预约单提示") }}
             </div>
           </div>
         </template>
@@ -210,7 +213,7 @@
 import { ref, onMounted } from "vue";
 import { useRouter, useRoute } from "vue-router";
 import { showToast } from "vant";
-import {$t} from "@/locales"
+import { $t } from "@/locales";
 import TipModal from "@/components/TipModal/index.vue";
 import BillingPopup from "@/components/BillingPopup/index.vue";
 import NavBar from "@/components/CustomNavBar/index.vue";
@@ -577,47 +580,52 @@ const continuePay = async () => {
   }
 }
 
-.section-title {
-  padding: 20px 30px;
-  font-family: PingFangSC, PingFang SC;
-  font-weight: 500;
-  font-size: 30px;
-  color: #1a1a1a;
-}
-
 /* 3. 列表卡片样式 */
 .car-list {
-  padding: 0 30px;
+  padding-top: 20px;
 }
 
 .car-card {
-  background-color: #ffffff;
-  border-radius: 24px;
+  background: linear-gradient(253deg, #d9fff2 0%, #ffffff 100%);
+  box-shadow: 0px 0px 10px 0px rgba(0, 0, 0, 0.1);
+  border-radius: 20px;
+
   margin-bottom: 24px;
   display: flex;
-  padding: 24px;
+  padding: 20px;
   position: relative;
   overflow: hidden;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
-
+  height: 265px;
   .queue-tag {
     position: absolute;
     top: 0;
     right: 0;
-    font-size: 20px;
+    font-family: PingFangSC, PingFang SC;
+    font-weight: 400;
+    font-size: 24px;
     color: #ffffff;
-    padding: 6px 16px;
-    background: #fca55d;
-    border-radius: 0px 24px 0px 24px;
+    padding: 4px 12px;
+
+    &.tag1 {
+      background-color: #4cd964;
+      /* 绿色 */
+    }
+
+    &.tag2 {
+      background: #ff931e;
+      border-radius: 0px 8px 0px 8px;
+      opacity: 0.58;
+    }
   }
 
   /* 图片区域 */
   .img-wrapper {
-    width: 200px; /* 200rpx / 2 */
-    height: 200px;
-    margin-right: 30px;
-    position: relative;
+    width: 225px;
+    height: 225px;
     border-radius: 16px;
+    margin-right: 20px;
+    position: relative;
+
     overflow: hidden;
     flex-shrink: 0;
 
@@ -656,8 +664,11 @@ const continuePay = async () => {
       .car-name {
         font-family: PingFangSC, PingFang SC;
         font-weight: 600;
-        font-size: 28px; /* 28rpx / 2 */
-        color: #222222;
+        font-size: 30px;
+        color: #1a1a1a;
+        line-height: 42px;
+        text-align: left;
+        font-style: normal;
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
@@ -682,10 +693,18 @@ const continuePay = async () => {
     .desc {
       font-family: PingFangSC, PingFang SC;
       font-weight: 400;
-      font-size: 22px; /* 22rpx / 2 */
-      color: #666666;
-      margin-top: 8px;
-      line-height: 1.4;
+      font-size: 24px;
+      color: #1a1a1a;
+      height: 66px;
+      line-height: 33px;
+      margin-top: 16px;
+
+      /* 关键三行：单行居中、多行左对齐 */
+      width: fit-content;
+      max-width: 100%;
+      text-align: left;
+
+      /* 两行截断 */
       display: -webkit-box;
       -webkit-box-orient: vertical;
       -webkit-line-clamp: 2;
@@ -696,36 +715,40 @@ const continuePay = async () => {
       display: flex;
       align-items: center;
       margin-top: 12px;
-      gap: 8px;
-
+      .img {
+        width: 28px;
+        height: 26px;
+      }
       .battery-text {
-        font-size: 22px;
-        color: #3dbf9a;
+        font-family: PingFangSC, PingFang SC;
+        font-weight: 400;
+        font-size: 24px;
+        color: #1A1A1A;
+        line-height: 33px;
+        text-align: left;
       }
     }
 
     .action-row {
       display: flex;
       justify-content: flex-end;
-      margin-top: 16px;
 
       .action-btn {
         padding: 0 30px;
-        height: 56px; /* 56rpx / 2 */
-        line-height: 56px;
-        font-family: PingFangSC, PingFang SC;
-        font-weight: 500;
-        font-size: 24px;
-        border-radius: 12px;
         border: none;
-
+        font-family: PingFangSC, PingFang SC;
+        font-weight: 700;
+        height: 72px;
+        line-height: 72px;
+        border-radius: 36px;
+        font-size: 30px;
+        margin-right: 4px;
+        color: #1a1a1a;
         &.btn-green {
-          background: #40d1a5;
-          color: #ffffff;
+          background: #34d2a5;
         }
         &.btn-orange {
-          background: #fca55d;
-          color: #ffffff;
+          background: #ff8849;
         }
       }
     }
