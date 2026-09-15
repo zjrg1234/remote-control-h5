@@ -47,7 +47,7 @@
     >
       <!-- 骨架屏 -->
       <div v-if="loading && list.length == 0" class="skeleton-wrapper">
-        <SkeletonCard v-for="i in 6" :key="'s-' + i"  />
+        <SkeletonCard v-for="i in 6" :key="'s-' + i" />
       </div>
 
       <!-- 瀑布流列表区域 -->
@@ -78,15 +78,25 @@
           <div class="card-info">
             <div class="title">{{ item.venue_name }}</div>
             <div class="meta">
-              <span class="status online">在线 {{ item.online }} 辆</span>
-              <span class="drivers">驾驶中 {{ item.driving }} 辆</span>
+              <span class="status online">{{
+                $t("在线车辆", { num: item.online })
+              }}</span>
+              <span class="drivers">{{
+                $t("驾驶中车辆", { num: item.driving })
+              }}</span>
             </div>
           </div>
         </div>
       </div>
     </van-pull-refresh>
 
-    <!-- <NoticePopup v-model="showNotice" title="公告" :content="noticeContent" :is-rich-text="false" /> -->
+    <NoticePopup
+      v-model="showNotice"
+      :title="$t('通知公告')"
+      :content="noticeContent"
+      :confirmText="$t('我知道了')"
+      :is-rich-text="false"
+    />
   </div>
 </template>
 
@@ -101,7 +111,7 @@ import {
   GetNotice,
 } from "@/api/index";
 
-// import NoticePopup from '@/components/notice-popup/notice-popup.vue';
+import NoticePopup from "@/components/notice-popup/notice-popup.vue";
 import SkeletonCard from "@/components/skeleton-card/skeleton-card.vue";
 import { shouldFetchNotice, resetNoticeFlag } from "@/utils/notice";
 
@@ -355,7 +365,7 @@ const getNotice = () => {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 20px;
-  padding-top: 15px; 
+  padding-top: 15px;
   padding-bottom: 165px;
 }
 

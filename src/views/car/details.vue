@@ -7,7 +7,7 @@
         <div class="info-box">
           <div class="title-row">
             <span class="main-title">{{ detailData.venue_name }}</span>
-            <span class="tag">● 营业中</span>
+            <span class="tag">● {{$t('营业中')}}</span>
           </div>
 
           <!-- 2. 统计数据 -->
@@ -16,34 +16,34 @@
               <div class="num-box">
                 <span class="stat-num">{{ stats.queue }}</span>
               </div>
-              <span class="stat-label">总排队人数(人)</span>
+              <span class="stat-label">{{ $t("总排队人数(人)") }}</span>
             </div>
 
             <div class="stat-item">
               <div class="num-box">
                 <span class="stat-num">{{ stats.online }}</span>
               </div>
-              <span class="stat-label">在线车辆(辆)</span>
+              <span class="stat-label">{{ $t("在线车辆(辆)") }}</span>
             </div>
 
             <div class="stat-item">
               <div class="num-box">
                 <span class="stat-num">{{ stats.drive }}</span>
               </div>
-              <span class="stat-label">驾驶中(辆)</span>
+              <span class="stat-label">{{ $t("驾驶中(辆)") }}  </span>
             </div>
           </div>
         </div>
       </div>
 
-      <div class="section-title">车辆列表</div>
+      <div class="section-title">{{$t("车辆列表")}}</div>
 
       <!-- 3. 车辆列表 -->
       <div class="car-list">
         <div class="car-card" v-for="car in carList" :key="car.id">
           <!-- 排队状态标签 (右上角) -->
           <div class="queue-tag" v-if="car.vehicle_state == 2">
-            {{ car.vehicle_queue }}人等待
+            {{ $t("n人等待",{num: car.vehicle_queue}) }}
           </div>
 
           <!-- 左侧图片区域 -->
@@ -67,7 +67,7 @@
                 class="status-dot"
                 :class="car.vehicle_state == 1 ? 'online' : 'offline'"
               >
-                {{ car.vehicle_state == 1 ? "在线" : "离线" }}
+                {{ car.vehicle_state == 1 ? $t("在线") : $t("离线") }}
               </span>
             </div>
             <div class="desc">{{ car.vehicle_introduction }}</div>
@@ -85,7 +85,7 @@
                 :class="car.vehicle_state == 1 ? 'btn-green' : 'btn-orange'"
                 @click="handleDrive(car)"
               >
-                {{ car.vehicle_state == 1 ? "开始驾驶" : "驾驶中" }}
+                {{ car.vehicle_state == 1 ? $("开始驾驶") : $t("驾驶中") }}
               </van-button>
             </div>
           </div>
@@ -94,30 +94,30 @@
 
       <!-- 底部弹窗替换 (使用 Vant 4 的 van-popup / van-dialog 或直接复用原有组件) -->
       <!-- 注：为保持逻辑完整，这里保留原有的 TipModal 组件用法，但在 Vue3+Vant4 项目中建议替换为 van-dialog -->
-      <TipModal
-        title="用户驾驶协议"
+     <TipModal
+        :title="$t('用户驾驶协议')"
         v-model:visible="agree"
         key="1"
         :cancelFlag="false"
-        confirmText="已阅读"
+        :confirmText="$t('已阅读')"
         @confirm="handleAgree"
       >
         <template #content>
           <div class="custom-content">
-            <div class="cont">禁止未成年人充值使用。</div>
+            <div class="cont">{{ $t('禁止未成年人充值使用') }}</div>
             <div class="cont">
-              用户充值消费驾驶后不支持退余额，充值的金额只能在平台消费，如果排队没玩到车，保留到后面场地有车继续消费。
+              {{ $t('充值desc1') }}
             </div>
             <div class="cont">
-              车辆预约会扣费，如没排队上，预约取消会自动退回账户里。
+              {{ $t('充值desc2') }}
             </div>
-            <div class="cont">如有疑问请联系客服。</div>
+            <div class="cont">{{ $t('充值desc3') }}</div>
           </div>
         </template>
       </TipModal>
 
       <TipModal
-        title="输入密码"
+        :title="$t('输入密码')"
         v-model:visible="pwdVisible"
         key="2"
         @confirm="handlePwd"
@@ -128,7 +128,7 @@
               class="input"
               type="password"
               maxlength="6"
-              placeholder="请输入密码"
+              :placeholder="$t('请输入密码')"
               v-model="password"
             />
           </div>
@@ -136,10 +136,10 @@
       </TipModal>
 
       <TipModal
-        title="车辆预约"
+        :title="$t('车辆预约')"
         v-model:visible="orderVisible"
         key="2"
-        cancelText="取消预约"
+        :cancelText="$t('取消预约')"
         @cancel="cancelOrder"
         @confirm="gotoUrl"
       >
@@ -153,51 +153,50 @@
               />
             </div>
             <span class="main-status"
-              >已成功预约 {{ orderCar.vehicle_name }} 车辆</span
+              >{{ $t('成功预约车辆',{name: orderCar.vehicle_name}) }}</span
             >
             <span class="sub-status" v-if="orderCar.people_number > 0"
-              >当前还有 {{ orderCar.people_number }} 人排队，请耐心等待</span
+              >{{ $t("排队人数",{num: orderCar.people_number}) }}</span
             >
             <span class="sub-status" v-if="orderCar.people_number == 0"
-              >当前排在首位，请尽快去驾驶</span
+              >{{ $t('排在首位') }}</span
             >
             <div class="info-card">
               <div class="info-item">
-                <span class="label">预约类型：</span>
+                <span class="label">{{ $t('预约类型') }}:</span>
                 <span class="value"
-                  >按{{
-                    orderCar.billing_method == "0" ? "时间" : "次"
-                  }}计费</span
+                  >{{ 
+                    orderCar.billing_method == "0" ? $t('按时间计费') : $t('按次计费')
+                  }}</span
                 >
               </div>
               <div class="info-item">
-                <span class="label">预约时间：</span>
+                <span class="label">{{ $t('预约时间') }}:</span>
                 <span class="value">{{ orderCar.time }}</span>
               </div>
             </div>
-            <span class="tip-text">请在【我的-预约订单】中查看</span>
+            <span class="tip-text">{{ $t('预约查看') }}</span>
           </div>
         </template>
       </TipModal>
 
       <TipModal
-        title="存在已预约的订单"
+        :title="$t('存在已预约的订单')"
         v-model:visible="orderedVisible"
         key="3"
-        cancelText="驾驶已有"
+        :cancelText="$t('驾驶已有')"
         @cancel="gotoUrl"
-        confirmText="继续支付"
+        :confirmText="$t('继续支付')"
         @confirm="continuePay"
       >
         <template #content>
           <div class="order-cont">
             <div class="order-text">
-              您有预约单还未驾驶，如果继续支付，将取消之前的预约单，请选择
+              {{ $t('已有预约单提示') }}
             </div>
           </div>
         </template>
       </TipModal>
-
       <BillingPopup
         ref="billingPopupRef"
         :billData="billingMethod"
@@ -211,7 +210,7 @@
 import { ref, onMounted } from "vue";
 import { useRouter, useRoute } from "vue-router";
 import { showToast } from "vant";
-
+import {$t} from "@/locales"
 import TipModal from "@/components/TipModal/index.vue";
 import BillingPopup from "@/components/BillingPopup/index.vue";
 import NavBar from "@/components/CustomNavBar/index.vue";
@@ -303,7 +302,7 @@ const handleDrive = (item) => {
   if (!localStorage.getItem("token")) {
     // 使用 Vant Dialog 替代 uni.showModal
     // 这里为了演示简化，你可以导入 Dialog 组件
-    if (confirm("请您登录/注册，才能驾驶车辆")) {
+    if (confirm($t("请您登录/注册，才能驾驶车辆"))) {
       router.push("/login");
     }
     return;
@@ -321,7 +320,7 @@ const handlePwd = () => {
     selectCar.value.vehicle_image = currentCar.value.vehicle_image;
     billingPopupRef.value.open();
   } else {
-    showToast("密码不正确");
+    showToast($t("密码不正确"));
   }
 };
 
@@ -332,7 +331,7 @@ const handleAgree = () => {
     return;
   }
   if (currentCar.value.vehicle_state == 2) {
-    showToast("该车正在排队中");
+    showToast($t("该车正在排队中"));
     return;
   }
   selectCar.value.vehicle_id = currentCar.value.id;
@@ -398,7 +397,7 @@ const onBillingConfirm = async (params) => {
       if (e.code == 2000) {
         showToast(e.msg);
       } else {
-        showToast("预约失败，请稍后预约");
+        showToast($t("预约失败，请稍后预约"));
       }
     })
     .finally(() => {
@@ -417,7 +416,7 @@ const cancelOrder = () => {
     .then((res) => {
       if (res.code == 200) {
         orderVisible.value = false;
-        showToast("取消预约成功");
+        showToast($t("取消预约成功"));
       } else {
         showToast(res.msg);
       }
@@ -450,7 +449,7 @@ const continuePay = async () => {
       onBillingConfirm(selectParam.value);
     }
   } else {
-    showToast("获取预约信息失败");
+    showToast($t("获取预约信息失败"));
   }
 };
 </script>
