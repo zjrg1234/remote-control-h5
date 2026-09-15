@@ -95,45 +95,61 @@
         </div>
       </div>
 
-      <!-- 底部弹窗替换 (使用 Vant 4 的 van-popup / van-dialog 或直接复用原有组件) -->
-      <!-- 注：为保持逻辑完整，这里保留原有的 TipModal 组件用法，但在 Vue3+Vant4 项目中建议替换为 van-dialog -->
-      <TipModal
-        :title="$t('用户驾驶协议')"
-        v-model:visible="agree"
-        key="1"
-        :cancelFlag="false"
-        :confirmText="$t('已阅读')"
-        @confirm="handleAgree"
+      <!-- 用户驾驶协议 -->
+      <van-popup
+        v-model:show="agree"
+        position="bottom"
+        round
+        :style="{ height: '50%' }"
       >
-        <template #content>
+        <div class="agree-content">
+          <div class="agree-header">
+            <span>{{ $t("用户驾驶协议") }}</span>
+            <img
+              class="img"
+              src="@/assets/images/icon_cancel@2x.png"
+              alt=""
+              @click="handleAgree"
+            />
+          </div>
+
           <div class="custom-content">
-            <div class="cont">{{ $t("禁止未成年人充值使用") }}</div>
-            <div class="cont">
-              {{ $t("充值desc1") }}
-            </div>
+            <div class="cont tit">{{ $t("云联趣控驾驶协议") }}:</div>
+            <div class="cont">{{ $t("充值desc1") }}</div>
             <div class="cont">
               {{ $t("充值desc2") }}
             </div>
-            <div class="cont">{{ $t("充值desc3") }}</div>
+            <div class="cont">
+              {{ $t("充值desc3") }}
+            </div>
           </div>
-        </template>
-      </TipModal>
+          <div class="agree-btn" @click="handleAgree">
+            {{ $t("我已阅读协议") }}
+          </div>
+        </div>
+      </van-popup>
 
       <TipModal
-        :title="$t('输入密码')"
+        title=""
         v-model:visible="pwdVisible"
         key="2"
         @confirm="handlePwd"
       >
         <template #content>
-          <div class="custom-input">
-            <input
-              class="input"
-              type="password"
-              maxlength="6"
-              :placeholder="$t('请输入密码')"
-              v-model="password"
-            />
+          <div class="pwd-content">
+            <div class="pwd-img">
+              <img src="@/assets/images/icon_popup_lock@2x.png" alt="" />
+            </div>
+            <div class="pwd-text">{{ $t("请输入车辆密码") }}</div>
+            <div class="custom-input">
+              <input
+                class="input"
+                type="password"
+                maxlength="6"
+                :placeholder="$t('请输入车辆密码')"
+                v-model="password"
+              />
+            </div>
           </div>
         </template>
       </TipModal>
@@ -723,7 +739,7 @@ const continuePay = async () => {
         font-family: PingFangSC, PingFang SC;
         font-weight: 400;
         font-size: 24px;
-        color: #1A1A1A;
+        color: #1a1a1a;
         line-height: 33px;
         text-align: left;
       }
@@ -755,32 +771,107 @@ const continuePay = async () => {
   }
 }
 
-/* 弹窗内容样式 */
+.agree-content {
+  border-radius: 16px 16px 0px 0px;
+
+  .agree-header {
+    position: relative;
+    width: 100%;
+    height: 98px;
+    line-height: 98px;
+
+    span {
+      display: block;
+      width: 100%;
+      text-align: center;
+      font-family: PingFangSC, PingFang SC;
+      font-weight: 700;
+      font-size: 32px;
+      color: #1a1a1a;
+    }
+
+    .img {
+      position: absolute;
+      right: 25px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 60px;
+      height: 60px;
+      cursor: pointer;
+    }
+  }
+
+  .custom-content {
+    font-family: PingFangSC, PingFang SC;
+    font-weight: 400;
+    font-size: 30px;
+    color: #333333;
+    padding: 30px;
+
+    .cont {
+      display: block;
+      text-align: left;
+      font-weight: 500;
+      line-height: 50px;
+      text-align: left;
+      font-style: normal;
+      padding-bottom: 60px;
+    }
+    .tit {
+      font-weight: 700;
+      padding-bottom: 0;
+    }
+  }
+  .agree-btn {
+    width: 702px;
+    height: 94px;
+    background: #34d2a5;
+    border-radius: 44px;
+    text-align: center;
+    margin: auto;
+    line-height: 94px;
+    font-family: PingFangSC, PingFang SC;
+    font-weight: 700;
+    font-size: 32px;
+    color: #1a1a1a;
+  }
+}
+.pwd-content {
+  padding: 20px 12px 12px 12px;
+}
+.pwd-img {
+  width: 100%;
+  display: flex;
+  justify-content: center; /* 水平居中 */
+  align-items: center;
+  img {
+    width: 120px;
+    height: 120px;
+  }
+}
+.pwd-text {
+  font-family: PingFangSC, PingFang SC;
+  font-weight: 700;
+  font-size: 32px;
+  color: #1a1a1a;
+  line-height: 45px;
+  text-align: center;
+  font-style: normal;
+  padding-top: 32px;
+  padding-bottom: 40px;
+}
 .custom-input {
   background: #f8f8f8;
   border-radius: 16px;
   margin-bottom: 24px;
-  padding: 0 20px;
+  padding: 0 25px;
   .input {
-    height: 90px;
-    line-height: 1;
+    height: 88px;
+
     border: none;
     background: transparent;
     width: 100%;
     outline: none;
-  }
-}
-
-.custom-content {
-  font-family: PingFangSC, PingFang SC;
-  font-weight: 400;
-  font-size: 28px;
-  color: #333333;
-  .cont {
-    display: block;
-    text-align: left;
-    padding-bottom: 54px;
-    line-height: 50px;
   }
 }
 

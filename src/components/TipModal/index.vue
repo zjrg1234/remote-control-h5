@@ -25,8 +25,12 @@
     <template #footer>
       <slot name="footer">
         <div class="btn-group">
-          <div class="btn refuse" @click="onCancel">{{ cancelText || '取消' }}</div>
-          <div class="btn allow" @click="onConfirm">{{ confirmText || '确认' }}</div>
+          <div class="btn refuse" @click="onCancel">
+            {{ cancelText || "取消" }}
+          </div>
+          <div class="btn allow" @click="onConfirm">
+            {{ confirmText || "确认" }}
+          </div>
         </div>
       </slot>
     </template>
@@ -39,49 +43,49 @@
  * 支持 v-model:visible 双向绑定
  * 支持 title / content / footer 三个具名插槽
  */
-import { computed } from 'vue';
+import { computed } from "vue";
 
 // --- Props ---
 const props = defineProps({
   visible: {
     type: Boolean,
-    default: false
+    default: false,
   },
   title: {
     type: String,
-    default: ''
+    default: "",
   },
   content: {
     type: String,
-    default: ''
+    default: "",
   },
   cancelText: {
     type: String,
-    default: '取消'
+    default: "取消",
   },
   confirmText: {
     type: String,
-    default: '确认'
-  }
+    default: "确认",
+  },
 });
 
 // --- Emits ---
-const emit = defineEmits(['update:visible', 'confirm', 'cancel']);
+const emit = defineEmits(["update:visible", "confirm", "cancel"]);
 
 // 计算属性，将父组件的 visible 映射为 van-dialog 需要的 show
 const dialogVisible = computed({
   get: () => props.visible,
-  set: (val) => emit('update:visible', val)
+  set: (val) => emit("update:visible", val),
 });
 
 // --- Methods ---
 const onCancel = () => {
-  emit('update:visible', false);
-  emit('cancel');
+  emit("update:visible", false);
+  emit("cancel");
 };
 
 const onConfirm = () => {
-  emit('confirm');
+  emit("confirm");
   // 注意：确认按钮是否自动关闭由父组件决定
   // 如果希望确认后自动关闭，可在此处加上 emit('update:visible', false)
 };
@@ -98,25 +102,26 @@ const onConfirm = () => {
 .btn-group {
   display: flex;
   justify-content: space-around;
-  padding: 0 16px 16px;
+  padding: 0 16px 32px;
 }
 
 .btn {
+  font-family: PingFangSC, PingFang SC;
+  font-weight: 400;
+  font-size: 30px;
+  color: #1a1a1a;
+  line-height: 42px;
   text-align: center;
-  padding: 9px 43px;
+  font-style: normal;
+  padding: 18px 86px;
   border-radius: 8px;
   font-weight: 400;
-  font-size: 15px;
-  color: #222222;
-  cursor: pointer;
-
-  &.refuse {
-    background: #f0f0f0;
-  }
+  background: #f0f0f0;
+  border-radius: 40px;
 
   &.allow {
-    font-weight: 600;
-    background: #ffc838;
+    font-weight: 700;
+    background: #34d2a5;
   }
 }
 </style>
