@@ -18,7 +18,7 @@
 import { computed } from "vue";
 
 const props = defineProps({
-  modelValue: { type: Number, default: 0 },
+  modelValue: { type: Number, default: 50 },
 });
 
 const emit = defineEmits(["update:modelValue", "change"]);
@@ -41,16 +41,18 @@ const statusClass = computed(() => {
   box-sizing: border-box;
   touch-action: none;
   user-select: none;
-
+  margin-left: 5px;
+  
+  
   .battery {
-    width: 25px;
+    width: 100%;
     position: relative;
   }
 
   .slider-track {
     position: relative;
-    width: 29px;
-    height: 29px;
+    width: 30px;
+    height: 30px;
     box-sizing: border-box;
     overflow: hidden;
     background-color: transparent;
@@ -58,25 +60,18 @@ const statusClass = computed(() => {
       no-repeat;
   }
 
-  .battery-tip {
-    position: absolute;
-    right: 0;
-    top: 3px;
-    width: 2px;
-    height: 6px;
-    background-color: #ffffff;
-    border-radius: 0 2px 2px 0;
-  }
 
   .battery-fill {
-    height: 100%;
+    height: 14px;
     border-radius: 1px;
-    background-color: #4caf50;
+    background-color:   #98BEFF;
     transition: width 0.3s ease, background-color 0.3s ease;
+    margin-top: 8px;
+    margin-left: 2px;
   }
 
   .battery-fill.medium {
-    background-color: #ff9800;
+    background-color: #EEFEFE;
   }
 
   .battery-fill.low {
@@ -85,10 +80,12 @@ const statusClass = computed(() => {
 
   .battery-text {
     position: absolute;
-    right: 0;
-    font-size: 10px;
-    min-width: 25px;
-    color: #ffffff;
+    width: 28px;
+    font-family: PingFangSC, PingFang SC;
+    font-weight: 500;
+    font-size: 12px;
+    color: #1A1A1A;
+    text-align: center;
 
   }
 }

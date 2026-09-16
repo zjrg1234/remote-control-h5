@@ -165,7 +165,7 @@ const acceleratorDynamics = ref();
 const allPopup = ref();
 const userStore = useUserStore();
 const router = useRouter();
-const vlot = ref(12.0)
+const vlot = ref(12.0);
 
 // 余额
 const balance = computed(() => {
@@ -279,7 +279,7 @@ const initTimer = () => {
   let num = 1;
   timerNum.value = setInterval(() => {
     currentTime.value = formatTime(++num);
-    console.log(currentTime.value )
+    console.log(currentTime.value);
   }, 1000);
 };
 
@@ -849,9 +849,9 @@ const handleDriveEnd = () => {
   align-items: center;
   justify-content: space-between;
 
-  width: 187px;
+  // width: 187px;
   height: 40px;
-  padding: 0 8px;
+  padding: 0 15px;
   box-sizing: border-box;
 
   background: rgba(0, 0, 0, 0.4);
@@ -879,13 +879,14 @@ const handleDriveEnd = () => {
     text-align: center;
     padding-top: 4px;
 
-    background: url("@/assets/images/icon_voltage@2x.png") center / cover no-repeat;
+    background: url("@/assets/images/icon_voltage@2x.png") center / cover
+      no-repeat;
   }
 
   /* 2. 连接状态图标 */
   .link-status {
     flex: 0 0 auto;
-    display: block;      /* 去掉 inline 基线带来的底部缝隙 */
+    display: block; /* 去掉 inline 基线带来的底部缝隙 */
     width: 36px;
     height: 36px;
   }
@@ -902,8 +903,9 @@ const handleDriveEnd = () => {
     flex: 0 0 auto;
     font-family: PingFangSC, PingFang SC;
     font-weight: 500;
-    font-size: 24px;
-    line-height: 1;
+    font-size: 16px;
+    padding-left: 10px;
+
     color: #ffffff;
     font-variant-numeric: tabular-nums; /* 数字等宽，秒变时不抖动 */
   }
