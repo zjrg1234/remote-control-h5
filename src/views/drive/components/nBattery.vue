@@ -8,34 +8,33 @@
           :style="{ width: modelValue + '%' }"
         ></div>
       </div>
-      <div class="battery-tip"></div>
     </div>
 
-    <div class="battery-text">{{ modelValue }}%</div>
+    <div class="battery-text">{{ modelValue }}</div>
   </div>
 </template>
 
 <script setup>
-import { computed } from 'vue';
+import { computed } from "vue";
 
 const props = defineProps({
   modelValue: { type: Number, default: 0 },
 });
 
-const emit = defineEmits(['update:modelValue', 'change']);
+const emit = defineEmits(["update:modelValue", "change"]);
 
 // 根据电量返回对应样式类
 const statusClass = computed(() => {
-  if (props.modelValue <= 20) return 'low';
-  if (props.modelValue <= 60) return 'medium';
-  return '';
+  if (props.modelValue <= 20) return "low";
+  if (props.modelValue <= 60) return "medium";
+  return "";
 });
 </script>
 
 <style lang="scss" scoped>
 .cover-bat-cont {
-  width: 60px;
-  height: 12px;
+  width: 30px;
+  height: 30px;
   position: relative;
   display: flex;
   align-items: center;
@@ -50,13 +49,13 @@ const statusClass = computed(() => {
 
   .slider-track {
     position: relative;
-    width: 23px;
-    height: 12px;
-    border-radius: 2px;
-    border: 1px solid #fff;
+    width: 29px;
+    height: 29px;
     box-sizing: border-box;
     overflow: hidden;
     background-color: transparent;
+    background: url("@/assets/images/icon_battery@2x.png") center / cover
+      no-repeat;
   }
 
   .battery-tip {
@@ -90,7 +89,7 @@ const statusClass = computed(() => {
     font-size: 10px;
     min-width: 25px;
     color: #ffffff;
-    padding-left: 3px;
+
   }
 }
 </style>
