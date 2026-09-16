@@ -2,7 +2,7 @@
   <div class="landscape-page">
     <div class="page-content">
       <div class="logout" @click="logout">
-        <img src="./static/icon_exit@2x.png" class="image" alt="退出" />
+        <img src="@/assets/images/icon_exit@2x.png" class="image" alt="退出" />
       </div>
 
       <!-- 视频区域：H5 用 iframe -->
@@ -37,8 +37,13 @@
       </div>
 
       <!-- 设置按钮 -->
-      <div class="right-cont" @click="set">
-        <img class="image" src="./static/icon_set@2x.png" alt="设置" />
+      <div class="right-cont" @click="setright-con">
+        <img
+          class="image"
+          src="@/assets/images/icon_repairs@2x.png"
+          alt="维修"
+        />
+        <img class="image" src="@/assets/images/icon_set@2x.png" alt="设置" />
       </div>
 
       <div class="side-menu">
@@ -149,6 +154,8 @@ const constSpeed = ref(1);
 const setVisible = ref(false);
 const showSound = ref(false);
 
+const videoUrl = ref(""); // 视频地址
+
 // 车辆类型 是四驱车还是挖机 车辆类型 vehicle_type 10-19四驱车、20-29挖机、30-39推土机
 const carType = ref("1");
 const timerNum = ref();
@@ -165,8 +172,9 @@ const acceleratorDynamics = ref();
 const allPopup = ref();
 const userStore = useUserStore();
 const router = useRouter();
-const vlot = ref(12.0);
 
+const batteryPer = ref(100);
+const vlot = ref("12");
 // 余额
 const balance = computed(() => {
   return userStore.getUserInfo().wallet.balance;
@@ -196,7 +204,6 @@ const chValue = ref({
 });
 
 const menuList = ref([
-  { name: "报修", icon: repairs, key: "repairs", iconSelect: repairs, type: 1 },
   {
     name: "前差",
     icon: before_diff,
@@ -219,15 +226,9 @@ const menuList = ref([
     iconSelect: speeds_selected,
     type: 1,
   },
-  {
-    name: "定速",
-    icon: cSpeeds,
-    key: "speed",
-    iconSelect: cSpeeds_selected,
-    type: 1,
-  },
-  { name: "", icon: light, key: "light", iconSelect: light_selected, type: 2 },
 ]);
+
+// { name: "", icon: light, key: "light", iconSelect: light_selected, type: 2 },
 const carDetails = ref();
 const videoDefinition = ref("1");
 const carHandler = ref();
@@ -766,7 +767,7 @@ const handleDriveEnd = () => {
   height: 100vh;
   overflow: hidden;
   position: relative;
-  background: #fff;
+  background: black;
 }
 
 /* 竖屏时：旋转页面 */
@@ -812,8 +813,8 @@ const handleDriveEnd = () => {
 }
 
 .logout {
-  width: 10px;
-  height: 10px;
+  width: 32px;
+  height: 32px;
   position: absolute;
   z-index: 1;
   top: 5px;
@@ -824,17 +825,10 @@ const handleDriveEnd = () => {
   }
 }
 
-.right-cont {
-  width: 10px;
-  height: 10px;
-  position: absolute;
-  z-index: 1;
-  top: 5px;
-  right: 8px;
+.video-frame {
+  width: 100%;
+  height: 100%;
 
-  img {
-    display: block;
-  }
 }
 
 .status-bar-capsule {
@@ -925,85 +919,68 @@ const handleDriveEnd = () => {
   white-space: nowrap;
   color: #ccc;
 }
-// 在 style 中定义
-.mini-forbidden {
-  display: inline-block;
-  width: 4px;
-  height: 4px;
-  border: 1px solid #ff4d4f; // 红色边框
-  border-radius: 50%; // 圆形
-  position: relative;
 
-  // 中间的斜杠
-  &::after {
-    content: "";
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    width: 3px; // 稍微长一点，穿透边框
-    height: 1px;
-    background: #ff4d4f;
-    transform: translate(-50%, -50%) rotate(45deg);
-  }
-}
-
-.side-menu-icon {
+.right-cont {
   position: fixed;
-  top: 20px;
-  right: 30px;
-  z-index: 2;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  align-items: center;
+  z-index: 1;
+  top: 12px;
+  right: 50px;
 
-  img {
-    display: block;
-    width: 10px;
-    height: 10px;
+  .image {
+    width: 30px;
+    height: 30px;
+    display: inline-block;
+    margin-left: 15px;
   }
 }
 
 .side-menu {
   // 1. 整体容器样式
   position: fixed;
-  top: 25px;
-  right: 7px;
+  top: 50px;
+  right: 50px;
+  width: 30px;
   z-index: 2;
   display: flex;
   flex-direction: column;
-  gap: 4px;
-  background: rgba(20, 20, 20, 0.75);
-  backdrop-filter: blur(10px);
-  border-radius: 20px;
-  padding: 5px 1px;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-}
+  gap: 10px;
 
-.menu-item {
-  // 2. 单个菜单项布局
-  display: flex;
-  flex-direction: column; // 图标在上，文字在下
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  opacity: 1;
+  background: rgba(255, 255, 255, 0.08);
 
-  .img {
-    display: block;
-    width: 6px;
-    height: 6px;
-    margin-bottom: 1px;
-  }
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%); /* Safari/iOS 必须加 */
+  border: 1px solid rgba(255, 255, 255, 0.2);
 
-  .label {
-    font-family: PingFangSC, PingFang SC;
-    font-weight: 400;
-    font-size: 5px;
-    color: #ffffff;
-    white-space: nowrap; // 防止文字换行
-    text-align: center;
+  overflow: hidden;
+  padding: 10px 1px;
+  box-shadow: inset 0px 1px 20px 0px rgba(255, 255, 255, 0.8);
+  border-radius: 30px;
+
+  .menu-item {
+    // 2. 单个菜单项布局
+    display: flex;
+    flex-direction: column; // 图标在上，文字在下
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+
+    .img {
+      display: block;
+      width: 16px;
+      height: 16px;
+    }
+
+    .label {
+      font-family: PingFangSC, PingFang SC;
+      font-weight: 400;
+      font-size: 8px;
+      line-height: 11px;
+      margin-top: 4px;
+      color: #ffffff;
+      white-space: nowrap; // 防止文字换行
+      text-align: center;
+    }
   }
 }
 
