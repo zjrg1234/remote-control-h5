@@ -10,28 +10,32 @@ const MoveDirectionControlType = {
 // 2. 将核心逻辑封装为类
 export class CarControlHandler {
   /**
-   * @param {number} 
-   * @param {number} 
+   * @param {number}
+   * @param {number}
    */
   constructor(config) {
     // 通过参数传入初始值
     this.ch1 = config.ch1;
-    this.ch2 =  config.ch2;
-    this.reverseUpDownState = config.reverseUpDownState
-    this.reverseLeftRightState = config.reverseLeftRightState
-    this.config = config
-
+    this.ch2 = config.ch2;
+    this.reverseUpDownState = config.reverseUpDownState;
+    this.reverseLeftRightState = config.reverseLeftRightState;
+    this.config = config;
   } // 模拟获取配置参数的方法
 
   getConfigValue(index) {
-    return this.config[index]
+    return this.config[index];
   }
 
   setConfigValue(obj) {
-    this.config[0] = obj[0]
-    this.config[2] = obj[2]
-    this.config[3] = obj[3]
-    console.log(this.config)
+    this.config[0] = obj[0];
+    this.config[2] = obj[2];
+    this.config[3] = obj[3];
+  }
+
+  setReverseStatus(type1, type2) {
+    this.reverseUpDownState = type1;
+    this.reverseLeftRightState = type2;
+    console.log("this.reverseUpDownState", this.reverseUpDownState);
   }
   /**
    * 处理双摇杆控制通道
@@ -41,31 +45,31 @@ export class CarControlHandler {
    */
 
   handleTwoDirectionControlChannel(isUpDown, positionType, ratioValue) {
-    let maxValue = 0.0;
+    // 如果输出 false，就是 this 丢失
+
     let centerValue = 0.0;
-    let minValue = 0.0;
+
     let rateValue = 0.0;
-    console.log(positionType)
+
     // 1,3 进退油门
     if (isUpDown === true) {
-     
-      //maxValue = this.getConfigValue(1)?.max_value;
-      centerValue = this.getConfigValue(1)?.current_value;
-      //minValue = this.getConfigValue(1)?.min_value ; // 计算油门力度比例
 
-      const acceleratorDynamicsValue =
-        this.getConfigValue(3)?.current_value ;
-      const acceleratorDynamicsMaxValue =
-        this.getConfigValue(3)?.max_value ;
+      centerValue = Number(this.getConfigValue(1)?.current_value); // accelerator_center
+
+
+      const acceleratorDynamicsValue = this.getConfigValue(3)?.current_value;
+      const acceleratorDynamicsMaxValue = this.getConfigValue(3)?.max_value;
       rateValue = acceleratorDynamicsValue / acceleratorDynamicsMaxValue;
+
+      console.log("acceleratorDynamicsValue", acceleratorDynamicsValue, "acceleratorDynamicsMaxValue", acceleratorDynamicsMaxValue);
 
       if (positionType === MoveDirectionControlType.endType) {
         // 摇杆回中
         this.ch2 = Math.round(centerValue);
       } else {
         const isReverse = this.reverseUpDownState;
+        console.log("reverseUpDownState", this.reverseUpDownState);
         const delta = 500 * rateValue * ratioValue;
-        console.log(delta, rateValue, ratioValue)
 
         if (positionType === MoveDirectionControlType.upType) {
           // 上推：如果开启反向，则变为向下输出
@@ -78,22 +82,16 @@ export class CarControlHandler {
             isReverse ? centerValue + delta : centerValue - delta,
           );
         }
-      } // 边界保护 (忠实保留原逻辑)
-
-      if (this.ch2 < 1) this.ch2 = 1;
-      if (this.ch2 > 2000) this.ch2 = 2000;
+      }
     } else {
+      // ==========0,2 左右控制 (方向)  方向力度控制转向快速==========
       
-      // ==========0,2 左右控制 (方向) ==========
-      maxValue = this.getConfigValue(0)?.max_value;
-      centerValue = this.getConfigValue(0)?.current_value;
-      minValue = this.getConfigValue(0)?.min_value; // 计算方向力度比例
+      centerValue = Number(this.getConfigValue(0)?.current_value);
 
-      const directionDynamicsValue =
-        this.getConfigValue(2)?.current_value;
-      const directionDynamicsMaxValue =
-        this.getConfigValue(2)?.max_value;
+      const directionDynamicsValue = this.getConfigValue(2)?.current_value;
+      const directionDynamicsMaxValue = this.getConfigValue(2)?.max_value;
       rateValue = directionDynamicsValue / directionDynamicsMaxValue;
+     
 
       if (positionType === MoveDirectionControlType.endType) {
         // 摇杆回中
@@ -113,9 +111,6 @@ export class CarControlHandler {
             isReverse ? centerValue + delta : centerValue - delta,
           );
         } // 左右控制的边界保护
-
-        if (this.ch1 < 1) this.ch1 = 1;
-        if (this.ch1 > 2000) this.ch1 = 2000;
       }
     }
   }

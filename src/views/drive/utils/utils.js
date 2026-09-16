@@ -8,9 +8,9 @@ export const formatTime = (totalSeconds) => {
   const formattedMinutes = minutes.toString().padStart(2, "0");
   const formattedSeconds = seconds.toString().padStart(2, "0");
 
-  // if (formattedHours == "00") {
-  //   return `${formattedMinutes}:${formattedSeconds}`;
-  // }
+  if (formattedHours == "00") {
+    return `${formattedMinutes}:${formattedSeconds}`;
+  }
   return `${formattedHours}:${formattedMinutes}:${formattedSeconds}`;
 };
 
@@ -102,7 +102,7 @@ export const compareTimestamp = (startTime, endTime) => {
   if (diffMs < 0) {
     diffMs = 0;
   }
-  console.log(diffMs);
+
   const date = new Date(diffMs);
   const days = Math.floor(diffMs / (1000 * 60 * 60 * 24));
   // 获取小时、分钟、秒（使用 UTC 方法避免受本地时区偏移影响）
@@ -127,7 +127,6 @@ export const compareTimestamp = (startTime, endTime) => {
 
 const formatNum = (n) => (n < 10 ? "0" + n : n);
 
-
 // export const mapValue = (value) => {
 //   // 可选：限制输入值在 0~65 之间，防止越界
 //   const clampedValue = Math.max(0, Math.min(65, Math.abs(value)));
@@ -138,55 +137,74 @@ export const mapToPer = (value) => {
   // 1. 边界保护，防止超出范围
   if (value <= 0) return 0;
   if (value >= 65) return 1;
-  
+
   // 2. 线性映射计算
   const percentage = 1 + (value / 65) * 99;
-  
+
   // 3. 四舍五入取整（根据需求也可以保留小数）
-  return (Math.round(percentage)/ 100).toFixed(2); 
-}
+  return (Math.round(percentage) / 100).toFixed(2);
+};
 
+// 通过电压计算电量
+export const handleBattery = (voltage, batteryType) => {
+  // 1. 定义单节锂电池的安全工作区间
+  const cellMaxVoltage = 4.2;
+  const cellMinVoltage = 3.5;
+  const cellVoltageRange = cellMaxVoltage - cellMinVoltage; // 0.7V
 
+  // 2. 直接将传入的类型转换为数字类型（规避字符串隐式转换）
+  // 假设 batteryType 是 1~5，如果是其他异常值则默认保底为 6 串
+  const cellCount = Number(batteryType) + 1;
 
-type AnyFunc = (...args: any[]) => any
+  // 3. 计算电池总体的最高与最低电压
+  const minVoltage = cellMinVoltage * cellCount;
+  const voltageRange = cellVoltageRange * cellCount;
 
-/**
- * 防抖函数 (Debounce)
- * @param func 需要执行的函数
- * @param delay 延迟时间(ms)，默认300ms
- * @returns 包装后的函数
- */
-export const debounce = <T extends AnyFunc>(
-  func: T,
-  delay: number = 300
-): ((...args: Parameters<T>) => void) => {
-  let timer: ReturnType<typeof setTimeout> | null = null
+  // 4. 计算出原始比例
+  const rawRate = (voltage - minVoltage) / voltageRange;
 
-  return function (this: any, ...args: Parameters<T>) {
-    if (timer) clearTimeout(timer)
-    timer = setTimeout(() => {
-      ;(func as AnyFunc).apply(this, args)
-    }, delay)
+  // 5. 限制在 0.0 ~ 1.0 之间
+  const clampedRate = Math.max(0.0, Math.min(1.0, rawRate));
+
+  // 6. 转换为百分比
+  // 方案 A：如果你需要整数百分比（推荐用于 UI 展示，如 7%）
+  // return Math.round(clampedRate * 100);
+
+  // 方案 B：如果你确实需要保留两位小数的浮点数（如 7.14），需包裹 Number 强转
+
+  return Number((clampedRate * 100).toFixed(2));
+};
+
+export const createReverseMapper = (inMin, inMax, outMin, outMax) => {
+  return (value) => {
+    const clampedValue = Math.max(outMin, Math.min(outMax, value));
+    const result =
+      inMin + ((clampedValue - outMin) * (inMax - inMin)) / (outMax - outMin);
+    return parseFloat(result.toFixed(1));
+  };
+};
+
+export const createMapperNew = (inMin, inMax, outMin, outMax, value) => {
+  // 1. 防止除以 0 导致 NaN 或 Infinity
+  if (inMax === inMin) return outMin;
+
+  // 2. 将输入值限制在 inMin 和 inMax 之间
+  const clampedValue = Math.max(inMin, Math.min(inMax, value));
+
+  // 3. 执行线性映射计算
+  return (
+    outMin + ((clampedValue - inMin) * (outMax - outMin)) / (inMax - inMin)
+  );
+};
+
+export const getPlatform = () => {
+  // #ifdef MP-WEIXIN
+  if (wx.getDeviceInfo) {
+    return wx.getDeviceInfo().platform; // 基础库 2.20.1+ 推荐
   }
-}
-
-/**
- * 节流函数 (Throttle)
- * @param func 需要执行的函数
- * @param interval 间隔时间(ms)，默认500ms
- * @returns 包装后的函数
- */
-export const throttle = <T extends AnyFunc>(
-  func: T,
-  interval: number = 500
-): ((...args: Parameters<T>) => void) => {
-  let lastTime = 0
-
-  return function (this: any, ...args: Parameters<T>) {
-    const now = Date.now()
-    if (now - lastTime >= interval) {
-      lastTime = now
-      ;(func as AnyFunc).apply(this, args)
-    }
-  }
-}
+  return wx.getSystemInfoSync().platform; // 旧 API，已不推荐但兼容
+  // #endif
+  // #ifdef H5
+  return "ios";
+  // #endif
+};
