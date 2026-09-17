@@ -81,7 +81,24 @@ export function CancelReservation(data) {
   return post("/api/user/cancel/reservation", data);
 }
 
+// 检查车辆
+export function CheckCar(data) {
+  return post("/api/user/chack/start/driving", data);
+}
 
+// 锁车
+export function LockCar(data) {
+  return post("/api/user/lock/driving", data);
+}
+
+export function UpdateBattery(data) {
+  return post("/api/update/vehicle/battery", data);
+}
+
+// 检查车辆的状态
+export function CheckCarStatus(data) {
+  return post("/api/user/check/vehicle/status", data);
+}
 
 // /* 竖屏时的样式 */
 // @media screen and (orientation: portrait) {

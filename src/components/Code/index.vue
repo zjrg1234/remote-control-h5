@@ -115,7 +115,7 @@ onUnmounted(() => {
 .input-group input {
   width: 100%;
   height: 96px;
-  padding: 0 24px;
+  padding: 0 25px;
   box-sizing: border-box;
   font-family: PingFangSC, PingFang SC;
   font-weight: 400;

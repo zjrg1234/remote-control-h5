@@ -62,11 +62,14 @@
           <span class="label">{{ item.name }}</span>
         </div>
       </div>
-      。
+      
+
 
       <LeftRight @action="handleLRDrive" :isLeft="operMode"></LeftRight>
 
       <UpDown @action="handleFBDrive" :isLeft="!operMode"></UpDown>
+
+  
 
       <div class="time">
         <img src="@/assets/images/icon_time@2x.webp" alt="" />
@@ -261,11 +264,11 @@ onMounted(() => {
   }
   initOrientation();
   initTimer();
-  // initRouteData();
-  // initVehicleConfig();
-  // initWebSocket();
-  // initThreeSend();
-  // initTopVideo();
+  initRouteData();
+  initVehicleConfig();
+  initWebSocket();
+  initThreeSend();
+  initTopVideo();
 });
 const checkOrientation = () => {
   isLandscape.value = window.innerWidth > window.innerHeight;
@@ -647,7 +650,9 @@ const handleLRDrive = (item) => {
   if (item.lr == false) {
     if (item.value == 0) {
       console.log("停止", 0);
-      chValue.value.ch1 = directionCenter.value.current_value;
+      chValue.value.ch1 = 0;
+
+      //chValue.value.ch1 = directionCenter.value.current_value;
     } else {
       console.log("向右", mapToPer(item.value));
       ratioValue = mapToPer(Math.abs(item.value));
