@@ -1,352 +1,407 @@
 <template>
-  <!-- 注意：这里不再绑定 Vue 的响应式 style，而是直接操作 DOM -->
-  <div class="control-box" ref="boxRef">
-    <div
-      class="arrow left"
-      :style="{ backgroundImage: `url(${leftImage})` }"
-      :class="{ active: isLeftActive }"
-    ></div>
+  <div
+    class="control-wrapper"
+    ref="wrapperRef"
+    :style="wrapperStyle"
+    @touchstart.prevent="handleStart"
+    @touchmove.prevent="handleMove"
+    @touchend.prevent="handleEnd"
+    @touchcancel.prevent="handleEnd"
+    @mousedown.prevent="handleStart"
+    @mousemove.prevent="handleMove"
+    @mouseup.prevent="handleEnd"
+    @mouseleave.prevent="handleEnd"
+  >
+    <div class="control-box">
+      <div class="cont">
+        <!-- 轨迹背景圈 -->
+        <div class="track-bg"></div>
 
-    <div
-      class="dot"
-      ref="dotRef"
-      :class="{ ready: isReadyMode }"
-      :style="{
-        backgroundImage: `url(${dotImage})`,
-        transition: isDragging
-          ? 'none'
-          : 'transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), background 0.3s ease, box-shadow 0.3s ease',
-      }"
-      @mousedown.prevent="handleStart"
-      @touchstart.prevent="handleStart"
-    ></div>
+        <!-- 左箭头 -->
+        <img
+          class="arrow left"
+          :class="{ active: isLeftActive }"
+          src="@/assets/images/d‌_left@2x.png"
+          alt=""
+        />
+        <!-- 右箭头 -->
+        <img
+          class="arrow right"
+          :class="{ active: isRightActive }"
+          src="@/assets/images/d_right@2x.png"
+          alt=""
+        />
 
-    <div
-      class="arrow right"
-      :style="{ backgroundImage: `url(${rightImage})` }"
-      :class="{ active: isRightActive }"
-    ></div>
+        <!-- 摇杆圆点 -->
+        <div class="dot" :class="{ ready: isReadyMode }" :style="dotStyle">
+          <img src="@/assets/images/d_dot‌@2x.png" alt="" />
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted, onBeforeUnmount, watch } from "vue";
+import {
+  ref,
+  reactive,
+  computed,
+  watch,
+  onBeforeUnmount,
+} from 'vue'
 
-import leftImg from "@/assets/images/arrow_left_big@2x.png";
-import rightImg from "@/assets/images/arrow_right_big@2x.png";
-import dotImg from "@/assets/images/dot@2x.webp";
-
-const emit = defineEmits(["action"]);
+const emit = defineEmits(['action', 'action2'])
 
 const props = defineProps({
+  mode: { type: Boolean, default: true },
   isLeft: { type: Boolean, default: false },
-});
+})
 
-const leftImage = ref(leftImg);
-const rightImage = ref(rightImg);
-const dotImage = ref(dotImg);
-
-// --- 配置参数 ---
-const IDLE_DELAY = 500;
-const SWIPE_THRESHOLD = 20;
-const MAX_DOT_DRAG = 40;
-const BOX_WIDTH = 90;
-const BOX_HEIGHT = 50;
-
-// --- DOM 引用 ---
-const boxRef = ref(null);
-const dotRef = ref(null);
-
-// --- 响应式状态 (仅用于触发 CSS 类名等低频 UI 变化) ---
-const isDragging = ref(false);
-const isReadyMode = ref(false);
-const isLeftActive = ref(false);
-const isRightActive = ref(false);
-
-// --- 内部非响应式状态 (彻底避免 Vue 响应式开销) ---
-let idleTimer = null;
-let dragOffsetX = 0;
-let dragOffsetY = 0;
-let dotStartOffset = 0;
-
-// 纯物理状态 (非响应式)
-let currentBoxX = 0;
-let currentBoxY = 0;
-let currentDotX = 0;
-
-// 👇 新增：记录拖拽开始时的初始绝对坐标（作为移动锚点）
-let initialBoxX = 0;
-let initialBoxY = 0;
-
-// RAF 调度控制
-let animationFrameId = null;
-let pendingMoveEvent = null; // 缓存最新的移动事件
-
-const backRightInit = () => {
-  currentBoxX = window.innerWidth / 2 + 130;
-  currentBoxY = window.innerHeight / 2 - 10;
-  if (boxRef.value) {
-    boxRef.value.style.transform = `translate3d(${currentBoxX}px, ${currentBoxY}px, 0)`;
-  }
-};
-
-const backLeftInit = () => {
-  currentBoxX = 20;
-  currentBoxY = 190;
-  if (boxRef.value) {
-    boxRef.value.style.transform = `translate3d(${currentBoxX}px, ${currentBoxY}px, 0)`;
-  }
-  // 初始化 DOM 位置
-};
 watch(
   () => props.isLeft,
   (val) => {
-    if (val) {
-      backLeftInit();
-    } else {
-      backRightInit();
-    }
+    if (val) backLeftInit()
+    else backRightInit()
   },
-  { immediate: true, deep: true },
-);
+  { deep: true }
+)
+
+// --- 配置参数 ---
+const IDLE_DELAY = 100 // 进入待命模式的延迟时间(ms)
+const MAX_RADIUS = 65 // 圆点滑动的最大半径(px)
+const SWIPE_THRESHOLD = 15 // 触发箭头的阈值
+
+// --- 响应式状态 ---
+const isDragging = ref(false)
+const isReadyMode = ref(false)
+const isUpActive = ref(false)
+const isDownActive = ref(false)
+const isLeftActive = ref(false)
+const isRightActive = ref(false)
+
+// 仅保留圆点位置状态
+const currentDotX = ref(0)
+const currentDotY = ref(0)
+const wrapperRef = ref(null)
+
+// --- 内部非响应式状态 ---
+let idleTimer = null
+let lastPointerX = 0
+let lastPointerY = 0
+let readyBaseX = 0
+let readyBaseY = 0
+let emitInterval = null
+
+// --- 圆点样式 ---
+const dotStyle = computed(() => ({
+  transform: `translate(calc(-50% + ${currentDotX.value}px), calc(-50% + ${currentDotY.value}px))`,
+  transition: isDragging.value
+    ? 'none'
+    : 'transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.3s ease',
+}))
+
+// --- wrapper 定位 ---
+const wrapperStyle = reactive({
+  right: '120px',
+  bottom: '50px',
+})
+
+const backLeftInit = () => {
+  wrapperStyle.left = '90px'
+  wrapperStyle.bottom = '50px'
+  delete wrapperStyle.right
+}
+
+const backRightInit = () => {
+  wrapperStyle.right = '120px'
+  wrapperStyle.bottom = '50px'
+  delete wrapperStyle.left
+}
+
+// --- 震动兼容 ---
+const vibrate = (type = 'light') => {
+  if (typeof navigator === 'undefined' || !navigator.vibrate) return
+  try {
+    const map = { light: 10, medium: 20, heavy: 30 }
+    navigator.vibrate(map[type] || 10)
+  } catch (e) {}
+}
 
 // --- 核心方法 ---
 const resetIdleTimer = () => {
-  clearTimeout(idleTimer);
+  clearTimeout(idleTimer)
   if (!isReadyMode.value) {
-    idleTimer = setTimeout(enterReadyMode, IDLE_DELAY);
+    idleTimer = setTimeout(enterReadyMode, IDLE_DELAY)
   }
-};
+}
+
+// 统一获取触摸/鼠标坐标
+const getClientPos = (e) => {
+  if (e.touches && e.touches.length > 0) {
+    return {
+      clientX: e.touches[0].pageX || e.touches[0].clientX,
+      clientY: e.touches[0].pageY || e.touches[0].clientY,
+    }
+  }
+  if (e.changedTouches && e.changedTouches.length > 0) {
+    return {
+      clientX: e.changedTouches[0].pageX || e.changedTouches[0].clientX,
+      clientY: e.changedTouches[0].pageY || e.changedTouches[0].clientY,
+    }
+  }
+  return {
+    clientX: e.pageX || e.clientX,
+    clientY: e.pageY || e.clientY,
+  }
+}
 
 const enterReadyMode = () => {
-  isReadyMode.value = true;
-  if (navigator.vibrate) navigator.vibrate(50);
-};
+  isReadyMode.value = true
+  vibrate('light')
+}
 
-const updateArrows = (deltaX) => {
-  isLeftActive.value = deltaX < -SWIPE_THRESHOLD;
-  isRightActive.value = deltaX > SWIPE_THRESHOLD;
+const updateArrows = (dx, dy) => {
+  const distance = Math.sqrt(dx * dx + dy * dy)
+  const ratioValue = Math.min(distance / MAX_RADIUS, 1)
 
-  emit("action", {
-    lr: deltaX < 0 ? true : false,
-    value: deltaX,
-  });
-};
+  isLeftActive.value = dx < -SWIPE_THRESHOLD
+  isRightActive.value = dx > SWIPE_THRESHOLD
+
+  if (emitInterval) {
+    clearInterval(emitInterval)
+    emitInterval = null
+  }
+
+  const hasActive = isLeftActive.value || isRightActive.value
+
+  if (hasActive && isDragging.value) {
+    // 立即发送一次
+    emit('action', { lr: dx < 0, value: dx, ratioValue })
+
+    // 持续发送
+    emitInterval = setInterval(() => {
+      if (!isDragging.value || !(isLeftActive.value || isRightActive.value)) {
+        clearInterval(emitInterval)
+        emitInterval = null
+        return
+      }
+      emit('action', {
+        lr: currentDotX.value < 0,
+        value: Math.round(currentDotX.value * 100) / 100,
+        ratioValue,
+      })
+    }, 1000)
+  } else {
+    emit('action', { lr: false, value: 0 })
+  }
+}
 
 const resetArrows = () => {
-  isLeftActive.value = false;
-  isRightActive.value = false;
-  emit("action", {
-    lr: false,
-    value: 0,
-  });
-  if (props.isLeft) {
-    backLeftInit();
-  } else {
-    backRightInit();
+  isUpActive.value = false
+  isDownActive.value = false
+  isLeftActive.value = false
+  isRightActive.value = false
+  if (emitInterval) {
+    clearInterval(emitInterval)
+    emitInterval = null
   }
-};
-
-// 【性能核心】：在 RAF 中统一处理 DOM 更新
-const processMove = () => {
-  if (!pendingMoveEvent || !isDragging.value) {
-    // 如果没有待处理的事件，继续等待下一帧
-    animationFrameId = requestAnimationFrame(processMove);
-    return;
-  }
-
-  const e = pendingMoveEvent;
-  pendingMoveEvent = null; // 消费掉事件
-
-  const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-  const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-
-  resetIdleTimer();
-
-  if (!isReadyMode.value) {
-    // 【模式 A：自由拖动容器】
-
-    // 1. 计算当前鼠标相对于【初始位置】的偏移量
-    let deltaX = clientX - dragOffsetX - initialBoxX;
-    let deltaY = clientY - dragOffsetY - initialBoxY;
-
-    // 2. 将偏移量严格限制在上下左右 100px 之内
-    const LIMIT = 80;
-    if (props.isLeft) {
-      deltaX = Math.max(0, Math.min(100, deltaX));
-    } else {
-      deltaX = Math.max(-LIMIT, Math.min(LIMIT, deltaX));
-    }
-    deltaY = Math.max(-LIMIT, Math.min(LIMIT, deltaY));
-
-    // 3. 最终坐标 = 初始绝对坐标 + 限制后的偏移量
-    currentBoxX = initialBoxX + deltaX;
-    currentBoxY = initialBoxY + deltaY;
-
-    // 直接操作 DOM，绕过 Vue 的 Virtual DOM 和响应式系统
-    boxRef.value.style.transform = `translate3d(${currentBoxX}px, ${currentBoxY}px, 0)`;
-  } else {
-    // 【模式 B：待命模式 - 圆点左右弹性滑动】
-    let deltaX = clientX - (currentBoxX + BOX_WIDTH / 2) - dotStartOffset;
-    const absDelta = Math.abs(deltaX);
-
-    if (absDelta > MAX_DOT_DRAG) {
-      const excess = absDelta - MAX_DOT_DRAG;
-      const sign = deltaX > 0 ? 1 : -1;
-      deltaX = sign * (MAX_DOT_DRAG + excess * 0.2);
-    }
-
-    currentDotX = deltaX;
-
-    if (deltaX < -65) deltaX = -65;
-    if (deltaX > 65) deltaX = 65;
-
-    // 直接操作 DOM
-    dotRef.value.style.transform = `translateX(${currentDotX}px) scale(1)`;
-    updateArrows(deltaX);
-  }
-
-  // 循环调度下一帧
-  animationFrameId = requestAnimationFrame(processMove);
-};
+  emit('action', { lr: false, value: 0 })
+}
 
 // --- 事件处理 ---
 const handleStart = (e) => {
-  isDragging.value = true;
-  isReadyMode.value = false;
-  clearTimeout(idleTimer);
-  resetArrows();
+  isDragging.value = true
+  isReadyMode.value = false
+  clearTimeout(idleTimer)
+  resetArrows()
 
-  const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-  const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+  const { clientX, clientY } = getClientPos(e)
+  lastPointerX = clientX
+  lastPointerY = clientY
 
-  // 👇 记录按下时的初始绝对位置（作为本次拖拽的锚点）
-  initialBoxX = currentBoxX;
-  initialBoxY = currentBoxY;
+  readyBaseX = lastPointerX
+  readyBaseY = lastPointerY
 
-  // 锁定偏移量（用于计算鼠标相对于盒子的相对位置）
-  dragOffsetX = clientX - currentBoxX;
-  dragOffsetY = clientY - currentBoxY;
-
-  const dotScreenCenterX = currentBoxX + BOX_WIDTH / 2 + currentDotX;
-  dotStartOffset = clientX - dotScreenCenterX;
-
-  resetIdleTimer();
-
-  // 绑定全局事件
-  window.addEventListener("mousemove", handleMove);
-  window.addEventListener("touchmove", handleMove, { passive: false });
-  window.addEventListener("mouseup", handleEnd);
-  window.addEventListener("touchend", handleEnd);
-
-  // 启动 RAF 渲染循环
-  if (!animationFrameId) {
-    animationFrameId = requestAnimationFrame(processMove);
-  }
-};
+  resetIdleTimer()
+}
 
 const handleMove = (e) => {
-  if (!isDragging.value) return;
-  if (e.cancelable) e.preventDefault();
+  if (!isDragging.value) return
 
-  // 【节流核心】：只缓存最新的事件，不执行任何逻辑
-  pendingMoveEvent = e;
-};
+  const { clientX, clientY } = getClientPos(e)
+
+  lastPointerX = clientX
+  lastPointerY = clientY
+  resetIdleTimer()
+
+  let dx = clientX - readyBaseX
+  let dy = clientY - readyBaseY
+
+  const distance = Math.sqrt(dx * dx + dy * dy)
+  if (distance > MAX_RADIUS) {
+    const angle = Math.atan2(dy, dx)
+    dx = Math.cos(angle) * MAX_RADIUS
+    dy = Math.sin(angle) * MAX_RADIUS
+  }
+
+  currentDotX.value = dx
+  currentDotY.value = dy
+
+  updateArrows(dx, dy)
+}
 
 const handleEnd = () => {
-  if (!isDragging.value) return;
-
-  isDragging.value = false;
-  isReadyMode.value = false;
-  clearTimeout(idleTimer);
-
-  // 停止 RAF 循环
-  if (animationFrameId) {
-    cancelAnimationFrame(animationFrameId);
-    animationFrameId = null;
+  if (!isDragging.value) return
+  currentDotX.value = 0
+  currentDotY.value = 0
+  isDragging.value = false
+  isReadyMode.value = false
+  clearTimeout(idleTimer)
+  if (emitInterval) {
+    clearInterval(emitInterval)
+    emitInterval = null
   }
-  pendingMoveEvent = null;
+  resetArrows()
+}
 
-  // 触发 CSS 过渡回弹
-  dotRef.value.style.transform = `translateX(0px) scale(1)`;
-  currentDotX = 0;
-  dotStartOffset = 0;
-  resetArrows();
+const handleCancel = () => {
+  console.log('handleCancel')
+}
 
-  window.removeEventListener("mousemove", handleMove);
-  window.removeEventListener("touchmove", handleMove);
-  window.removeEventListener("mouseup", handleEnd);
-  window.removeEventListener("touchend", handleEnd);
-};
+const handleClick = (val) => {
+  emit('action2', { type: val })
+}
 
-// --- 生命周期 ---
-onMounted(() => {
-  backRightInit();
-});
-
+// --- 清理 ---
 onBeforeUnmount(() => {
-  clearTimeout(idleTimer);
-  if (animationFrameId) cancelAnimationFrame(animationFrameId);
-  window.removeEventListener("mousemove", handleMove);
-  window.removeEventListener("touchmove", handleMove);
-  window.removeEventListener("mouseup", handleEnd);
-  window.removeEventListener("touchend", handleEnd);
-});
+  clearTimeout(idleTimer)
+  if (emitInterval) {
+    clearInterval(emitInterval)
+    emitInterval = null
+  }
+})
 </script>
 
-<style scoped>
-.control-box {
+<style lang="scss" scoped>
+.control-wrapper {
   position: fixed;
-  top: 0;
-  left: 0;
-  width: 90px;
-  height: 25px;
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  justify-content: space-between;
-  box-sizing: border-box;
-  z-index: 100;
-  will-change: transform;
+  right: 120px;
+  bottom: 40px;
+  width: 215px;
+  height: 175px;
+  z-index: 9999;
+  /* 移动端阻止默认滚动手势干扰摇杆 */
+  touch-action: none;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.control-box {
+  position: absolute;
+  right: 0;
+  width: 100%;
+  height: 175px;
   user-select: none;
   touch-action: none;
 }
 
-.arrow {
-  width: 28px;
-  height: 28px;
-  opacity: 0.8;
-  transition: all 0.2s ease;
-  z-index: 1;
-  background-repeat: no-repeat;
-  background-position: center center;
-  background-size: contain;
-}
-
-.arrow.active {
-  opacity: 1;
-  filter: drop-shadow(0 0 4px rgba(255, 167, 38, 0.8));
-  transform: scale(1.15);
-}
-
-.dot {
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
-  background-repeat: no-repeat;
-  background-position: center center;
-  background-size: contain;
-  cursor: grab;
+.cont {
   position: relative;
-  z-index: 2;
-  will-change: transform;
+  width: 235px;
+  height: 176px;
+
+  /* 轨迹背景圈 */
+  .track-bg {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 231.5px;
+    height: 100px;
+    pointer-events: none;
+    background: url('@/assets/images/d_bg@2x.png') center / cover no-repeat;
+    border-radius: 65px;  
+    overflow: hidden; 
+  }
+
+  /* 箭头通用 */
+  .arrow {
+    width: 50px;
+    height: 50px;
+    opacity: 0.7;
+    transition: all 0.2s ease;
+    z-index: 1;
+    pointer-events: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+
+    &.active {
+      opacity: 1;
+      filter: drop-shadow(0 0 4px rgba(255, 167, 38, 0.8));
+      transform: scale(1.2);
+    }
+  }
+
+  /* 箭头位置 */
+  .arrow.left {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    left: 25px;
+
+    &.active {
+      transform: translateY(-50%) scale(1.2);
+    }
+  }
+
+  .arrow.right {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    right: 25px;
+
+    &.active {
+      transform: translateY(-50%) scale(1.2);
+    }
+  }
+
+  /* 摇杆圆点 — 居中 */
+  .dot {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+    overflow: hidden; 
+    img {
+      width: 100%;
+      height: 100%;
+      display: block;
+      pointer-events: none;
+      overflow: hidden; 
+    }
+
+    &.ready {
+      box-shadow: 0 0 12px rgba(255, 167, 38, 0.8);
+    }
+  }
 }
 
-.dot:active {
-  cursor: grabbing;
-}
+/* 已被注释掉的箭头位置保留备用
+.arrow.up { position: absolute; left: 75px; top: 25px; }
+.arrow.down { position: absolute; left: 75px; bottom: 25px; }
+*/
 
-.dot.ready {
-  box-shadow: 0 0 7.5px rgba(255, 167, 38, 0.6);
+.flex {
+  display: flex;
+  justify-content: space-between;
 }
 </style>
