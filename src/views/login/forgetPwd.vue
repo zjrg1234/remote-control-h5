@@ -8,7 +8,7 @@
         maxlength="11"
         label="+86"
         label-width="36"
-        placeholder="请输入手机号"
+        :placeholder="$t('请输入手机号')"
         class="input-item"
         :border="false"
         :rules="phoneRules"
@@ -22,7 +22,7 @@
         v-model="form.password"
         type="password"
         maxlength="6"
-        placeholder="请输入密码"
+        :placeholder="$t('请输入密码')"
         class="input-item"
         :border="false"
         :rules="passwordRules"
@@ -33,14 +33,14 @@
         v-model="form.passwordAgain"
         type="password"
         maxlength="6"
-        placeholder="请再次输入密码"
+        :placeholder="$t('请再次输入密码')"
         class="input-item"
         :border="false"
         :rules="passwordAgainRules"
       />
 
       <van-button block native-type="submit" class="login-btn">
-        完成
+         {{ $t('确认修改') }}
       </van-button>
     </van-form>
   </div>
@@ -50,9 +50,10 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { showToast, showSuccessToast } from 'vant'
-import { UserChangePwd } from '@/api/index.js'
+import { UserChangePwd } from '@/api/index'
 import { useUserStore } from '@/store/modules/user'
 import VerifyCodeInput from '@/components/Code/index.vue'
+import { $t } from "@/locales"
 
 const router = useRouter()
 const userStore = useUserStore()
@@ -69,21 +70,21 @@ const form = ref({
 const agree = ref(true) // 保留原字段，如无用途可删
 
 /* ---------------- 校验规则 ---------------- */
-const phoneRules = [
-  { required: true, message: '请输入手机号' },
-  { pattern: /^1[3-9]\d{9}$/, message: '请输入正确的手机号' }
-]
+// const phoneRules = [
+//   { required: true, message: '请输入手机号' },
+//   { pattern: /^1[3-9]\d{9}$/, message: '请输入正确的手机号' }
+// ]
 
 const passwordRules = [
-  { required: true, message: '请输入密码' },
-  { validator: (val) => val.length >= 6, message: '密码至少6位' }
+  { required: true, message: $t('请输入新密码') },
+  { validator: (val) => val.length >= 6, message: $t('密码至少6位') }
 ]
 
 const passwordAgainRules = [
-  { required: true, message: '请再次输入密码' },
+  { required: true, message: $t('请再次输入新密码') },
   {
     validator: (val) => val === form.value.password,
-    message: '两次密码输入不一致'
+    message: $t('两次密码输入不一致')
   }
 ]
 
@@ -92,11 +93,10 @@ const handleSubmit = () => {
   UserChangePwd({ ...form.value })
     .then((res) => {
       if (res.code === 200) {
-        showSuccessToast('修改成功')
-        // uni.switchTab → router.replace
+        showSuccessToast($t('修改成功'))
         router.replace('/login')
       } else {
-        showToast(res.msg || '修改失败')
+        showToast(res.msg || $t('修改失败'))
       }
     })
     .catch(() => {
@@ -107,7 +107,7 @@ const handleSubmit = () => {
 
 <style lang="scss" scoped>
 .page {
-  padding: 5px 16px 20px;
+  padding: 10px 32px 40px;
   box-sizing: border-box;
   min-height: 100vh;
   background-color: #fff;
@@ -118,10 +118,10 @@ const handleSubmit = () => {
   display: flex;
   align-items: center;
   background-color: #f7f7f7;
-  border-radius: 6px;
-  padding: 0 12px;
-  height: 48px;
-  margin-bottom: 12px;
+  border-radius: 12px;
+  padding: 0 24px;
+  height: 96px;
+  margin-bottom: 24px;
   box-sizing: border-box;
   overflow: hidden;
 
@@ -132,13 +132,13 @@ const handleSubmit = () => {
 
   :deep(.van-field__label) {
     color: #333;
-    font-size: 14px;
-    margin-right: 8px;
+    font-size: 28px;
+    margin-right: 16px;
   }
 
   :deep(.van-field__control) {
-    font-size: 14px;
-    height: 48px;
+    font-size: 28px;
+    height: 96px;
     background: transparent;
   }
 
@@ -153,10 +153,10 @@ const handleSubmit = () => {
   --van-button-default-border-color: #ffc838;
   --van-button-default-color: #1a1a1a;
 
-  height: 44px;
-  border-radius: 12px;
-  font-size: 16px;
+  height: 88px;
+  border-radius: 24px;
+  font-size: 32px;
   font-weight: 400;
-  margin-top: 26px;
+  margin-top: 52px;
 }
 </style>
