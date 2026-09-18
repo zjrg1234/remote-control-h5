@@ -64,7 +64,7 @@
       </div>
       
 
-
+    
       <LeftRight @action="handleLRDrive" :isLeft="operMode"></LeftRight>
 
       <UpDown @action="handleFBDrive" :isLeft="!operMode"></UpDown>
@@ -165,7 +165,7 @@ const timerNum = ref();
 const ws = ref();
 const orderNo = ref();
 const vehicleId = ref();
-const operMode = ref(false); // 操作模式
+const operMode = ref(true); // 操作模式
 const operFB = ref(0); // 操作前后 正常0 反向1
 const operDir = ref(0); // 操作方向 正常0 反向1
 const directionCenter = ref();
@@ -304,6 +304,7 @@ const initRouteData = () => {
 const initVehicleConfig = () => {
   const details = carDetails.value;
   if (!details) return;
+  return;
 
   operFB.value = carDetails.value.reverse_left_right;
   operDir.value = carDetails.value.reverse_up_down;

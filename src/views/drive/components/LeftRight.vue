@@ -14,6 +14,7 @@
   >
     <div class="control-box">
       <div class="cont">
+      
         <!-- 轨迹背景圈 -->
         <div class="track-bg"></div>
 
@@ -34,8 +35,10 @@
 
         <!-- 摇杆圆点 -->
         <div class="dot" :class="{ ready: isReadyMode }" :style="dotStyle">
+        
           <img src="@/assets/images/d_dot‌@2x.png" alt="" />
         </div>
+            {{ props.isLeft }}
       </div>
     </div>
   </div>
@@ -57,14 +60,7 @@ const props = defineProps({
   isLeft: { type: Boolean, default: false },
 })
 
-watch(
-  () => props.isLeft,
-  (val) => {
-    if (val) backLeftInit()
-    else backRightInit()
-  },
-  { deep: true }
-)
+
 
 // --- 配置参数 ---
 const IDLE_DELAY = 100 // 进入待命模式的延迟时间(ms)
@@ -107,16 +103,27 @@ const wrapperStyle = reactive({
 })
 
 const backLeftInit = () => {
+ 
   wrapperStyle.left = '90px'
   wrapperStyle.bottom = '50px'
   delete wrapperStyle.right
 }
 
 const backRightInit = () => {
+
   wrapperStyle.right = '120px'
   wrapperStyle.bottom = '50px'
   delete wrapperStyle.left
 }
+
+watch(
+  () => props.isLeft,
+  (val) => {
+    if (val) backLeftInit()
+    else backRightInit()
+  },
+  { deep: true, immediate: true }
+)
 
 // --- 震动兼容 ---
 const vibrate = (type = 'light') => {
@@ -328,7 +335,7 @@ onBeforeUnmount(() => {
   .arrow {
     width: 50px;
     height: 50px;
-    opacity: 0.7;
+
     transition: all 0.2s ease;
     z-index: 1;
     pointer-events: none;
@@ -338,7 +345,6 @@ onBeforeUnmount(() => {
     color: #fff;
 
     &.active {
-      opacity: 1;
       filter: drop-shadow(0 0 4px rgba(255, 167, 38, 0.8));
       transform: scale(1.2);
     }
@@ -386,7 +392,7 @@ onBeforeUnmount(() => {
       height: 100%;
       display: block;
       pointer-events: none;
-      overflow: hidden; 
+      transform: scale(1.06);
     }
 
     &.ready {

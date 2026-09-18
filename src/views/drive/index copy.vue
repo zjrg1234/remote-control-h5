@@ -500,8 +500,8 @@ import TimeClock from "./components/tclock.vue";
 import nBattery from "./components/nBattery.vue";
 import SwitchComp from "./components/switchComp.vue";
 import SliderComp from "./components/sliderComp.vue";
-import UpDown from "./components/up-down.vue";
-import LeftRight from "./components/left-right.vue";
+import UpDown from "./components/up-down1.vue";
+import LeftRight from "./components/left-right1.vue";
 import ExLeft from "./components/ex-left.vue";
 import ExRight from "./components/ex-right.vue";
 
