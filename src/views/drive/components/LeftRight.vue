@@ -1,315 +1,218 @@
 <template>
   <div
-    class="control-wrapper"
     ref="wrapperRef"
-    :style="wrapperStyle"
-    @touchstart.prevent="handleStart"
-    @touchmove.prevent="handleMove"
-    @touchend.prevent="handleEnd"
-    @touchcancel.prevent="handleEnd"
-    @mousedown.prevent="handleStart"
-    @mousemove.prevent="handleMove"
-    @mouseup.prevent="handleEnd"
-    @mouseleave.prevent="handleEnd"
+    class="control-wrapper"
+    :class="{ 'is-left': isLeft }"
+    @pointerdown="handleStart"
+    @pointermove="handleMove"
+    @pointerup="handleEnd"
+    @pointercancel="handleEnd"
   >
     <div class="control-box">
       <div class="cont">
-      
-        <!-- 轨迹背景圈 -->
-        <div class="track-bg"></div>
+        <div class="track-bg" />
 
-        <!-- 左箭头 -->
         <img
           class="arrow left"
+          src="@/assets/images/d_left@2x.png"
           :class="{ active: isLeftActive }"
-          src="@/assets/images/d‌_left@2x.png"
-          alt=""
         />
-        <!-- 右箭头 -->
         <img
           class="arrow right"
-          :class="{ active: isRightActive }"
           src="@/assets/images/d_right@2x.png"
-          alt=""
+          :class="{ active: isRightActive }"
         />
 
-        <!-- 摇杆圆点 -->
         <div class="dot" :class="{ ready: isReadyMode }" :style="dotStyle">
-        
-          <img src="@/assets/images/d_dot‌@2x.png" alt="" />
+          <img src="@/assets/images/d_dot@2x.png" alt="" draggable="false" />
         </div>
-            {{ props.isLeft }}
       </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import {
-  ref,
-  reactive,
-  computed,
-  watch,
-  onBeforeUnmount,
-} from 'vue'
+import { ref, computed, onBeforeUnmount } from 'vue';
 
-const emit = defineEmits(['action', 'action2'])
+const emit = defineEmits(['action', 'action2']);
 
 const props = defineProps({
   mode: { type: Boolean, default: true },
   isLeft: { type: Boolean, default: false },
-})
+});
 
+// --- 配置 ---
+const IDLE_DELAY = 100;
+const MAX_RADIUS = 65;
+const SWIPE_THRESHOLD = 10;
+const EMIT_INTERVAL = 100;
 
+// --- 状态 ---
+const isDragging = ref(false);
+const isReadyMode = ref(false);
+const isLeftActive = ref(false);
+const isRightActive = ref(false);
+const currentDotX = ref(0);
+const currentDotY = ref(0);
+const wrapperRef = ref(null);
 
-// --- 配置参数 ---
-const IDLE_DELAY = 100 // 进入待命模式的延迟时间(ms)
-const MAX_RADIUS = 65 // 圆点滑动的最大半径(px)
-const SWIPE_THRESHOLD = 15 // 触发箭头的阈值
+let idleTimer = null;
+let emitInterval = null;
+let readyBaseX = 0;
+let readyBaseY = 0;
 
-// --- 响应式状态 ---
-const isDragging = ref(false)
-const isReadyMode = ref(false)
-const isUpActive = ref(false)
-const isDownActive = ref(false)
-const isLeftActive = ref(false)
-const isRightActive = ref(false)
+// ✅ 修复1: 用 computed 替代 reactive + delete，避免响应性丢失
+const wrapperStyle = computed(() =>
+  props.isLeft
+    ? { left: '90px', bottom: '50px' }
+    : { right: '120px', bottom: '50px' }
+);
 
-// 仅保留圆点位置状态
-const currentDotX = ref(0)
-const currentDotY = ref(0)
-const wrapperRef = ref(null)
-
-// --- 内部非响应式状态 ---
-let idleTimer = null
-let lastPointerX = 0
-let lastPointerY = 0
-let readyBaseX = 0
-let readyBaseY = 0
-let emitInterval = null
-
-// --- 圆点样式 ---
+// ✅ 修复2: 两段 translate 分离，确保居中与偏移互不干扰
 const dotStyle = computed(() => ({
-  transform: `translate(calc(-50% + ${currentDotX.value}px), calc(-50% + ${currentDotY.value}px))`,
+  transform: `translate(-50%, -50%) translate(${currentDotX.value}px, ${currentDotY.value}px)`,
   transition: isDragging.value
     ? 'none'
-    : 'transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.3s ease',
-}))
+    : 'transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
+}));
 
-// --- wrapper 定位 ---
-const wrapperStyle = reactive({
-  right: '120px',
-  bottom: '50px',
-})
-
-const backLeftInit = () => {
- 
-  wrapperStyle.left = '90px'
-  wrapperStyle.bottom = '50px'
-  delete wrapperStyle.right
-}
-
-const backRightInit = () => {
-
-  wrapperStyle.right = '120px'
-  wrapperStyle.bottom = '50px'
-  delete wrapperStyle.left
-}
-
-watch(
-  () => props.isLeft,
-  (val) => {
-    if (val) backLeftInit()
-    else backRightInit()
-  },
-  { deep: true, immediate: true }
-)
-
-// --- 震动兼容 ---
-const vibrate = (type = 'light') => {
-  if (typeof navigator === 'undefined' || !navigator.vibrate) return
-  try {
-    const map = { light: 10, medium: 20, heavy: 30 }
-    navigator.vibrate(map[type] || 10)
-  } catch (e) {}
-}
-
-// --- 核心方法 ---
-const resetIdleTimer = () => {
-  clearTimeout(idleTimer)
-  if (!isReadyMode.value) {
-    idleTimer = setTimeout(enterReadyMode, IDLE_DELAY)
-  }
-}
-
-// 统一获取触摸/鼠标坐标
-const getClientPos = (e) => {
-  if (e.touches && e.touches.length > 0) {
-    return {
-      clientX: e.touches[0].pageX || e.touches[0].clientX,
-      clientY: e.touches[0].pageY || e.touches[0].clientY,
-    }
-  }
-  if (e.changedTouches && e.changedTouches.length > 0) {
-    return {
-      clientX: e.changedTouches[0].pageX || e.changedTouches[0].clientX,
-      clientY: e.changedTouches[0].pageY || e.changedTouches[0].clientY,
-    }
-  }
-  return {
-    clientX: e.pageX || e.clientX,
-    clientY: e.pageY || e.clientY,
-  }
-}
+// --- 工具方法 ---
+const clearTimers = () => {
+  clearTimeout(idleTimer);
+  clearInterval(emitInterval);
+  idleTimer = null;
+  emitInterval = null;
+};
 
 const enterReadyMode = () => {
-  isReadyMode.value = true
-  vibrate('light')
-}
+  isReadyMode.value = true;
+  try { navigator.vibrate?.(10); } catch {}
+};
+
+const resetIdleTimer = () => {
+  clearTimeout(idleTimer);
+  if (!isReadyMode.value) {
+    idleTimer = setTimeout(enterReadyMode, IDLE_DELAY);
+  }
+};
 
 const updateArrows = (dx, dy) => {
-  const distance = Math.sqrt(dx * dx + dy * dy)
-  const ratioValue = Math.min(distance / MAX_RADIUS, 1)
+  const distance = Math.sqrt(dx * dx + dy * dy);
+  const ratioValue = Math.min(distance / MAX_RADIUS, 1);
 
-  isLeftActive.value = dx < -SWIPE_THRESHOLD
-  isRightActive.value = dx > SWIPE_THRESHOLD
+  isLeftActive.value = dx < -SWIPE_THRESHOLD;
+  isRightActive.value = dx > SWIPE_THRESHOLD;
 
-  if (emitInterval) {
-    clearInterval(emitInterval)
-    emitInterval = null
-  }
+  clearInterval(emitInterval);
+  emitInterval = null;
 
-  const hasActive = isLeftActive.value || isRightActive.value
+  const hasActive = isLeftActive.value || isRightActive.value;
 
   if (hasActive && isDragging.value) {
-    // 立即发送一次
-    emit('action', { lr: dx < 0, value: dx, ratioValue })
-
-    // 持续发送
+    emit('action', { lr: dx < 0, value: dx, ratioValue });
     emitInterval = setInterval(() => {
-      if (!isDragging.value || !(isLeftActive.value || isRightActive.value)) {
-        clearInterval(emitInterval)
-        emitInterval = null
-        return
+      if (!isDragging.value || !hasActive) {
+        clearInterval(emitInterval);
+        emitInterval = null;
+        return;
       }
       emit('action', {
         lr: currentDotX.value < 0,
         value: Math.round(currentDotX.value * 100) / 100,
         ratioValue,
-      })
-    }, 1000)
+      });
+    }, EMIT_INTERVAL);
   } else {
-    emit('action', { lr: false, value: 0 })
+    emit('action', { lr: false, value: 0, ratioValue: 0 });
   }
-}
+};
 
 const resetArrows = () => {
-  isUpActive.value = false
-  isDownActive.value = false
-  isLeftActive.value = false
-  isRightActive.value = false
-  if (emitInterval) {
-    clearInterval(emitInterval)
-    emitInterval = null
-  }
-  emit('action', { lr: false, value: 0 })
-}
+  isLeftActive.value = false;
+  isRightActive.value = false;
+  clearTimers();
+  emit('action', { lr: false, value: 0, ratioValue: 0 });
+};
 
-// --- 事件处理 ---
+// ✅ 修复3: 核心修复 —— 使用 setPointerCapture 锁定指针
 const handleStart = (e) => {
-  isDragging.value = true
-  isReadyMode.value = false
-  clearTimeout(idleTimer)
-  resetArrows()
+  // 锁定当前指针到本元素，即使滑出边界也能持续接收事件
+  wrapperRef.value?.setPointerCapture(e.pointerId);
 
-  const { clientX, clientY } = getClientPos(e)
-  lastPointerX = clientX
-  lastPointerY = clientY
+  isDragging.value = true;
+  isReadyMode.value = false;
+  clearTimers();
+  resetArrows();
 
-  readyBaseX = lastPointerX
-  readyBaseY = lastPointerY
-
-  resetIdleTimer()
-}
+  readyBaseX = e.clientX;
+  readyBaseY = e.clientY;
+  resetIdleTimer();
+};
 
 const handleMove = (e) => {
-  if (!isDragging.value) return
+  if (!isDragging.value) return;
 
-  const { clientX, clientY } = getClientPos(e)
+  // PointerEvent 自带 clientX/Y，无需兼容 touches
+  const dx = e.clientX - readyBaseX;
+  const dy = e.clientY - readyBaseY;
 
-  lastPointerX = clientX
-  lastPointerY = clientY
-  resetIdleTimer()
+  resetIdleTimer();
 
-  let dx = clientX - readyBaseX
-  let dy = clientY - readyBaseY
-
-  const distance = Math.sqrt(dx * dx + dy * dy)
+  let clampedDx = dx;
+  let clampedDy = dy;
+  const distance = Math.sqrt(dx * dx + dy * dy);
   if (distance > MAX_RADIUS) {
-    const angle = Math.atan2(dy, dx)
-    dx = Math.cos(angle) * MAX_RADIUS
-    dy = Math.sin(angle) * MAX_RADIUS
+    const angle = Math.atan2(dy, dx);
+    clampedDx = Math.cos(angle) * MAX_RADIUS;
+    clampedDy = Math.sin(angle) * MAX_RADIUS;
   }
 
-  currentDotX.value = dx
-  currentDotY.value = dy
+  currentDotX.value = clampedDx;
+  currentDotY.value = clampedDy;
+  updateArrows(clampedDx, clampedDy);
+};
 
-  updateArrows(dx, dy)
-}
+const handleEnd = (e) => {
+  if (!isDragging.value) return;
 
-const handleEnd = () => {
-  if (!isDragging.value) return
-  currentDotX.value = 0
-  currentDotY.value = 0
-  isDragging.value = false
-  isReadyMode.value = false
-  clearTimeout(idleTimer)
-  if (emitInterval) {
-    clearInterval(emitInterval)
-    emitInterval = null
-  }
-  resetArrows()
-}
+  // 释放指针捕获
+  try { wrapperRef.value?.releasePointerCapture(e.pointerId); } catch {}
 
-const handleCancel = () => {
-  console.log('handleCancel')
-}
+  currentDotX.value = 0;
+  currentDotY.value = 0;
+  isDragging.value = false;
+  isReadyMode.value = false;
+  clearTimers();
+  resetArrows();
+};
 
-const handleClick = (val) => {
-  emit('action2', { type: val })
-}
-
-// --- 清理 ---
-onBeforeUnmount(() => {
-  clearTimeout(idleTimer)
-  if (emitInterval) {
-    clearInterval(emitInterval)
-    emitInterval = null
-  }
-})
+onBeforeUnmount(clearTimers);
 </script>
 
 <style lang="scss" scoped>
 .control-wrapper {
   position: fixed;
+  /* ✅ 修复4: 位置由 class 控制，不再依赖 inline style 的 right/left */
   right: 120px;
-  bottom: 40px;
+  bottom: 50px;
   width: 215px;
   height: 175px;
-  z-index: 9999;
-  /* 移动端阻止默认滚动手势干扰摇杆 */
+  z-index: 99;
   touch-action: none;
   user-select: none;
-  -webkit-tap-highlight-color: transparent;
+  -webkit-user-select: none;
+
+  &.is-left {
+    right: auto;
+    left: 90px;
+  }
 }
 
 .control-box {
   position: absolute;
-  right: 0;
-  width: 100%;
-  height: 175px;
-  user-select: none;
+  inset: 0;
   touch-action: none;
+  user-select: none;
 }
 
 .cont {
@@ -317,97 +220,71 @@ onBeforeUnmount(() => {
   width: 235px;
   height: 176px;
 
-  /* 轨迹背景圈 */
   .track-bg {
     position: absolute;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    width: 231.5px;
-    height: 100px;
+    width: 128px;
+    height: 128px;
+    border-radius: 50%;
     pointer-events: none;
-    background: url('@/assets/images/d_bg@2x.png') center / cover no-repeat;
-    border-radius: 65px;  
-    overflow: hidden; 
   }
 
-  /* 箭头通用 */
   .arrow {
+    position: absolute;
     width: 50px;
     height: 50px;
-
-    transition: all 0.2s ease;
+    opacity: 0.7;
+    transition: opacity 0.2s ease, filter 0.2s ease, transform 0.2s ease;
     z-index: 1;
     pointer-events: none;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #fff;
+    user-select: none;
 
     &.active {
+      opacity: 1;
       filter: drop-shadow(0 0 4px rgba(255, 167, 38, 0.8));
-      transform: scale(1.2);
     }
   }
 
-  /* 箭头位置 */
   .arrow.left {
-    position: absolute;
     top: 50%;
-    transform: translateY(-50%);
     left: 25px;
-
-    &.active {
-      transform: translateY(-50%) scale(1.2);
-    }
+    transform: translateY(-50%);
+    &.active { transform: translateY(-50%) scale(1.15); }
   }
 
   .arrow.right {
-    position: absolute;
     top: 50%;
-    transform: translateY(-50%);
     right: 25px;
-
-    &.active {
-      transform: translateY(-50%) scale(1.2);
-    }
+    transform: translateY(-50%);
+    &.active { transform: translateY(-50%) scale(1.15); }
   }
 
-  /* 摇杆圆点 — 居中 */
   .dot {
     position: absolute;
     left: 50%;
     top: 50%;
-    width: 50px;
-    height: 50px;
+    width: 48px;
+    height: 48px;
     border-radius: 50%;
     z-index: 2;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    pointer-events: none;
-    overflow: hidden; 
-    img {
-      width: 100%;
-      height: 100%;
-      display: block;
-      pointer-events: none;
-      transform: scale(1.06);
-    }
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    pointer-events: none; /* ✅ 修复5: 防止圆点自身拦截事件 */
 
     &.ready {
       box-shadow: 0 0 12px rgba(255, 167, 38, 0.8);
     }
+
+    img {
+      display: block;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      user-drag: none;
+      -webkit-user-drag: none;
+      user-select: none;
+    }
   }
-}
-
-/* 已被注释掉的箭头位置保留备用
-.arrow.up { position: absolute; left: 75px; top: 25px; }
-.arrow.down { position: absolute; left: 75px; bottom: 25px; }
-*/
-
-.flex {
-  display: flex;
-  justify-content: space-between;
 }
 </style>

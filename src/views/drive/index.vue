@@ -37,13 +37,19 @@
       </div>
 
       <!-- 设置按钮 -->
-      <div class="right-cont" @click="setright-con">
+      <div class="right-cont">
         <img
           class="image"
           src="@/assets/images/icon_repairs@2x.png"
           alt="维修"
+          @click="handleRepair"
         />
-        <img class="image" src="@/assets/images/icon_set@2x.png" alt="设置" />
+        <img
+          @click="handleSet"
+          class="image"
+          src="@/assets/images/icon_set@2x.png"
+          alt="设置"
+        />
       </div>
 
       <div class="side-menu">
@@ -62,14 +68,10 @@
           <span class="label">{{ item.name }}</span>
         </div>
       </div>
-      
 
-    
       <LeftRight @action="handleLRDrive" :isLeft="operMode"></LeftRight>
 
-      <UpDown @action="handleFBDrive" :isLeft="!operMode"></UpDown>
-
-  
+      <!-- <UpDown @action="handleFBDrive" :isLeft="!operMode"></UpDown> -->
 
       <div class="time">
         <img src="@/assets/images/icon_time@2x.webp" alt="" />
@@ -263,12 +265,12 @@ onMounted(() => {
     sessionStorage.setItem("sendNum", 0);
   }
   initOrientation();
-  initTimer();
-  initRouteData();
-  initVehicleConfig();
-  initWebSocket();
-  initThreeSend();
-  initTopVideo();
+   initTimer();
+   initRouteData();
+   initVehicleConfig();
+   initWebSocket();
+   initThreeSend();
+   initTopVideo();
 });
 const checkOrientation = () => {
   isLandscape.value = window.innerWidth > window.innerHeight;
@@ -304,7 +306,6 @@ const initRouteData = () => {
 const initVehicleConfig = () => {
   const details = carDetails.value;
   if (!details) return;
-  return;
 
   operFB.value = carDetails.value.reverse_left_right;
   operDir.value = carDetails.value.reverse_up_down;
@@ -598,6 +599,12 @@ const set = () => {
   handleIcon("speed");
 };
 
+const handleRepair = () => {
+  allPopup.value.setType("repair");
+  allPopupVisible.value = true;
+  showRepairReason.value = true;
+};
+
 const logout = () => {
   allPopup.value.setType("logout");
 
@@ -834,7 +841,6 @@ const handleDriveEnd = () => {
 .video-frame {
   width: 100%;
   height: 100%;
-
 }
 
 .status-bar-capsule {

@@ -84,7 +84,7 @@
       <div class="footer">
         <div class="flex">
           <span class="btn left" @click.stop="cancel">取消</span>
-          <span class="btn right" @click.stop="report">上报</span>
+          <span class="btn right" @click.stop="report">确认</span>
         </div>
       </div>
     </template>
@@ -105,7 +105,6 @@
         </div>
       </div>
     </template>
-
 
     <template v-if="type === 'longTimeTip'">
       <div class="tip-content">
@@ -183,7 +182,6 @@ onMounted(() => {
   } else {
     visible.value = false;
   }
-
 
   text.value = "车辆翻车";
 });
@@ -297,20 +295,20 @@ defineExpose({
   text-align: center;
   width: 140px;
   font-family: PingFangSC, PingFang SC;
-  padding: 10px;
+  padding: 12.5px;
 
   .time {
     font-size: 10px;
     color: #333;
   }
 
-  .tit {
-    font-size: 10px;
-    font-weight: bold;
-    color: #333;
-    width: 100%;
-    text-align: center;
-  }
+  // .tit {
+  //   font-size: 10px;
+  //   font-weight: bold;
+  //   color: #333;
+  //   width: 100%;
+  //   text-align: center;
+  // }
 
   .text {
     font-size: 7px;
@@ -323,11 +321,25 @@ defineExpose({
   }
 }
 
+.repair {
+  width: 500px;
+  
+
+  .tit {
+    font-family: PingFangSC, PingFang SC;
+    font-weight: 700;
+    font-size: 16px;
+    color: #1a1a1a;
+    line-height: 23px;
+    text-align: center;
+    font-style: normal;
+  }
+}
+
 .footer {
   display: flex;
-  padding: 10px;
-  padding-top: 0;
-  justify-content: space-between;
+  padding: 0 12px 14px 12px;
+  justify-content: flex-end;
 }
 
 .fc {
@@ -336,8 +348,8 @@ defineExpose({
 
 .flex {
   display: flex;
-  width: 100%;
-  gap: 5px;
+  width: 248px;
+  gap: 16px;
 }
 
 .btn {
@@ -345,13 +357,19 @@ defineExpose({
   flex: 1;
   transition: opacity 0.2s;
   text-align: center;
-  border-radius: 2px;
-  font-family: PingFangSC, PingFang SC;
-  font-weight: 400;
-  font-size: 9px;
-  color: #222222;
+
+
+
   padding: 1px 4px;
   cursor: pointer;
+  border-radius: 20px;
+  height: 40px;
+  line-height: 40px;
+  font-family: PingFangSC, PingFang SC;
+  font-weight: 600;
+  font-size: 15px;
+  color: #1A1A1A;
+
 }
 
 .left {
@@ -359,7 +377,10 @@ defineExpose({
 }
 
 .right {
-  background: #ffc838;
+
+
+  background: #34D2A5;
+
 }
 
 .mt {
@@ -370,32 +391,28 @@ defineExpose({
   margin-right: 5px;
 }
 
-.repair {
-  width: 220px;
-}
-
 .reason {
   display: flex;
   flex-wrap: wrap;
-  gap: 2px;
-  /* 使用 gap 替代 margin，布局更整洁 */
-  padding: 3px 0;
+  gap: 12px;
+  margin-top: 8px;
 }
 
 .reason-item {
-  padding: 1px 2px;
+  padding: 5px 10px;
   border-radius: 2px;
-  /* 胶囊形状，适合标签选择 */
-  color: #666666;
-  font-size: 7px;
+
   cursor: pointer;
   transition: all 0.2s ease;
-  /* 添加过渡动画，使状态切换更平滑 */
   user-select: none;
-  /* 防止双击时文字被选中 */
-  border: 0.5px solid #666666;
-  margin-top: 2px;
-  margin-right: 7px;
+
+  border-radius: 15px;
+  border: 0.5px solid #34d2a5;
+
+  font-family: PingFangSC, PingFang SC;
+  font-weight: 400;
+  font-size: 12px;
+  color: #34d2a5;
 }
 
 .reason-item:active {
@@ -404,41 +421,56 @@ defineExpose({
 
 /* 选中状态的高亮样式 */
 .reason-item.active {
-  border: 0.5px solid #ffc838;
-  background-color: #ffc838;
-  color: #1a1a1a;
+  background: #34d2a5;
+  border-radius: 14px;
+  border: 1px solid #34d2a5;
+
+  color: #ffffff;
 }
 
 .warn-tip {
   font-family: PingFangSC, PingFang SC;
   font-weight: 400;
-  font-size: 5px;
+  font-size: 12px;
   color: #999999;
+  line-height: 15px;
   padding-top: 5px;
   text-align: left;
 }
 
 .ttarea {
+  margin-top: 12px;
+
   :deep(.van-field__control) {
     color: #222;
     line-height: 1;
-    font-size: 10px;
+
+
     height: 28px !important;
+    font-family: PingFangSC, PingFang SC;
+
+    font-size: 14px;
 
     &::placeholder {
-      font-size: 8px;
+      font-weight: 400;
+
       color: #999999;
+      line-height: 20px;
     }
   }
 
   :deep(.van-field) {
+
+    padding: 12px;
     background: #f2f2f2;
-    padding: 8px;
+    border-radius: 12px;
+    height: 75px;
   }
 
   :deep(.van-field__word-limit) {
-    font-size: 8px;
-    margin-top: 0;
+    color: #999999;
+    font-size: 10px;
+    margin-top: 20px;
     line-height: 1;
   }
 
@@ -451,6 +483,7 @@ defineExpose({
 
 <style>
 .custom-popup-round {
-  border-radius: 6px !important;
+  background: #ffffff;
+  border-radius: 10px !important;
 }
 </style>
