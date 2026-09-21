@@ -97,11 +97,22 @@
       :confirmText="$t('我知道了')"
       :is-rich-text="false"
     />
+
+
+    <GameJoystick :base-size="200"
+      :dot-size="56"
+      :dead-zone="10"
+      :idle-delay="150"
+      :emit-interval="30"
+      show-debug
+      @change="handleJoystickChange"
+      @start="handleStart"
+      @end="handleEnd"></GameJoystick>
   </div>
 </template>
 
 <script setup>
-import { ref, nextTick, onMounted } from "vue";
+import { ref, nextTick, onMounted, computed } from "vue";
 import { useRouter } from "vue-router";
 
 import {
@@ -219,6 +230,43 @@ const getNotice = () => {
       resetNoticeFlag();
     });
 };
+
+const joystickState = ref({ up: false, down: false, left: false, right: false, speed: 0 })
+
+// 车辆位置（可视化用）
+const pos = ref({ x: 0, y: 0 })
+
+const carStyle = computed(() => ({
+  transform: `translate(${pos.value.x}px, ${pos.value.y}px) rotate(${pos.value.x * 2}deg)`,
+  transition: joystickState.value.speed > 0 ? 'none' : 'all 0.3s ease'
+}))
+
+// 摇杆状态变化
+const handleJoystickChange = (state) => {
+  joystickState.value = state
+
+  // 移动车辆
+  const step = state.speed * 8
+  if (state.up) pos.value.y -= step
+  if (state.down) pos.value.y += step
+  if (state.left) pos.value.x -= step
+  if (state.right) pos.value.x += step
+
+  // 边界限制
+  pos.value.x = Math.max(-100, Math.min(100, pos.value.x))
+  pos.value.y = Math.max(-100, Math.min(100, pos.value.y))
+
+  // 输出到控制台（真实项目里换成发送 WebSocket / 蓝牙指令）
+  // console.log('摇杆状态:', state)
+}
+
+const handleStart = () => {
+  console.log('开始拖动')
+}
+
+const handleEnd = () => {
+  console.log('结束拖动，回中')
+}
 </script>
 
 <style lang="scss" scoped>
