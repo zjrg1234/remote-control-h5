@@ -105,6 +105,8 @@ import {
 import SkeletonCard from "@/components/skeleton-card/skeleton-card.vue";
 import { shouldFetchNotice, resetNoticeFlag } from "@/utils/notice";
 
+import GameJoystick from './opera.vue'
+
 const router = useRouter();
 
 // --- 数据定义 ---
@@ -226,7 +228,7 @@ const getNotice = () => {
   flex-shrink: 0;
   overflow: hidden;
   border-radius: 10px;
-
+  margin-top: 20px;
   .banner-img {
     width: 100%;
     height: 100%;
