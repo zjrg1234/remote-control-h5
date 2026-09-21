@@ -1,56 +1,57 @@
 <template>
   <div class="landscape-page">
     <div class="page-content">
-      <div class="bg">
-        <iframe src=""></iframe>
-      </div>
-
       <div class="logout" @click="logout">
-        <img src="@/assets/images/icon_exit@2x.png" alt="" />
+        <img src="@/assets/images/icon_exit@2x.png" class="image" alt="退出" />
       </div>
+
+      <!-- 视频区域：H5 用 iframe -->
+      <iframe
+        :src="videoUrl"
+        ref="iframeView"
+        class="video-frame"
+        frameborder="0"
+      ></iframe>
+
+      <!-- 顶部状态栏 -->
+
       <div class="status-bar-capsule">
-        <div class="flex">
-          <!-- 左侧：信号强度图标 -->
-          <div class="fl">
-            <span class="dot"></span>
-            <div class="car">
-              <img src="@/assets/images/icon_car@2x.png" alt="" />
-              <span class="mini-forbidden"></span>
-            </div>
-          </div>
-          <div>
-            <battery :percent="40"></battery>
-          </div>
-          <div>
-            <span class="time-text">|</span>
-          </div>
-          <div>
-            <span class="time-text">{{ currentTime }}</span>
-          </div>
+        <div class="vlot-text">{{ vlot }}V</div>
+        <img
+          class="link-status"
+          src="@/assets/images/icon_connected@2x.png"
+          alt="车辆"
+        />
+        <div>
+          <nBattery v-model="batteryPer" />
         </div>
-      
-      </div>
-      <div class="tip" v-if=" numTip>0 ">距离本次结束驾驶还有{{ 31 - numTip }}s</div>
-      <div class="right-cont" @click="set">
-        <img src="@/assets/images/icon_set@2x.png" alt="" />
+        <div class="time-text">{{ currentTime }}</div>
       </div>
 
-      <div class="side-menu-icon">
-        <Ripple />
+      <div
+        class="tip"
+        v-show="numTip > 0"
+        :style="{ display: numTip > 0 ? 'block' : 'none' }"
+      >
+        <div>距离本次结束驾驶还有{{ 31 - numTip }}s</div>
+      </div>
 
+      <!-- 设置按钮 -->
+      <div class="right-cont">
         <img
-          src="@/assets/images/icon_sound_close@2x.png"
-          v-if="!showSound"
-          @click="showSound = true"
-          alt=""
+          class="image"
+          src="@/assets/images/icon_repairs@2x.png"
+          alt="维修"
+          @click="handleRepair"
         />
         <img
-          src="@/assets/images/icon_sound_open@2x.png"
-          v-if="showSound"
-          @click="showSound = false"
-          alt=""
+          @click="handleSet"
+          class="image"
+          src="@/assets/images/icon_set@2x.png"
+          alt="设置"
         />
       </div>
+
       <div class="side-menu">
         <!-- 菜单项列表 -->
         <div
@@ -67,43 +68,10 @@
           <span class="label">{{ item.name }}</span>
         </div>
       </div>
-      <div class="slider" v-show="showSpeed">
-        <div class="slider-left">
-          <!-- <van-slider v-model="constSpeed" active-color="#FFC838">
-            <template #button>
-              <div class="custom-button-slider">{{ constSpeed }} km/h</div>
-            </template>
-</van-slider> -->
-          <div class="slider-wrapper">
-            <div class="slider-label">
-              <div class="num" :style="{ left: constSpeed + '%' }">
-                {{ constSpeed }} km/h
-              </div>
-            </div>
-            <van-slider
-              v-model="constSpeed"
-              :min="1"
-              :max="100"
-              @change="changeConstSpeed"
-              active-color="#f5c542"
-            >
-              <template #button>
-                <div class="custom-sider-img">
-                  <img src="@/assets/images/icon_sider@2x.webp" alt="" />
-                </div>
-              </template>
-            </van-slider>
-            <div class="slider-label-bottom">
-              <div class="num-text num-left">0</div>
-              <div class="num-text num-right">100</div>
-            </div>
-          </div>
-        </div>
-      </div>
 
       <LeftRight @action="handleLRDrive" :isLeft="operMode"></LeftRight>
 
-      <UpDown @action="handleFBDrive" :isLeft="!operMode"></UpDown>
+      <!-- <UpDown @action="handleFBDrive" :isLeft="!operMode"></UpDown> -->
 
       <div class="time">
         <img src="@/assets/images/icon_time@2x.webp" alt="" />
@@ -119,7 +87,7 @@
         :isShow="showRepairReason"
         @action="handlePopupAction"
       />
-     
+
       <SetPopup
         v-model:show="setVisible"
         :videoDefinition="videoDefinition"
@@ -139,7 +107,7 @@
 
 <script setup>
 import { ref, onMounted, onUnmounted, computed } from "vue";
-import { useRoute, useRouter} from "vue-router";
+import { useRoute, useRouter } from "vue-router";
 import { showToast } from "vant";
 import { useUserStore } from "@/store/modules/user";
 import { StartDrive } from "@/api/index";
@@ -147,18 +115,19 @@ import { LoginTop, DeviceDetails } from "@/api/video";
 
 import ALLPopup from "./components/ALLPopup.vue";
 import SetPopup from "./components/SetPopup.vue";
-import Ripple from "./components/Ripple.vue";
+
 import TimeClock from "./components/TimeClock.vue";
-import battery from "./components/battery.vue";
+import nBattery from "./components/nBattery.vue";
 import UpDown from "./components/UpDown.vue";
 import LeftRight from "./components/LeftRight.vue";
 import { formatTime, mapToPer } from "@/utils/utils";
 import { getWebSocket } from "@/utils/socket";
 import { handleDriverSocketData } from "@/utils/socketHelper";
 import { encryptAES } from "@/utils/crypto";
+import { useInactivityAlarm } from "@/composables/useInactivityAlarm.js";
 
 import { CarControlHandler } from "./control/siqu.js";
-import { useInactivityAlarm } from './control/useInactivityAlarm.js';
+
 import {
   ch1,
   speeds,
@@ -183,12 +152,14 @@ const route = useRoute();
 const isLandscape = ref(true);
 const allPopupVisible = ref(false);
 
-const currentTime = ref();
+const currentTime = ref(0);
 const showSpeed = ref(false);
 const showRepairReason = ref(false);
 const constSpeed = ref(1);
 const setVisible = ref(false);
 const showSound = ref(false);
+
+const videoUrl = ref(""); // 视频地址
 
 // 车辆类型 是四驱车还是挖机 车辆类型 vehicle_type 10-19四驱车、20-29挖机、30-39推土机
 const carType = ref("1");
@@ -196,7 +167,7 @@ const timerNum = ref();
 const ws = ref();
 const orderNo = ref();
 const vehicleId = ref();
-const operMode = ref(false); // 操作模式
+const operMode = ref(true); // 操作模式
 const operFB = ref(0); // 操作前后 正常0 反向1
 const operDir = ref(0); // 操作方向 正常0 反向1
 const directionCenter = ref();
@@ -207,7 +178,8 @@ const allPopup = ref();
 const userStore = useUserStore();
 const router = useRouter();
 
-
+const batteryPer = ref(100);
+const vlot = ref("12");
 // 余额
 const balance = computed(() => {
   return userStore.getUserInfo().wallet.balance;
@@ -215,7 +187,6 @@ const balance = computed(() => {
 const energy = computed(() => {
   return userStore.getUserInfo().wallet.energy;
 });
-
 
 // 进入页面3s 定时器，拿中位值发不停发 0.04
 // 调三方接口，显示video
@@ -238,7 +209,6 @@ const chValue = ref({
 });
 
 const menuList = ref([
-  { name: "报修", icon: repairs, key: "repairs", iconSelect: repairs, type: 1 },
   {
     name: "前差",
     icon: before_diff,
@@ -261,15 +231,9 @@ const menuList = ref([
     iconSelect: speeds_selected,
     type: 1,
   },
-  {
-    name: "定速",
-    icon: cSpeeds,
-    key: "speed",
-    iconSelect: cSpeeds_selected,
-    type: 1,
-  },
-  { name: "", icon: light, key: "light", iconSelect: light_selected, type: 2 },
 ]);
+
+// { name: "", icon: light, key: "light", iconSelect: light_selected, type: 2 },
 const carDetails = ref();
 const videoDefinition = ref("1");
 const carHandler = ref();
@@ -280,34 +244,33 @@ onUnmounted(() => {
   clearInterval(timerNum.value);
   clearSendTimer(); // 清理发送定时器
   if (ws.value) ws.value.close();
-
 });
 
 let sendMsgTimer = null;
 
-
 const handleInactivityAlarm = () => {
-  allPopupVisible.value = true
-  allPopup.value.setType('longTimeTip')
+  allPopupVisible.value = true;
+  allPopup.value.setType("longTimeTip");
 };
 
 // 3. 使用组合式函数
-const { resetTimer: resetInactivityTimer } = useInactivityAlarm(180 * 1000, handleInactivityAlarm);
-
+const { resetTimer: resetInactivityTimer } = useInactivityAlarm(
+  180 * 1000,
+  handleInactivityAlarm,
+);
 
 // --- 初始化与生命周期 ---
 onMounted(() => {
   if (!sessionStorage.sendNum) {
-    sessionStorage.setItem('sendNum', 0)
+    sessionStorage.setItem("sendNum", 0);
   }
   initOrientation();
-  initTimer();
-  initRouteData();
-  initVehicleConfig();
-  initWebSocket();
-  initThreeSend();
-  initTopVideo();
-
+   initTimer();
+   initRouteData();
+   initVehicleConfig();
+   initWebSocket();
+   initThreeSend();
+   initTopVideo();
 });
 const checkOrientation = () => {
   isLandscape.value = window.innerWidth > window.innerHeight;
@@ -322,6 +285,7 @@ const initTimer = () => {
   let num = 1;
   timerNum.value = setInterval(() => {
     currentTime.value = formatTime(++num);
+    console.log(currentTime.value);
   }, 1000);
 };
 
@@ -635,6 +599,12 @@ const set = () => {
   handleIcon("speed");
 };
 
+const handleRepair = () => {
+  allPopup.value.setType("repair");
+  allPopupVisible.value = true;
+  showRepairReason.value = true;
+};
+
 const logout = () => {
   allPopup.value.setType("logout");
 
@@ -688,7 +658,9 @@ const handleLRDrive = (item) => {
   if (item.lr == false) {
     if (item.value == 0) {
       console.log("停止", 0);
-      chValue.value.ch1 = directionCenter.value.current_value;
+      chValue.value.ch1 = 0;
+
+      //chValue.value.ch1 = directionCenter.value.current_value;
     } else {
       console.log("向右", mapToPer(item.value));
       ratioValue = mapToPer(Math.abs(item.value));
@@ -701,7 +673,6 @@ const handleLRDrive = (item) => {
   chValue.value.ch1 = carHandler.value.ch1;
 };
 
-
 // 30s 发一次请求
 //  按次计费 30s 发一次 继续驾驶请求。剩余20s有若提示。剩余5s 弹窗提示结束。同时发送中位值。（停车）
 // 按时间计费，eg：2分3电池，有11个电池。只能玩5分钟 30s 发一次 继续驾驶请求。剩余20s有若提示。剩余5s 弹窗提示结束。同时发送中位值。（停车）
@@ -713,19 +684,19 @@ const numTip = ref(0);
 const sendConDrive = () => {
   // 1. 彻底清理旧定时器
   clearAllTimers();
-  
+
   const carInfo = JSON.parse(localStorage.getItem("carInfo"));
   if (!carInfo) return;
 
-  let count = 0; 
+  let count = 0;
   if (carInfo.billing_method == 0) {
     // 【按时间计费】
     const balanceVal = carInfo.payment_type == 1 ? balance.value : energy.value;
     const totalCycles = Math.trunc(balanceVal / carInfo.billing_rules.battery);
-    count = totalCycles * (carInfo.billing_rules.time * 2); 
+    count = totalCycles * (carInfo.billing_rules.time * 2);
   } else {
     // 【按次计费】
-    count = carInfo.billing_rules.time * 2; 
+    count = carInfo.billing_rules.time * 2;
   }
 
   // 2. 防御性判断
@@ -739,10 +710,10 @@ const sendConDrive = () => {
 
   billingTimer = setInterval(async () => {
     // 如果上一个请求还没回来，跳过本次心跳，防止请求堆积
-    if (isRequesting) return; 
-    
+    if (isRequesting) return;
+
     num++;
-    sessionStorage.setItem('sendNum', num)
+    sessionStorage.setItem("sendNum", num);
     isRequesting = true;
 
     // 3. 进入最后 30s 倒计时
@@ -756,7 +727,7 @@ const sendConDrive = () => {
         // 剩余 5s 提示 (30s - 25s = 5s)
         if (numTip.value === 25 && !hasTriggeredTip) {
           hasTriggeredTip = true;
-          allPopup.value.setType('countTip');
+          allPopup.value.setType("countTip");
           allPopupVisible.value = true;
         }
         // 剩余 0s，清理定时器并触发结束逻辑
@@ -809,7 +780,7 @@ const handleDriveEnd = () => {
   height: 100vh;
   overflow: hidden;
   position: relative;
-  background: #fff;
+  background: black;
 }
 
 /* 竖屏时：旋转页面 */
@@ -855,8 +826,8 @@ const handleDriveEnd = () => {
 }
 
 .logout {
-  width: 10px;
-  height: 10px;
+  width: 32px;
+  height: 32px;
   position: absolute;
   z-index: 1;
   top: 5px;
@@ -867,92 +838,82 @@ const handleDriveEnd = () => {
   }
 }
 
-.right-cont {
-  width: 10px;
-  height: 10px;
-  position: absolute;
-  z-index: 1;
-  top: 5px;
-  right: 8px;
-
-  img {
-    display: block;
-  }
+.video-frame {
+  width: 100%;
+  height: 100%;
 }
 
-/* 外层胶囊容器 */
 .status-bar-capsule {
-  background: rgba(0, 0, 0, 0.5);
-  border-radius: 10px;
-  position: absolute;
-  top: 5px;
+  position: fixed;
+  top: 0;
   left: 50%;
   transform: translateX(-50%);
-  /* 优化：使用 transform 替代负 margin，居中更精准 */
-  padding: 0 5px;
-  /* 优化：提供合适的上下和左右内边距 */
+  z-index: 10;
+
+  /* 核心：一行排布 + 垂直居中 */
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  // width: 187px;
+  height: 40px;
+  padding: 0 15px;
   box-sizing: border-box;
+
+  background: rgba(0, 0, 0, 0.4);
+  border-radius: 0 0 12px 12px;
+
   white-space: nowrap;
+  overflow: hidden;
 
-  /* 内部内容区域：使用 flex 和 gap 实现等间距 */
-  .flex {
+  /* 1. 电压图标 + 文字 */
+  .vlot-text {
+    flex: 0 0 auto;
+    width: 36px;
+    height: 36px;
+
     display: flex;
     align-items: center;
-    gap: 5px;
-    /* 核心：统一控制内部所有子元素的等间距 */
-  }
+    justify-content: center;
 
-  /* 左侧内容区域 */
-  .fl {
-    display: flex;
-    align-items: center;
-    gap: 2px;
-    /* 信号点和车标之间的微小间距 */
-  }
-
-  .car {
-    position: relative;
-
-    .mini-forbidden {
-      position: absolute;
-      bottom: 1px;
-      right: -1px;
-    }
-  }
-
-  .dot {
-    display: block;
-    width: 2px;
-    /* 优化：稍微调大一点，2px 在屏幕上可能看不清 */
-    height: 2px;
-    border-radius: 50%;
-    background: #09ff77;
-  }
-
-  /* 电池及电量文字组合 */
-  .flex > div:nth-child(2) {
-    display: flex;
-    align-items: center;
-    gap: 2px;
-    /* 电池图标与百分比文字之间的微小间距 */
-  }
-
-  /* 图片基础样式优化 */
-  .flex img {
-    display: block;
-    width: 8px;
-    /* 优化：6px 偏小，建议 8px 或 10px */
-    height: 8px;
-  }
-
-  /* 文字样式统一 */
-  .battery-text,
-  .time-text {
     font-family: PingFangSC, PingFang SC;
     font-weight: 400;
+    font-size: 12px;
+
+    color: #1a1a1a;
+
+    text-align: center;
+    padding-top: 4px;
+
+    background: url("@/assets/images/icon_voltage@2x.png") center / cover
+      no-repeat;
+  }
+
+  /* 2. 连接状态图标 */
+  .link-status {
+    flex: 0 0 auto;
+    display: block; /* 去掉 inline 基线带来的底部缝隙 */
+    width: 36px;
+    height: 36px;
+  }
+
+  /* 3. 电量组件外层包裹（建议在模板上加 class） */
+  .battery-wrap {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+  }
+
+  /* 4. 时间 */
+  .time-text {
+    flex: 0 0 auto;
+    font-family: PingFangSC, PingFang SC;
+    font-weight: 500;
+    font-size: 16px;
+    padding-left: 10px;
+
     color: #ffffff;
-    font-size: 6px;
-    line-height: 1;
+    font-variant-numeric: tabular-nums; /* 数字等宽，秒变时不抖动 */
   }
 }
 
@@ -968,87 +929,70 @@ const handleDriveEnd = () => {
   /* 优化：提供合适的上下和左右内边距 */
   box-sizing: border-box;
   white-space: nowrap;
-   color: #ccc;
-}
-// 在 style 中定义
-.mini-forbidden {
-  display: inline-block;
-  width: 4px;
-  height: 4px;
-  border: 1px solid #ff4d4f; // 红色边框
-  border-radius: 50%; // 圆形
-  position: relative;
-
-  // 中间的斜杠
-  &::after {
-    content: "";
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    width: 3px; // 稍微长一点，穿透边框
-    height: 1px;
-    background: #ff4d4f;
-    transform: translate(-50%, -50%) rotate(45deg);
-  }
+  color: #ccc;
 }
 
-.side-menu-icon {
+.right-cont {
   position: fixed;
-  top: 20px;
-  right: 30px;
-  z-index: 2;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  align-items: center;
+  z-index: 1;
+  top: 12px;
+  right: 50px;
 
-  img {
-    display: block;
-    width: 10px;
-    height: 10px;
+  .image {
+    width: 30px;
+    height: 30px;
+    display: inline-block;
+    margin-left: 15px;
   }
 }
 
 .side-menu {
   // 1. 整体容器样式
   position: fixed;
-  top: 25px;
-  right: 7px;
+  top: 50px;
+  right: 50px;
+  width: 30px;
   z-index: 2;
   display: flex;
   flex-direction: column;
-  gap: 4px;
-  background: rgba(20, 20, 20, 0.75);
-  backdrop-filter: blur(10px);
-  border-radius: 20px;
-  padding: 5px 1px;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-}
+  gap: 10px;
 
-.menu-item {
-  // 2. 单个菜单项布局
-  display: flex;
-  flex-direction: column; // 图标在上，文字在下
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  opacity: 1;
+  background: rgba(255, 255, 255, 0.08);
 
-  .img {
-    display: block;
-    width: 6px;
-    height: 6px;
-    margin-bottom: 1px;
-  }
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%); /* Safari/iOS 必须加 */
+  border: 1px solid rgba(255, 255, 255, 0.2);
 
-  .label {
-    font-family: PingFangSC, PingFang SC;
-    font-weight: 400;
-    font-size: 5px;
-    color: #ffffff;
-    white-space: nowrap; // 防止文字换行
-    text-align: center;
+  overflow: hidden;
+  padding: 10px 1px;
+  box-shadow: inset 0px 1px 20px 0px rgba(255, 255, 255, 0.8);
+  border-radius: 30px;
+
+  .menu-item {
+    // 2. 单个菜单项布局
+    display: flex;
+    flex-direction: column; // 图标在上，文字在下
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+
+    .img {
+      display: block;
+      width: 16px;
+      height: 16px;
+    }
+
+    .label {
+      font-family: PingFangSC, PingFang SC;
+      font-weight: 400;
+      font-size: 8px;
+      line-height: 11px;
+      margin-top: 4px;
+      color: #ffffff;
+      white-space: nowrap; // 防止文字换行
+      text-align: center;
+    }
   }
 }
 

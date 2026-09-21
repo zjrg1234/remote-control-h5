@@ -5,9 +5,9 @@ import speeds_selected from "@/assets/images/icon_speeds_selected@2x.png";
 import cSpeeds from "@/assets/images/icon_const_speed@2x.png";
 import cSpeeds_selected from "@/assets/images/icon_const_speed_selected@2x.png";
 import repairs from "@/assets/images/icon_repairs@2x.png";
-import after_diff from "@/assets/images/icon_after@2x.png";
+import after_diff from "@/assets/images/ch4.png";
 import after_diff_selected from "@/assets/images/icon_after_selected@2x.png";
-import before_diff from "@/assets/images/icon_before@2x.png";
+import before_diff from "@/assets/images/ch3.png";
 import before_diff_selected from "@/assets/images/icon_before_selected@2x.png";
 // 灯光
 import light from "@/assets/images/icon_lights@2x.png";

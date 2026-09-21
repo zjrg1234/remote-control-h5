@@ -7,7 +7,7 @@
         <div class="info-box">
           <div class="title-row">
             <span class="main-title">{{ detailData.venue_name }}</span>
-            <span class="tag">● 营业中</span>
+            <span class="tag">● {{ $t("营业中") }}</span>
           </div>
 
           <!-- 2. 统计数据 -->
@@ -16,34 +16,39 @@
               <div class="num-box">
                 <span class="stat-num">{{ stats.queue }}</span>
               </div>
-              <span class="stat-label">总排队人数(人)</span>
+              <span class="stat-label">{{ $t("总排队人数(人)") }}</span>
             </div>
 
             <div class="stat-item">
               <div class="num-box">
                 <span class="stat-num">{{ stats.online }}</span>
               </div>
-              <span class="stat-label">在线车辆(辆)</span>
+              <span class="stat-label">{{ $t("在线车辆(辆)") }}</span>
             </div>
 
             <div class="stat-item">
               <div class="num-box">
                 <span class="stat-num">{{ stats.drive }}</span>
               </div>
-              <span class="stat-label">驾驶中(辆)</span>
+              <span class="stat-label">{{ $t("驾驶中(辆)") }} </span>
             </div>
           </div>
         </div>
       </div>
 
-      <div class="section-title">车辆列表</div>
-
       <!-- 3. 车辆列表 -->
       <div class="car-list">
         <div class="car-card" v-for="car in carList" :key="car.id">
           <!-- 排队状态标签 (右上角) -->
-          <div class="queue-tag" v-if="car.vehicle_state == 2">
-            {{ car.vehicle_queue }}人等待
+          <div
+            class="queue-tag"
+            :class="car.vehicle_state == 1 ? 'tag1' : 'tag2'"
+          >
+            {{
+              car.vehicle_state == 1
+                ? $t("在线")
+                : $t("n人等待", { num: car.vehicle_queue })
+            }}
           </div>
 
           <!-- 左侧图片区域 -->
@@ -63,16 +68,14 @@
           <div class="info-wrapper">
             <div class="top-row">
               <span class="car-name">{{ car.vehicle_name }}</span>
-              <span
-                class="status-dot"
-                :class="car.vehicle_state == 1 ? 'online' : 'offline'"
-              >
-                {{ car.vehicle_state == 1 ? "在线" : "离线" }}
-              </span>
             </div>
             <div class="desc">{{ car.vehicle_introduction }}</div>
             <div class="battery-row">
-              <van-icon name="location-o" size="12" color="#3dbf9a" />
+              <img
+                class="img"
+                src="@/assets/images/icon_car_battery@2x.png"
+                alt=""
+              />
               <span class="battery-text">{{
                 car.vehicle_battery.includes("%")
                   ? car.vehicle_battery
@@ -85,61 +88,77 @@
                 :class="car.vehicle_state == 1 ? 'btn-green' : 'btn-orange'"
                 @click="handleDrive(car)"
               >
-                {{ car.vehicle_state == 1 ? "开始驾驶" : "驾驶中" }}
+                {{ car.vehicle_state == 1 ? $t("开始驾驶") : $t("驾驶中") }}
               </van-button>
             </div>
           </div>
         </div>
       </div>
 
-      <!-- 底部弹窗替换 (使用 Vant 4 的 van-popup / van-dialog 或直接复用原有组件) -->
-      <!-- 注：为保持逻辑完整，这里保留原有的 TipModal 组件用法，但在 Vue3+Vant4 项目中建议替换为 van-dialog -->
-      <TipModal
-        title="用户驾驶协议"
-        v-model:visible="agree"
-        key="1"
-        :cancelFlag="false"
-        confirmText="已阅读"
-        @confirm="handleAgree"
+      <!-- 用户驾驶协议 -->
+      <van-popup
+        v-model:show="agree"
+        position="bottom"
+        round
+        :style="{ height: '50%' }"
       >
-        <template #content>
-          <div class="custom-content">
-            <div class="cont">禁止未成年人充值使用。</div>
-            <div class="cont">
-              用户充值消费驾驶后不支持退余额，充值的金额只能在平台消费，如果排队没玩到车，保留到后面场地有车继续消费。
-            </div>
-            <div class="cont">
-              车辆预约会扣费，如没排队上，预约取消会自动退回账户里。
-            </div>
-            <div class="cont">如有疑问请联系客服。</div>
+        <div class="agree-content">
+          <div class="agree-header">
+            <span>{{ $t("用户驾驶协议") }}</span>
+            <img
+              class="img"
+              src="@/assets/images/icon_cancel@2x.png"
+              alt=""
+              @click="handleAgree"
+            />
           </div>
-        </template>
-      </TipModal>
+
+          <div class="custom-content">
+            <div class="cont tit">{{ $t("云联趣控驾驶协议") }}:</div>
+            <div class="cont">{{ $t("充值desc1") }}</div>
+            <div class="cont">
+              {{ $t("充值desc2") }}
+            </div>
+            <div class="cont">
+              {{ $t("充值desc3") }}
+            </div>
+          </div>
+          <div class="agree-btn" @click="handleAgree">
+            {{ $t("我已阅读协议") }}
+          </div>
+        </div>
+      </van-popup>
 
       <TipModal
-        title="输入密码"
+        title=""
         v-model:visible="pwdVisible"
         key="2"
         @confirm="handlePwd"
       >
         <template #content>
-          <div class="custom-input">
-            <input
-              class="input"
-              type="password"
-              maxlength="6"
-              placeholder="请输入密码"
-              v-model="password"
-            />
+          <div class="pwd-content">
+            <div class="pwd-img">
+              <img src="@/assets/images/icon_popup_lock@2x.png" alt="" />
+            </div>
+            <div class="pwd-text">{{ $t("请输入车辆密码") }}</div>
+            <div class="custom-input">
+              <input
+                class="input"
+                type="password"
+                maxlength="6"
+                :placeholder="$t('请输入车辆密码')"
+                v-model="password"
+              />
+            </div>
           </div>
         </template>
       </TipModal>
 
       <TipModal
-        title="车辆预约"
+        :title="$t('车辆预约')"
         v-model:visible="orderVisible"
         key="2"
-        cancelText="取消预约"
+        :cancelText="$t('取消预约')"
         @cancel="cancelOrder"
         @confirm="gotoUrl"
       >
@@ -152,52 +171,51 @@
                 fit="cover"
               />
             </div>
-            <span class="main-status"
-              >已成功预约 {{ orderCar.vehicle_name }} 车辆</span
-            >
-            <span class="sub-status" v-if="orderCar.people_number > 0"
-              >当前还有 {{ orderCar.people_number }} 人排队，请耐心等待</span
-            >
-            <span class="sub-status" v-if="orderCar.people_number == 0"
-              >当前排在首位，请尽快去驾驶</span
-            >
+            <span class="main-status">{{
+              $t("成功预约车辆", { name: orderCar?.vehicle_name })
+            }}</span>
+            <span class="sub-status" v-if="orderCar?.people_number > 0">{{
+              $t("排队人数", { num: orderCar.people_number })
+            }}</span>
+            <span class="sub-status" v-if="orderCar?.people_number == 0">{{
+              $t("排在首位")
+            }}</span>
             <div class="info-card">
               <div class="info-item">
-                <span class="label">预约类型：</span>
-                <span class="value"
-                  >按{{
-                    orderCar.billing_method == "0" ? "时间" : "次"
-                  }}计费</span
-                >
+                <span class="label">{{ $t("预约类型") }}:</span>
+                <span class="value">{{
+                  orderCar.billing_method == "0"
+                    ? $t("按时间计费")
+                    : $t("按次计费")
+                }}</span>
               </div>
               <div class="info-item">
-                <span class="label">预约时间：</span>
+                <span class="label">{{ $t("预约时间") }}:</span>
                 <span class="value">{{ orderCar.time }}</span>
               </div>
             </div>
-            <span class="tip-text">请在【我的-预约订单】中查看</span>
+            <span class="tip-text">{{ $t("预约查看") }}</span>
           </div>
         </template>
       </TipModal>
 
       <TipModal
-        title="存在已预约的订单"
+        :title="$t('存在已预约的订单')"
         v-model:visible="orderedVisible"
         key="3"
-        cancelText="驾驶已有"
+        :cancelText="$t('驾驶已有')"
         @cancel="gotoUrl"
-        confirmText="继续支付"
+        :confirmText="$t('继续支付')"
         @confirm="continuePay"
       >
         <template #content>
           <div class="order-cont">
             <div class="order-text">
-              您有预约单还未驾驶，如果继续支付，将取消之前的预约单，请选择
+              {{ $t("已有预约单提示") }}
             </div>
           </div>
         </template>
       </TipModal>
-
       <BillingPopup
         ref="billingPopupRef"
         :billData="billingMethod"
@@ -211,7 +229,7 @@
 import { ref, onMounted } from "vue";
 import { useRouter, useRoute } from "vue-router";
 import { showToast } from "vant";
-
+import { $t } from "@/locales";
 import TipModal from "@/components/TipModal/index.vue";
 import BillingPopup from "@/components/BillingPopup/index.vue";
 import NavBar from "@/components/CustomNavBar/index.vue";
@@ -303,7 +321,7 @@ const handleDrive = (item) => {
   if (!localStorage.getItem("token")) {
     // 使用 Vant Dialog 替代 uni.showModal
     // 这里为了演示简化，你可以导入 Dialog 组件
-    if (confirm("请您登录/注册，才能驾驶车辆")) {
+    if (confirm($t("请您登录/注册，才能驾驶车辆"))) {
       router.push("/login");
     }
     return;
@@ -321,7 +339,7 @@ const handlePwd = () => {
     selectCar.value.vehicle_image = currentCar.value.vehicle_image;
     billingPopupRef.value.open();
   } else {
-    showToast("密码不正确");
+    showToast($t("密码不正确"));
   }
 };
 
@@ -332,7 +350,7 @@ const handleAgree = () => {
     return;
   }
   if (currentCar.value.vehicle_state == 2) {
-    showToast("该车正在排队中");
+    showToast($t("该车正在排队中"));
     return;
   }
   selectCar.value.vehicle_id = currentCar.value.id;
@@ -398,7 +416,7 @@ const onBillingConfirm = async (params) => {
       if (e.code == 2000) {
         showToast(e.msg);
       } else {
-        showToast("预约失败，请稍后预约");
+        showToast($t("预约失败，请稍后预约"));
       }
     })
     .finally(() => {
@@ -417,7 +435,7 @@ const cancelOrder = () => {
     .then((res) => {
       if (res.code == 200) {
         orderVisible.value = false;
-        showToast("取消预约成功");
+        showToast($t("取消预约成功"));
       } else {
         showToast(res.msg);
       }
@@ -450,7 +468,7 @@ const continuePay = async () => {
       onBillingConfirm(selectParam.value);
     }
   } else {
-    showToast("获取预约信息失败");
+    showToast($t("获取预约信息失败"));
   }
 };
 </script>
@@ -578,47 +596,52 @@ const continuePay = async () => {
   }
 }
 
-.section-title {
-  padding: 20px 30px;
-  font-family: PingFangSC, PingFang SC;
-  font-weight: 500;
-  font-size: 30px;
-  color: #1a1a1a;
-}
-
 /* 3. 列表卡片样式 */
 .car-list {
-  padding: 0 30px;
+  padding-top: 20px;
 }
 
 .car-card {
-  background-color: #ffffff;
-  border-radius: 24px;
+  background: linear-gradient(253deg, #d9fff2 0%, #ffffff 100%);
+  box-shadow: 0px 0px 10px 0px rgba(0, 0, 0, 0.1);
+  border-radius: 20px;
+
   margin-bottom: 24px;
   display: flex;
-  padding: 24px;
+  padding: 20px;
   position: relative;
   overflow: hidden;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
-
+  height: 265px;
   .queue-tag {
     position: absolute;
     top: 0;
     right: 0;
-    font-size: 20px;
+    font-family: PingFangSC, PingFang SC;
+    font-weight: 400;
+    font-size: 24px;
     color: #ffffff;
-    padding: 6px 16px;
-    background: #fca55d;
-    border-radius: 0px 24px 0px 24px;
+    padding: 4px 12px;
+
+    &.tag1 {
+      background-color: #4cd964;
+      /* 绿色 */
+    }
+
+    &.tag2 {
+      background: #ff931e;
+      border-radius: 0px 8px 0px 8px;
+      opacity: 0.58;
+    }
   }
 
   /* 图片区域 */
   .img-wrapper {
-    width: 200px; /* 200rpx / 2 */
-    height: 200px;
-    margin-right: 30px;
-    position: relative;
+    width: 225px;
+    height: 225px;
     border-radius: 16px;
+    margin-right: 20px;
+    position: relative;
+
     overflow: hidden;
     flex-shrink: 0;
 
@@ -657,8 +680,11 @@ const continuePay = async () => {
       .car-name {
         font-family: PingFangSC, PingFang SC;
         font-weight: 600;
-        font-size: 28px; /* 28rpx / 2 */
-        color: #222222;
+        font-size: 30px;
+        color: #1a1a1a;
+        line-height: 42px;
+        text-align: left;
+        font-style: normal;
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
@@ -683,10 +709,18 @@ const continuePay = async () => {
     .desc {
       font-family: PingFangSC, PingFang SC;
       font-weight: 400;
-      font-size: 22px; /* 22rpx / 2 */
-      color: #666666;
-      margin-top: 8px;
-      line-height: 1.4;
+      font-size: 24px;
+      color: #1a1a1a;
+      height: 66px;
+      line-height: 33px;
+      margin-top: 16px;
+
+      /* 关键三行：单行居中、多行左对齐 */
+      width: fit-content;
+      max-width: 100%;
+      text-align: left;
+
+      /* 两行截断 */
       display: -webkit-box;
       -webkit-box-orient: vertical;
       -webkit-line-clamp: 2;
@@ -697,68 +731,147 @@ const continuePay = async () => {
       display: flex;
       align-items: center;
       margin-top: 12px;
-      gap: 8px;
-
+      .img {
+        width: 28px;
+        height: 26px;
+      }
       .battery-text {
-        font-size: 22px;
-        color: #3dbf9a;
+        font-family: PingFangSC, PingFang SC;
+        font-weight: 400;
+        font-size: 24px;
+        color: #1a1a1a;
+        line-height: 33px;
+        text-align: left;
       }
     }
 
     .action-row {
       display: flex;
       justify-content: flex-end;
-      margin-top: 16px;
 
       .action-btn {
         padding: 0 30px;
-        height: 56px; /* 56rpx / 2 */
-        line-height: 56px;
-        font-family: PingFangSC, PingFang SC;
-        font-weight: 500;
-        font-size: 24px;
-        border-radius: 12px;
         border: none;
-
+        font-family: PingFangSC, PingFang SC;
+        font-weight: 700;
+        height: 72px;
+        line-height: 72px;
+        border-radius: 36px;
+        font-size: 30px;
+        margin-right: 4px;
+        color: #1a1a1a;
         &.btn-green {
-          background: #40d1a5;
-          color: #ffffff;
+          background: #34d2a5;
         }
         &.btn-orange {
-          background: #fca55d;
-          color: #ffffff;
+          background: #ff8849;
         }
       }
     }
   }
 }
 
-/* 弹窗内容样式 */
+.agree-content {
+  border-radius: 16px 16px 0px 0px;
+
+  .agree-header {
+    position: relative;
+    width: 100%;
+    height: 98px;
+    line-height: 98px;
+
+    span {
+      display: block;
+      width: 100%;
+      text-align: center;
+      font-family: PingFangSC, PingFang SC;
+      font-weight: 700;
+      font-size: 32px;
+      color: #1a1a1a;
+    }
+
+    .img {
+      position: absolute;
+      right: 25px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 60px;
+      height: 60px;
+      cursor: pointer;
+    }
+  }
+
+  .custom-content {
+    font-family: PingFangSC, PingFang SC;
+    font-weight: 400;
+    font-size: 30px;
+    color: #333333;
+    padding: 30px;
+
+    .cont {
+      display: block;
+      text-align: left;
+      font-weight: 500;
+      line-height: 50px;
+      text-align: left;
+      font-style: normal;
+      padding-bottom: 60px;
+    }
+    .tit {
+      font-weight: 700;
+      padding-bottom: 0;
+    }
+  }
+  .agree-btn {
+    width: 702px;
+    height: 94px;
+    background: #34d2a5;
+    border-radius: 44px;
+    text-align: center;
+    margin: auto;
+    line-height: 94px;
+    font-family: PingFangSC, PingFang SC;
+    font-weight: 700;
+    font-size: 32px;
+    color: #1a1a1a;
+  }
+}
+.pwd-content {
+  padding: 20px 12px 12px 12px;
+}
+.pwd-img {
+  width: 100%;
+  display: flex;
+  justify-content: center; /* 水平居中 */
+  align-items: center;
+  img {
+    width: 120px;
+    height: 120px;
+  }
+}
+.pwd-text {
+  font-family: PingFangSC, PingFang SC;
+  font-weight: 700;
+  font-size: 32px;
+  color: #1a1a1a;
+  line-height: 45px;
+  text-align: center;
+  font-style: normal;
+  padding-top: 32px;
+  padding-bottom: 40px;
+}
 .custom-input {
   background: #f8f8f8;
   border-radius: 16px;
   margin-bottom: 24px;
-  padding: 0 20px;
+  padding: 0 25px;
   .input {
-    height: 90px;
-    line-height: 1;
+    height: 88px;
+
     border: none;
     background: transparent;
     width: 100%;
     outline: none;
-  }
-}
-
-.custom-content {
-  font-family: PingFangSC, PingFang SC;
-  font-weight: 400;
-  font-size: 28px;
-  color: #333333;
-  .cont {
-    display: block;
-    text-align: left;
-    padding-bottom: 54px;
-    line-height: 50px;
   }
 }
 

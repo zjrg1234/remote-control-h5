@@ -30,11 +30,11 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onBeforeUnmount, watch } from "vue";
+import { ref, onMounted, onBeforeUnmount, watch, nextTick } from "vue";
 
-import upImg from "@/assets/images/arrow_up_big@2x.png";
-import downImg from "@/assets/images/arrow_down_big@2x.png";
-import dotImg from "@/assets/images/dot@2x.webp";
+import upImg from "@/assets/images/s_up@2x.png";
+import downImg from "@/assets/images/s_down@2x.png";
+import dotImg from "@/assets/images/s_dot@2x.png";
 
 const upImage = ref(upImg);
 const downImage = ref(downImg);
@@ -79,17 +79,20 @@ let dragBaseY = 0;
 let animationFrameId = null;
 let pendingMoveEvent = null; // 缓存最新的移动事件
 
-const backRightInit = () => {
+const backRightInit = async () => {
   currentBoxX = window.innerWidth - 260;
-  currentBoxY =  window.innerHeight / 4 - 150;
+  currentBoxY = window.innerHeight / 4 - 150;
+  // debugger
+  await nextTick();
   if (boxRef.value) {
     boxRef.value.style.transform = `translate3d(${currentBoxX}px, ${currentBoxY}px, 0)`;
   }
 };
 
-const backLeftInit = () => {
+const backLeftInit = async () => {
   currentBoxX = 50;
   currentBoxY = -50;
+  await nextTick();
   if (boxRef.value) {
     boxRef.value.style.transform = `translate3d(${currentBoxX}px, ${currentBoxY}px, 0)`;
   }
@@ -99,11 +102,9 @@ watch(
   () => props.isLeft,
   (val) => {
     if (val) {
-      console.log("left")
       backLeftInit();
     } else {
       backRightInit();
-      console.log("right")
     }
   },
   { immediate: true, deep: true },
@@ -140,12 +141,11 @@ const resetArrows = () => {
     fb: false,
     value: 0,
   });
- if (props.isLeft) {
+  if (props.isLeft) {
     backLeftInit();
   } else {
     backRightInit();
   }
-
 };
 
 // 【性能核心】：在 RAF 中统一处理 DOM 更新
@@ -167,7 +167,7 @@ const processMove = () => {
 
   if (!isReadyMode.value) {
     // 【模式 A：自由拖动容器】
-    
+
     // 1. 计算当前鼠标相对于【拖拽起始锚点】的偏移量
     let deltaX = clientX - dragOffsetX - dragBaseX;
     let deltaY = clientY - dragOffsetY - dragBaseY;
@@ -175,17 +175,16 @@ const processMove = () => {
     // 2. 【核心限制逻辑】
     // X轴：允许向右移动 100px（最大 100），不允许向左移动（最小为 0）
     // deltaX = Math.max(0, Math.min(100, deltaX));
-    
+
     // Y轴：允许向上移动 100px（最小 -100），向下移动 50px（最大 50）
     // deltaY = Math.max(-100, Math.min(50, deltaY));
     // const LIMIT = 80;
-  
 
     // deltaX = Math.max(-LIMIT, Math.min(LIMIT, deltaX));
     // deltaY = Math.max(-LIMIT, Math.min(LIMIT, deltaY));
 
     deltaX = Math.max(-50, Math.min(100, deltaX));
-    
+
     // Y轴：向上最多 100px，向下最多 50px
     deltaY = Math.max(-100, Math.min(50, deltaY));
 
@@ -195,7 +194,6 @@ const processMove = () => {
 
     // 直接操作 DOM，绕过 Vue 的 Virtual DOM 和响应式系统
     boxRef.value.style.transform = `translate3d(${currentBoxX}px, ${currentBoxY}px, 0)`;
-    
   } else {
     // 【模式 B：待命模式 - 圆点上下弹性滑动】
     let deltaY = clientY - readyStartPointerY;
@@ -292,7 +290,7 @@ const handleEnd = () => {
 
 // --- 生命周期 ---
 onMounted(() => {
-  backLeftInit();
+  // backLeftInit();
 });
 
 onBeforeUnmount(() => {
@@ -305,13 +303,14 @@ onBeforeUnmount(() => {
 });
 </script>
 
-<style scoped>
+<style lang="scss" scoped>
 .control-box {
   position: fixed;
   left: 0;
   bottom: 0;
-  width: 25px;
-  height: 90px;
+  width: 55px;
+  height: 200px;
+  padding: 12.5px 0;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -321,28 +320,32 @@ onBeforeUnmount(() => {
   will-change: transform;
   user-select: none;
   touch-action: none;
+  background: url("@/assets/images/s_bg@2x.png") center / cover no-repeat;
+  border-radius: 5px;
+  overflow: hidden;
 }
 
 .arrow {
-  width: 28px;
-  height: 28px;
-  opacity: 0.8;
+  width: 32.5px;
+  height: 50px;
+
   transition: all 0.2s ease;
   z-index: 1;
+  background-size: 100% 100%; /* 图片严格 = 盒子尺寸 */
   background-repeat: no-repeat;
+  /* background-repeat: no-repeat;
   background-position: center center;
-  background-size: contain;
+  background-size: contain; */
 }
 
 .arrow.active {
-  opacity: 1;
-  filter: drop-shadow(0 0 4px rgba(255, 167, 38, 0.8));
+  /* filter: drop-shadow(0 0 4px rgba(255, 167, 38, 0.8)); */
   transform: scale(1.15);
 }
 
 .dot {
-  width: 24px;
-  height: 24px;
+  width: 45px;
+  height: 45px;
   border-radius: 50%;
   background-repeat: no-repeat;
   background-position: center center;

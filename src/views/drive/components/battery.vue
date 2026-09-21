@@ -1,112 +1,144 @@
 <template>
-  <div class="mini-battery-wrapper">
-    <div class="battery-body">
-      <div class="battery-fill" :class="statusClass" :style="{ width: safePercent + '%' }"></div>
-    </div>
-    <span class="battery-text">{{ safePercent }}%</span>
-  </div>
+  <cover-view class="mini-battery-wrapper">
+    <!-- 电池主体 -->
+    <cover-view class="battery-body">
+      <!-- 电量填充条：加上圆角防止溢出 -->
+      <cover-view
+        class="battery-fill"
+        :class="statusClass"
+        :style="{ width: safePercent + '%' }"
+      ></cover-view>
+    </cover-view>
+    <!-- 电池右侧凸起端头：移出 battery-body，利用 flex 自然排列 -->
+    <cover-view class="battery-tip"></cover-view>
+    
+    <!-- 电量文字百分比 -->
+    <cover-view class="battery-text">{{ safePercent }}%</cover-view>
+  </cover-view>
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted } from 'vue';
+import { ref, computed } from 'vue';
+import { onShow, onHide } from '@dcloudio/uni-app';
 
 const props = defineProps({
   percent: {
     type: Number,
-    default: null 
+    default: null
   }
 });
 
-const realBatteryLevel = ref(80); 
-let batteryInstance = null; 
+// 设备实时电量缓存
+const realBatteryLevel = ref(80);
+let batteryTimer = null;
 
+// 电量安全处理：限制0~100，自动四舍五入整数
 const safePercent = computed(() => {
   const level = props.percent !== null ? props.percent : realBatteryLevel.value;
   return Math.max(0, Math.min(100, Math.round(level)));
 });
 
+// 根据电量返回对应样式类
 const statusClass = computed(() => {
   if (safePercent.value <= 20) return 'low';
   if (safePercent.value <= 40) return 'medium';
-  return ''; 
+  return '';
 });
 
-onMounted(() => {
-  // if (props.percent !== null) return; 
-  // if (navigator.getBattery) {
-  //   navigator.getBattery().then(battery => {
-  //     batteryInstance = battery;
-  //     realBatteryLevel.value = battery.level * 100;
-  //     battery.addEventListener('levelchange', handleLevelChange);
-  //   }).catch(() => {});
-  // }
-});
+/**
+ * 获取设备电量
+ * 外部传入percent则跳过自动获取
+ */
+const fetchBatteryInfo = () => {
+  if (props.percent !== null) return;
 
-onUnmounted(() => {
-  if (batteryInstance) {
-    batteryInstance.removeEventListener('levelchange', handleLevelChange);
+  // H5/webview环境
+  // #ifdef H5
+  if (navigator?.getBattery) {
+    navigator.getBattery()
+      .then(battery => {
+        realBatteryLevel.value = battery.level * 100;
+      })
+      .catch(() => {});
   }
-});
+  // #endif
 
-const handleLevelChange = () => {
-  if (batteryInstance) {
-    realBatteryLevel.value = batteryInstance.level * 100;
-  }
+  // 小程序/App环境
+  // #ifndef H5
+  uni.getBatteryInfo({
+    success(res) {
+      realBatteryLevel.value = res.level;
+    },
+    fail(err) {
+      console.warn('获取设备电量失败：', err);
+    }
+  });
+  // #endif
 };
+
+// 页面显示初始化电量 + 定时刷新
+onShow(() => {
+  fetchBatteryInfo();
+  // 开启30秒自动刷新电量
+  batteryTimer = setInterval(fetchBatteryInfo, 30000);
+});
+
+// 页面隐藏销毁定时器，节省性能
+onHide(() => {
+  if (batteryTimer) {
+    clearInterval(batteryTimer);
+    batteryTimer = null;
+  }
+});
 </script>
 
 <style scoped>
 .mini-battery-wrapper {
   display: inline-flex;
   align-items: center;
-  gap: 2px; /* 缩小间距 */
+  gap: 4px;
 }
 
 .battery-body {
   position: relative;
-  /* 【修复核心】：将尺寸调整为浏览器能正常渲染的最小极限 12x6 */
-  width: 6px;
-  height: 3px;
-  border: 1px solid #fff; 
-  border-radius: 1px; /* 圆角同步缩小 */
-  padding: 1px; /* 内边距缩小为 1px */
-  box-sizing: content-box;
-}
+  width: 25px;
+  height: 12px;
+  border: 1px solid #fff;
 
-.battery-body::after {
-  content: '';
-  position: absolute;
-  right: -1.5px; /* 正极位置微调 */
-  top: 50%;
-  transform: translateY(-50%);
-  width: 1px;
-  height: 1.5px;
-  background-color: #fff;
-  border-radius: 0 1px 1px 0;
+  border-radius: 2px;
+  box-sizing: border-box; /* 改为 border-box 更稳定 */
+  overflow: hidden; /* 确保内部绿色条不会溢出边框 */
 }
 
 .battery-fill {
   height: 100%;
-  /* 【修复核心】：圆角必须小于内部高度的一半，否则在低电量时显示异常 */
-  border-radius: 0.5px; 
+  border-radius: 1px; /* 加上圆角，防止真机上直角溢出 */
   background-color: #4caf50;
-  transition: width 0.5s ease, background-color 0.5s ease;
+  transition: width 0.4s ease, background-color 0.4s ease;
+  border: 1px solid #fff;
 }
 
-.battery-fill.medium { background-color: #ff9800; }
-.battery-fill.low { 
+.battery-fill.medium {
+  background-color: #ff9800;
+}
+
+.battery-fill.low {
   background-color: #f44336;
-  animation: blink 1s infinite;
 }
 
-@keyframes blink {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.4; }
+/* 凸起端头：不再使用绝对定位，直接作为一个独立的 cover-view */
+.battery-tip {
+  width: 2px;
+  height: 6px;
+  background-color: #ffffff;
+  border-radius: 0 2px 2px 0;
 }
 
 .battery-text {
-  font-size: 6px; /* 稍微调大一点字体，保证手机端可读性 */
-  min-width: 10px;
-  color: #fff;
+  font-size: 10px;
+  min-width: 20px;
+  color: #ffffff;
+  margin-left: 5px;
+  margin-top: 2px;
 }
 </style>
