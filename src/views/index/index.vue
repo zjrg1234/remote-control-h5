@@ -86,7 +86,7 @@
       </div>
     </van-pull-refresh>
 
-    <!-- <NoticePopup v-model="showNotice" title="公告" :content="noticeContent" :is-rich-text="false" /> -->
+     <NoticePopup v-model="showNotice" title="公告" :content="noticeContent" :is-rich-text="false" />
   </div>
 </template>
 
@@ -101,7 +101,7 @@ import {
   GetNotice,
 } from "@/api/index";
 
-// import NoticePopup from '@/components/notice-popup/notice-popup.vue';
+import NoticePopup from '@/components/notice-popup/notice-popup.vue';
 import SkeletonCard from "@/components/skeleton-card/skeleton-card.vue";
 import { shouldFetchNotice, resetNoticeFlag } from "@/utils/notice";
 
