@@ -1,8 +1,6 @@
 <template>
   <div class="page">
     <NavBar title="设置"></NavBar>
-
-
     <!-- 顶部操作组 -->
     <div class="card">
       <div class="item" @click="operaUrl(1)">
@@ -47,14 +45,21 @@
       退出登录
     </div>
 
-    <TipModal title="提示" v-model:visible="logoutVisible" @confirm="logout">
+    <TipModal v-model:visible="logoutVisible" title="" cancelText="取消" confirmText="确定" @cancel="logoutVisible = false"
+      @confirm="handleConfirm">
       <template #content>
-        <div class="custom-content">确定要退出登录吗？</div>
+        <div class="tip-content">
+          <div class="tip-img">
+            <img src="@/assets/images/icon_hint@2x.png" alt="" />
+          </div>
+          <div class="tip-tit">{{ $t("提示") }}</div>
+          <div class="tip-text">{{ $t("确定要退出登录吗？") }}</div>
+        </div>
       </template>
     </TipModal>
 
-    <TipModal v-model:visible="logoutModal" title="" content="是否注销账号?" cancelText="取消" confirmText="确定"
-      @cancel="logoutModal = false" @confirm="handleConfirm">
+    <TipModal v-model:visible="logoutModal" title="" cancelText="取消" confirmText="确定" @cancel="logoutModal = false"
+      @confirm="handleConfirm">
 
       <template #content>
         <div class="tip-content">
@@ -63,12 +68,9 @@
           </div>
           <div class="tip-tit">{{ $t("提示") }}</div>
           <div class="tip-text">{{ $t("确定注销账号吗？") }}</div>
-
         </div>
       </template>
-
     </TipModal>
-
   </div>
 </template>
 
