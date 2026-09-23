@@ -125,8 +125,6 @@ onUnmounted(() => {
   outline: none;
   transition: border-color 0.3s;
   border-radius: 16px;
-  border: 1px solid rgba(0, 0, 0, 0.2);
-
 }
 
 .input-group input:focus {
