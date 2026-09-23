@@ -1,6 +1,6 @@
 <template>
   <div class="page-container">
-    <NavBar title="我的申诉"></NavBar>
+    <CustomNavBar title="我的申诉"></CustomNavBar>
 
     <div class="cont">
       <!-- 下拉刷新 -->
@@ -72,7 +72,6 @@ import { ref } from "vue";
 import { showToast } from "vant";
 import { GetAppealList } from "@/api/mine"; // 请根据实际路径调整
 import { formatDate , copyToClipboard} from "@/utils/utils"; // 请根据实际路径调整
-import NavBar from "@/components/CustomNavBar/index.vue";
 
 
 // 状态定义

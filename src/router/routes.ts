@@ -192,6 +192,16 @@ const routes: Array<RouteRecordRaw> = [
         },
       },
       {
+        path: "coupon",
+        name: "Coupon",
+        component: () => import("@/views/mine/coupon.vue"),
+        meta: {
+          title: "我的卡券",
+          noCache: true,
+          noAuth: true,
+        },
+      },
+      {
         path: "drive",
         name: "Drive",
         component: () => import("@/views/drive/index.vue"),

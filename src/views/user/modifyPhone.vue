@@ -1,6 +1,6 @@
 <template>
   <div class="container">
-    <NavBar title="修改手机号"></NavBar>
+    <CustomNavBar title="修改手机号"></CustomNavBar>
     <div class="cont">
       <div class="form-wrapper">
         <p class="title">当前手机号码:{{ userInfo.phone_number }}</p>
@@ -31,7 +31,6 @@ import { reactive, computed } from "vue";
 import { showToast } from "vant";
 import VerifyCodeInput from "@/components/Code/index.vue";
 import { ChangePhone } from "@/api/mine";
-import NavBar from "@/components/CustomNavBar/index.vue";
 import { useUserStore } from "@/store/modules/user";
 
 const userStore = useUserStore();

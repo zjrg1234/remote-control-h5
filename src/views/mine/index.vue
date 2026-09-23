@@ -182,8 +182,8 @@ const menuList3 = ref([
     name: "我的卡券",
     icon: new URL("@/assets/images/mine/icon_course@2x.png", import.meta.url)
       .href,
-    key: "service",
-    url: "",
+    key: "coupon",
+    url: "/coupon",
   },
 ]);
 
@@ -223,7 +223,7 @@ onMounted(async () => {
 
 // 菜单点击事件
 const handleClick = (item) => {
-  const navKeys = ["area", "order", "appeal", "record", "set"];
+  const navKeys = ["area", "order", "appeal", "record", "set","coupon"];
   if (navKeys.includes(item.key)) {
     router.push(item.url);
     return;
@@ -357,13 +357,13 @@ const onFileChange = async (fileDetail) => {
   font-weight: 500;
   font-size: 30px;
   color: #333;
-  line-height: 42px;
+
   margin-bottom: 8px;
   font-family: PingFangSC, PingFang SC;
   font-weight: 500;
   font-size: 36px;
   color: #1a1a1a;
-  line-height: 50px;
+  padding-top: 15px;
 }
 
 .user-id {

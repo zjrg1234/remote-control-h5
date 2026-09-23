@@ -1,6 +1,6 @@
 <template>
   <div class="page">
-    <NavBar title="设置"></NavBar>
+    <CustomNavBar title="设置"></CustomNavBar>
     <!-- 顶部操作组 -->
     <div class="card">
       <div class="item" @click="operaUrl(1)">
@@ -78,7 +78,6 @@
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { showToast } from 'vant';
-import NavBar from "@/components/CustomNavBar/index.vue";
 import { Logout, logoutAccount } from "@/api/mine";
 import TipModal from "@/components/TipModal/index.vue";
 

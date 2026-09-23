@@ -1,6 +1,6 @@
 <template>
   <div class="container">
-    <NavBar title="修改密码"></NavBar>
+    <CustomNavBar title="修改密码"></CustomNavBar>
 
 
     <div class="form-area">
@@ -34,8 +34,6 @@
 import { ref, reactive, computed } from 'vue';
 import VerifyCodeInput from '@/components/Code/index.vue';
 import { ChangePwd } from "@/api/mine"
-import NavBar from "@/components/CustomNavBar/index.vue";
-
 import { useUserStore } from "@/store/modules/user";
 
 const userStore = useUserStore();

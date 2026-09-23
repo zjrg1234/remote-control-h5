@@ -1,6 +1,6 @@
 <template>
   <div class="page-container">
-    <NavBar title="我的预约"></NavBar>
+    <CustomNavBar title="我的预约"></CustomNavBar>
 
     <div class="cont">
       <!-- 【修复1】去掉 :immediate-check="false"，让 van-list 自动触发首次加载 -->
@@ -131,7 +131,6 @@
 import { ref, onMounted } from "vue";
 import { useRouter } from "vue-router";
 import { showToast, showFailToast } from "vant";
-import NavBar from "@/components/CustomNavBar/index.vue";
 import { formatDate, copyToClipboard } from "@/utils/utils";
 import { GetReservationList } from "@/api/mine";
 import {

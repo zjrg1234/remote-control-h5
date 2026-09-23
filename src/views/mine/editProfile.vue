@@ -1,6 +1,6 @@
 <template>
     <div class="page">
-        <NavBar title="个人简介" />
+        <CustomNavBar title="个人简介" />
         <!-- 用户信息区域 -->
         <div class="header">
             <div class="user-info">
@@ -54,7 +54,6 @@ import { ref, computed } from "vue";
 import { showToast } from "vant";
 import { useUserStore } from "@/store/modules/user";
 import { ChangeHeadImg, ChangeName } from "@/api/mine";
-import NavBar from "@/components/CustomNavBar/index.vue";
 import { GetUserInfo } from "@/api/index";
 
 const visible = ref(false)

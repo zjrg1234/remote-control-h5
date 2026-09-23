@@ -1,7 +1,7 @@
 <template>
   <div class="page">
     <!-- 顶部导航栏 -->
-    <NavBar title="我的电池" />
+    <CustomNavBar title="我的电池" />
 
     <div class="wrap-content">
       <!-- 电池卡片 -->
@@ -86,7 +86,6 @@
 <script setup>
 import { ref, computed, onMounted } from "vue";
 import { useRouter } from "vue-router";
-import NavBar from "@/components/CustomNavBar/index.vue";
 import { GetUserWalletLog } from "@/api/mine";
 import { formatTime } from "@/utils/utils";
 import { useUserStore } from "@/store/modules/user";

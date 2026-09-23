@@ -1,7 +1,7 @@
 <template>
   <div class="page-container">
     <!-- 使用 van-list 实现滚动加载 -->
-    <NavBar title="驾驶记录" />
+    <CustomNavBar title="驾驶记录" />
     <div class="cont">
       <van-list
         v-model:loading="loading"
@@ -85,7 +85,6 @@ import { ref } from "vue";
 import { GetDrivingRecordlList } from "@/api/mine"; // 请根据实际路径调整
 import { billingMethod, paymentType } from "@/utils/filter"; // 请根据实际路径调整
 import { formatTime, compareTimestamp, formatDate } from "@/utils/utils"; // 请根据实际路径调整
-import NavBar from "@/components/CustomNavBar/index.vue";
 
 // ==================== 核心变量 ====================
 const list = ref([]); // 列表数据
