@@ -14,11 +14,13 @@
         <VerifyCodeInput class="code-input" v-model="formData.code" :phone="formData.new_phone_number" />
       </div>
 
-    </div>
 
     <div class="btn-area">
       <button class="submit-btn" @click="handleSubmit">确定</button>
     </div>
+
+    </div>
+
 
   </div>
 
@@ -66,11 +68,9 @@ const handleSubmit = () => {
 }
 
 .cont {
-  // height: 100vh;
+  min-height: 100vh;
   padding: 20px;
   background: #F8F8F8;
-
-  min-height: calc(100vh - 280px);
 }
 
 
@@ -161,7 +161,7 @@ const handleSubmit = () => {
 
 /* 按钮区域 */
 .btn-area {
-  margin-top: 5px;
+  margin-top: 70px;
   width: 100%;
   text-align: center;
 }
@@ -180,7 +180,7 @@ const handleSubmit = () => {
   /* 黑色文字 */
   font-size: 32px;
   font-weight: bold;
-  border-radius: 12px;
+  border-radius:50px;
   line-height: 94px;
 
   font-family: PingFangSC, PingFang SC;
