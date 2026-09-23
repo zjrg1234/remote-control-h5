@@ -78,7 +78,7 @@ const handleSubmit = () => {
 
 /* 输入框通用样式 */
 .form-area {
-  margin-bottom: 30px;
+  margin-bottom: 20px;
   padding: 64px;
 }
 

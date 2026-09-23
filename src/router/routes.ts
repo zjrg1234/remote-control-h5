@@ -176,7 +176,17 @@ const routes: Array<RouteRecordRaw> = [
         name: "ModifyPwd",
         component: () => import("@/views/user/modifyPwd.vue"),
         meta: {
-          title: "预约申诉",
+          title: "修改密码",
+          noCache: true,
+          noAuth: true,
+        },
+      },
+      {
+        path: "modifyPhone",
+        name: "ModifyPhone",
+        component: () => import("@/views/user/modifyPhone.vue"),
+        meta: {
+          title: "修改手机号",
           noCache: true,
           noAuth: true,
         },
