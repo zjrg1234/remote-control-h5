@@ -12,7 +12,7 @@
           <span class="title">{{ cardData.title }}</span>
           <span class="status-tag">{{ cardData.status }}</span>
           <div class="help-box">
-            <span class="help-icon">?</span>
+            <img class="help-icon" src="@/assets/images/icon_explain@2x.png" />
             <span>权益说明</span>
           </div>
         </div>
@@ -24,7 +24,7 @@
             <span class="unit">分钟</span>
           </div>
           <div class="number-item">
-            <span class="number">{{ cardData.battery }}</span>
+            <span class="number small">{{ cardData.battery }}</span>
             <span class="unit">电池</span>
           </div>
         </div>
@@ -89,11 +89,10 @@ const handleBook = () => {
   // TODO: 添加预约业务逻辑
 };
 </script>
-
 <style lang="scss" scoped>
 /* 外层容器 */
 .card-wrapper {
-  padding: 20px;
+  padding: 25px;
   background-color: #f7f8fa;
   /* 模拟页面背景，方便查看卡片效果 */
   min-height: 100vh;
@@ -105,65 +104,76 @@ const handleBook = () => {
   /* 左上角偏绿，右下角偏蓝紫的渐变背景 */
   background: linear-gradient(135deg, #f2fce6 0%, #e2eafc 100%);
   border-radius: 24px;
-  padding: 24px;
-  box-shadow: 0 8px 20px rgba(180, 200, 220, 0.2);
+  box-shadow: 0 16px 40px rgba(180, 200, 220, 0.2);
   font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Helvetica Neue', Arial, sans-serif;
+  position: relative;
+  background: url("@/assets/images/bg_way_green_big@2x.png") center / cover no-repeat;
+  padding: 20px;
+  margin-top: 25px;
 }
 
 /* 头部区域 */
 .header {
   display: flex;
   align-items: center;
-  gap: 12px;
-  margin-bottom: 20px;
-
+  gap: 24px;
+  margin-bottom: 25px;
   .special-tag {
-    background-color: #c9f15f;
-    color: #111;
-    font-size: 22px;
-    font-weight: 900;
-    padding: 4px 12px;
-    border-radius: 6px;
-    letter-spacing: 1px;
-    box-shadow: 2px 2px 0px rgba(0, 0, 0, 0.1);
-    transform: scale(1.05);
-    /* 视觉上稍微放大一点，突出“特惠” */
+
+    font-family: YouSheBiaoTiHei;
+    font-weight: 700;
+    font-size: 58px;
+    color: #1A1A1A;
+    height: 84px;
+    width: 150px;
+    background: #8DF182;
+    position: absolute;
+    top: -15px;
+    text-align: center;
+    display: block;
+    font-style: oblique 1deg;
   }
 
   .title {
-    font-size: 20px;
+    font-family: PingFangSC, PingFang SC;
     font-weight: 600;
-    color: #222;
+    font-size: 28px;
+    color: #1A1A1A;
+    padding-left: 160px;
   }
 
   .status-tag {
-    background-color: #a0a4a8;
     color: #fff;
-    font-size: 13px;
-    padding: 4px 12px;
-    border-radius: 20px;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 21px;
+    font-family: PingFangSC, PingFang SC;
+    font-weight: 400;
+    font-size: 24px;
+    color: #FFFFFF;
+    padding: 0 10px;
   }
 
   .help-box {
     margin-left: auto;
     display: flex;
     align-items: center;
-    gap: 4px;
-    font-size: 14px;
-    color: #666;
+    gap: 8px;
+
     cursor: pointer;
+
+    font-family: PingFangSC, PingFang SC;
+    font-weight: 400;
+    font-size: 24px;
+    color: #666666;
+
 
     .help-icon {
       display: flex;
       align-items: center;
       justify-content: center;
-      width: 16px;
-      height: 16px;
-      border: 1px solid #999;
-      border-radius: 50%;
-      font-size: 12px;
-      color: #999;
-      line-height: 1;
+      width: 28px;
+      height: 28px;
+  
     }
   }
 }
@@ -172,68 +182,78 @@ const handleBook = () => {
 .main-numbers {
   display: flex;
   align-items: baseline;
-  gap: 30px;
-  margin-bottom: 24px;
+  gap: 24px;
+  margin-bottom: 20px;
+  padding-left: 20px;
+
 
   .number-item {
     display: flex;
     align-items: baseline;
-    gap: 6px;
-
+    gap: 12px;
+   
     .number {
-      font-size: 48px;
-      font-weight: 900;
-      color: #5cbf4b;
-      /* 亮绿色 */
-      line-height: 1;
-      letter-spacing: -1px;
+     font-family: Impact;
+      font-size: 59px;
+      color: #34D2A5;
+    }
+    .small {
+      font-family: PingFangSC, PingFang SC;
+      font-size: 28px;
+      color: #34D2A5;
     }
 
     .unit {
-      font-size: 16px;
-      color: #333;
-      font-weight: 500;
+      font-family: PingFangSC, PingFang SC;
+      font-weight: 400;
+      font-size: 28px;
+      color: #1A1A1A;
     }
   }
 }
 
 /* 详情信息框 */
 .info-box {
-  background: rgba(255, 255, 255, 0.7);
-  border-radius: 16px;
+  background: rgba(255,255,255,0.4);
+  border-radius: 24px;
   padding: 20px;
-  margin-bottom: 24px;
 
   .info-row {
     display: flex;
     align-items: center;
-    margin-bottom: 16px;
+    margin-bottom: 20px;
 
     &:last-child {
       margin-bottom: 0;
     }
 
     .label {
-      width: 90px;
-      /* 固定标签宽度，保证对齐 */
-      font-size: 15px;
-      color: #888;
+      font-family: PingFangSC, PingFang SC;
+      font-weight: 400;
+      font-size: 24px;
+      color: #666666;
       flex-shrink: 0;
     }
 
     .value {
-      font-size: 15px;
-      color: #333;
-      font-weight: 500;
+      font-family: PingFangSC, PingFang SC;
+      font-weight: 400;
+      font-size: 24px;
+      color: #666666;
     }
 
     .vehicle-status {
-      background-color: #6fd44b;
-      color: #fff;
-      font-size: 13px;
-      padding: 2px 8px;
-      border-radius: 6px;
-      margin-left: 8px;
+      background: #07C160;
+      border-radius: 21px;
+      font-family: PingFangSC, PingFang SC;
+      font-weight: 400;
+      font-size: 20px;
+      color: #FFFFFF;
+      width: 72px;
+      padding: 3px 5px;
+      text-align: center;
+      margin-left: 16px;
+      // height: 36px;
     }
   }
 }
@@ -242,26 +262,23 @@ const handleBook = () => {
 .action-btns {
   display: flex;
   justify-content: flex-end;
-  gap: 16px;
 
   .btn {
     border: none;
-    border-radius: 40px;
-    padding: 0 36px;
-    height: 48px;
-    font-size: 18px;
-    font-weight: 700;
-    color: #111;
-    cursor: pointer;
-    /* 按钮的黄绿渐变 */
-    background: linear-gradient(90deg, #d3f18a 0%, #edf7a7 100%);
-    /* 绿色发光阴影 */
-    box-shadow: 0 6px 12px rgba(180, 220, 80, 0.3);
     transition: transform 0.1s ease, box-shadow 0.1s ease;
+    background: url("@/assets/images/btn@2x.png") center / cover no-repeat;
+    width: 222px;
+    height: 106px;
+
+    font-family: PingFangSC, PingFang SC;
+font-weight: 600;
+font-size: 30px;
+color: #1A1A1A;
 
     &:active {
       transform: scale(0.96);
-      box-shadow: 0 3px 6px rgba(180, 220, 80, 0.2);
+      box-shadow: 0 6px 12px rgba(180, 220, 80, 0.2);
+      /* 0 3px 6px * 2 */
     }
   }
 }
