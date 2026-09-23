@@ -50,7 +50,7 @@ export function ChangePhone(data) {
 
 
 export function logoutAccount(data) {
-  return get('/api/user/account/cancel', data)
+  return post('/api/user/account/cancel', data)
 }
 
 export function  GetUserWalletLog(data) {
@@ -88,8 +88,3 @@ export function  ChangeHeadImg(data) {
 export function  ChangeName(data) {
 	return post('/api/user/change/name',data)
 }
-
-
-
-
-

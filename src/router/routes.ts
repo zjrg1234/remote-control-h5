@@ -154,7 +154,7 @@ const routes: Array<RouteRecordRaw> = [
       {
         path: "set",
         name: "Set",
-        component: () => import("@/views/mine/set.vue"),
+        component: () => import("@/views/set/index.vue"),
         meta: {
           title: "设置",
           noCache: true,

@@ -1,4 +1,4 @@
-import { post } from "@/utils/http";
+import { post, get } from "@/utils/http";
 
 // 登录
 export function Login(data) {
@@ -99,24 +99,4 @@ export function UpdateBattery(data) {
 export function CheckCarStatus(data) {
   return post("/api/user/check/vehicle/status", data);
 }
-
-// /* 竖屏时的样式 */
-// @media screen and (orientation: portrait) {
-//   .my-element {
-//     width: 100%;
-//   }
-// }
-
-// /* 横屏时的样式 */
-// @media screen and (orientation: landscape) {
-//   .my-element {
-//     width: 50%;
-//   }
-// }
-
-// body {
-//   font-size: 16px !important; 
-//   -webkit-text-size-adjust: 100% !important; /* 禁止字体自动缩放 */
-//   text-size-adjust: 100% !important;
-// }
 
