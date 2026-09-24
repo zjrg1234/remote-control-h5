@@ -4,21 +4,31 @@
 
     <!-- 网格列表 -->
     <div class="grid">
-      <div class="grid-item" v-for="item in list" :key="item.id" :class="{ active: selected === item.id }"
-        @click="selected = item.id">
+      <div
+        class="grid-item"
+        v-for="item in list"
+        :key="item.id"
+        :class="{ active: selected === item.id }"
+        @click="selected = item.id"
+      >
         <img class="car-img" :src="item.image" alt="car" />
         <div class="info">
-          <span class="name">{{ item.agent_name }}</span>
-          <span class="desc">分区数 ｜ {{ item.partitions_number }} 个</span>
-          <span class="desc">车辆数 ｜ {{ item.vehicles_number }} 辆</span>
-          <span class="price">剩余金额 ￥{{ item.balance }}</span>
+          <div class="flex">
+            <span class="name">{{ item.agent_name }}</span>
+            <span class="price">￥{{ item.balance }}</span>
+          </div>
+
+          <span class="desc">分区数 <span class="line"></span> {{ item.partitions_number }} 个</span>
+          <span class="desc">车辆数 <span class="line"></span> {{ item.vehicles_number }} 辆</span>
         </div>
       </div>
     </div>
 
     <!-- 底部加载/无数据状态 -->
     <div class="loading-layout" v-if="list.length || noData">
-      <van-loading v-if="!noData" type="spinner" color="#1989fa">加载中...</van-loading>
+      <van-loading v-if="!noData" type="spinner" color="#1989fa"
+        >加载中...</van-loading
+      >
       <!-- <van-empty v-else description="没有更多了" image="search" /> -->
     </div>
 
@@ -28,7 +38,12 @@
     </div>
 
     <!-- 提示弹窗 -->
-    <van-dialog v-model:show="tipVisible" title="提示" show-cancel-button @confirm="handleConfirm">
+    <van-dialog
+      v-model:show="tipVisible"
+      title="提示"
+      show-cancel-button
+      @confirm="handleConfirm"
+    >
       <div class="dialog-content">
         <p class="text">
           变更专区后您所有的账户数据不会转移到新的专区（您稍后也可自行变更到当前专区）
@@ -83,13 +98,14 @@ const handleScroll = () => {
 
   // 增加防抖，避免滚动事件高频触发
   if (scrollTimer) clearTimeout(scrollTimer);
-  
+
   scrollTimer = setTimeout(() => {
-    const scrollTop = document.documentElement.scrollTop || document.body.scrollTop;
+    const scrollTop =
+      document.documentElement.scrollTop || document.body.scrollTop;
     const scrollHeight = document.documentElement.scrollHeight;
     const clientHeight = document.documentElement.clientHeight;
 
-    // 【核心修复】：判断内容是否超出屏幕。
+    // 判断内容是否超出屏幕。
     // 如果内容没有超出屏幕（即没有产生滚动条），则不触发加载，防止首次加载后立刻触发第二次
     if (scrollHeight <= clientHeight) return;
 
@@ -97,7 +113,7 @@ const handleScroll = () => {
     if (scrollTop + clientHeight >= scrollHeight - 100) {
       loading.value = true;
       queryParams.page++;
-      
+
       // 直接调用接口，去掉了不必要的 setTimeout 延迟
       getSpecialList().finally(() => {
         loading.value = false;
@@ -117,7 +133,6 @@ onUnmounted(() => {
   if (scrollTimer) clearTimeout(scrollTimer);
 });
 
-
 const confirm = () => {
   if (userStore.areaId == selected.value) return;
   const obj = list.value.find((item) => item.id == selected.value);
@@ -127,14 +142,12 @@ const confirm = () => {
 };
 
 const handleConfirm = async () => {
-
   const obj = { special_id: selected.value };
   try {
     const res = await ChangeSpecialList(obj);
     if (res.code == 200) {
       userStore.setAreaId(selected.value);
-      showToast('变更专区成功');
-
+      showToast("变更专区成功");
     } else {
       showToast(res.msg);
     }
@@ -143,78 +156,103 @@ const handleConfirm = async () => {
   }
 };
 </script>
+
 <style lang="scss" scoped>
 .container {
-  background-color: #f2f5f8;
+  background: #ffffff;
   min-height: 100vh;
-  padding-bottom: 120px; // 给底部按钮留出空间
+  padding-bottom: 240px; // 给底部按钮留出空间
 }
 
 .loading-layout {
   display: flex;
   justify-content: center;
   align-items: center;
-  padding: 20px 0;
+  padding: 40px 0;
 }
 
-/* 网格布局 */
+/* 网格布局：一行一个 */
 .grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 5px;
-  padding: 10px;
+  grid-template-columns: 1fr;
+  gap: 25px;
+  padding: 25px;
 }
 
 .grid-item {
   background: #fff;
-  border-radius: 6px;
+
   overflow: hidden;
-  border: 2px solid transparent;
+  border: 1px solid transparent;
   transition: border-color 0.2s;
   cursor: pointer;
 
+  box-shadow: 0px 0px 10px 0px rgba(0, 0, 0, 0.1);
+  border-radius: 16px;
+  display: flex;
+  justify-content: flex-start;
+  padding: 20px;
+
   &.active {
-    border-color: #ffc838;
+    border-color: #34d2a5;
     position: relative;
   }
 
   .car-img {
-    width: 100%;
-    height: 88px;
+    flex: 0 0 136px;
+    width: 136px;
+    height: 136px;
     object-fit: cover;
     display: block;
-    padding: 5px;
     box-sizing: border-box;
-    border-radius: 4px;
+    border-radius: 8px;
   }
 
   .info {
-    padding: 0 5px 5px 5px;
-    font-size: 13px;
+    padding-left: 20px;
+    font-size: 26px;
+    width: 100%;
+
+    .flex {
+      display: flex;
+      justify-content: space-between;
+    }
 
     .name {
       display: block;
-      font-weight: 400;
-      font-size: 14px;
-      color: #333; // 替换 $uni-color-1
-      margin-bottom: 2px;
+      font-family: PingFangSC, PingFang SC;
+      font-weight: 700;
+      font-size: 30px;
+      color: #1a1a1a;
+      line-height: 32px;
+      margin-bottom: 20px;
     }
 
     .desc {
       display: block;
-      color: #666;
-      margin: 3px 0;
-      line-height: 1.2;
-      font-size: 12px;
+      font-family: PingFangSC, PingFang SC;
+      font-weight: 400;
+      font-size: 24px;
+      color: #1a1a1a;
+
+      &:first-of-type {
+        margin-bottom: 16px;
+      }
+      .line {
+          height: 20px;
+          border: 1px solid rgba(153,153,153,0.6);
+          display: inline-block;
+          margin: 0 10px;
+      } 
     }
 
     .price {
       display: block;
-      color: #ff8800;
-      font-weight: 500;
-      margin-top: 4px;
-      line-height: 1.2;
-      font-size: 12px;
+      font-family: PingFangSC, PingFang SC;
+      font-weight: 600;
+      font-size: 28px;
+      color: #1a1a1a;
+      line-height: 32px;
     }
   }
 
@@ -223,51 +261,51 @@ const handleConfirm = async () => {
     content: " ";
     position: absolute;
     bottom: 0;
-    right: -1px;
-    width: 25px;
-    height: 20px;
-    background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGYAAABQCAMAAADcIvDgAAAAnFBMVEUAAAD+xzj/yjb/wD//0DH/yDf/yDj/yDj/yDj/yTj/yDf/yTn/yTj/yDj/yTn/xzj/yDj/yDj/yDj/yTj/yDj/yDf/yDj/yDf/yTj/yDj/yTn/yDgaGholIhseHRr6xTfzvzbfsDNtWSQwKx2dfStKPiDquDWzji5gTyPXqjO8lS9VRyE5MR7GnDGphy19ZSc/Nh/OozKTdimIbShPW8HqAAAAG3RSTlMA/hkJBPHj18qXbEX6flst9evBroo4IxK5ok5DxgZVAAACLUlEQVRo3rzVOQKCQBQEUWRYxwFUFNC6/z0Nf2BkUPQFXlZdnbE0ViesHqj8Xe+cwOQLPpNW8JmlB5+ZW3ymeYLP1A/wmVcHPpMLPpPe4DPbgMpEXnxmuuAz+womE3nxmfmGyUReRCbyojKRF5/JBZOJvPjM1oPPfFp8ppnAZ/YDfGbpMJnIi880I/hMPaAycZM+kws+k1bwma3HZCIvJhM36TP7gcrETfrMXPCZNPL/lLz8zsrLtzZz21UQBqJoxONRYjwaXweQ+00Q1P//txPTkikMNHZC12NNWAp072nMS7+v2RqcwvVEjed5QYUaK/FSJd6HlKU5780sXsHR/H0bL09fWO54hy3ESztYQlzjTOF66kBYyhsgq8dLIS2xaoG1a/IxWDagwpjCdaSeoBtbgHHIb7MkDmGWl7S8YYJ5vESfF6nPYYa3tLxgilm84H1pIpiy6aQlBYL5Ib8Q10qiqSUWHwQPoJjHyy2Tnmq8PFgKmIExhYfS4z9VSykXa5iDEy/hXV6yXViiMOKFfHXyAymMeKEPIsfHtQAjXshrlff48i3AjRfcJKKQcSvNwp3Ccct3oirVYKCwpnAMMCTTWXbmh3wkVS0haNgzp3AsFyxkDVfOIR8psJC1uDRejKh9LGQNR3LINyQq/SbdgJ7dD5nCbeCSmrTBxRn/1WaJE5nCbXDYknixwK9jEC98y5nUpAUOjhIvtrictkpNWmLnOqQmVzbsr+5R2fv/YJisvL6xvsMAAAAASUVORK5CYII=);
-    background-size: cover;
+    right: -2px;
+    width: 48px;
+    height: 34px;
+    background-image: url("@/assets/images/icon_check@2x.png");
     background-repeat: no-repeat;
+    background-position: center;
+    background-size: cover;
   }
 }
 
 /* 底部按钮 */
-/* 底部按钮 */
 .btn-wrap {
   position: fixed;
-  bottom: 10px;
+  bottom: 20px;
   left: 50%;
   transform: translateX(-50%);
-  margin-bottom: 10px;
-  width: calc(100% - 20px);
-
+  margin-bottom: 20px;
+  width: calc(100% - 40px);
 
   .confirm-btn {
     width: 100%;
-    height: 45px;
-    line-height: 45px;
+    height: 90px;
+    line-height: 90px;
     border: none;
     font-family: PingFangSC, PingFang SC;
-    font-weight: 500;
-    font-size: 16px;
+    font-weight: 700;
+    font-size: 32px;
     color: #1a1a1a;
+
   }
 }
 
 .dialog-content {
-  padding: 10px 20px;
+  padding: 20px 40px;
 
   .text {
     text-align: left;
     color: #333;
     font-weight: 400;
-    font-size: 14px;
+    font-size: 28px;
     line-height: 1.6;
     margin: 0;
 
-    &+.text {
-      margin-top: 8px;
+    & + .text {
+      margin-top: 16px;
     }
   }
 }
