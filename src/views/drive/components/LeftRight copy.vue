@@ -1,11 +1,11 @@
 <template>
   <!-- 注意：这里不再绑定 Vue 的响应式 style，而是直接操作 DOM -->
   <div class="control-box" ref="boxRef">
-    <!-- 上箭头 -->
+    <!-- 左箭头 -->
     <div
-      class="arrow up"
-      :style="{ backgroundImage: `url(${upImage})` }"
-      :class="{ active: isUpActive }"
+      class="arrow left"
+      :style="{ backgroundImage: `url(${leftImage})` }"
+      :class="{ active: isLeftActive }"
     ></div>
 
     <!-- 可拖动的圆点 -->
@@ -20,28 +20,28 @@
       @touchstart.prevent="handleStart"
     ></div>
 
-    <!-- 下箭头 -->
+    <!-- 右箭头 -->
     <div
-      class="arrow down"
-      :style="{ backgroundImage: `url(${downImage})` }"
-      :class="{ active: isDownActive }"
+      class="arrow right"
+      :style="{ backgroundImage: `url(${rightImage})` }"
+      :class="{ active: isRightActive }"
     ></div>
   </div>
 </template>
 
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue'
-import upImg from "@/assets/images/s_up@2x.png";
-import downImg from "@/assets/images/s_down@2x.png";
+import leftImg from "@/assets/images/s_left@2x.png";
+import rightImg from "@/assets/images/s_right@2x.png";
 import dotImg from "@/assets/images/s_dot@2x.png";
 
-const upImage = ref(upImg);
-const downImage = ref(downImg);
+const leftImage = ref(leftImg);
+const rightImage = ref(rightImg);
 const dotImage = ref(dotImg);
 
 // ==================== Props ====================
 const props = defineProps({
-  // 圆点最大上下移动距离（px）
+  // 圆点最大左右移动距离（px）
   maxOffset: { type: Number, default: 80 },
   // 死区阈值（px），小于此距离不触发方向
   deadZone: { type: Number, default: 8 },
@@ -61,14 +61,14 @@ const dotRef = ref(null)
 // ==================== 响应式状态（仅用于 UI 类名切换） ====================
 const isDragging = ref(false)
 const isReadyMode = ref(false)
-const isUpActive = ref(false)
-const isDownActive = ref(false)
+const isLeftActive = ref(false)
+const isRightActive = ref(false)
 
 // ==================== 非响应式变量 ====================
-let currentY = 0            // 当前圆点 Y 偏移（px，负=上，正=下）
-let startTouchY = 0         // ⭐ 手指按下的初始 Y 坐标
-let startDotY = 0           // ⭐ 按下时圆点的位置（通常是 0）
-let baseCenterY = 0         // 底盘中心 Y 坐标（保留兼容）
+let currentX = 0            // 当前圆点 X 偏移（px，负=左，正=右）
+let startTouchX = 0         // ⭐ 手指按下的初始 X 坐标
+let startDotX = 0           // ⭐ 按下时圆点的位置（通常是 0）
+let baseCenterX = 0         // 底盘中心 X 坐标（保留兼容）
 let idleTimer = null        // 待命模式定时器
 let emitTimer = null        // 持续发送定时器
 
@@ -76,10 +76,10 @@ let emitTimer = null        // 持续发送定时器
 const clamp = (v, min, max) => Math.min(Math.max(v, min), max)
 
 // ==================== 直接操作 DOM 更新圆点位置 ====================
-const updateDotTransform = (y) => {
+const updateDotTransform = (x) => {
   if (!dotRef.value) return
   // 用 translate3d 触发 GPU 加速
-  dotRef.value.style.transform = `translate3d(-50%, calc(-50% + ${y}px), 0)`
+  dotRef.value.style.transform = `translate3d(calc(-50% + ${x}px), -50%, 0)`
 }
 
 // ==================== 待命模式 ====================
@@ -97,63 +97,63 @@ const resetIdleTimer = () => {
 
 // ==================== 核心：计算并发送状态 ====================
 const emitCurrentState = () => {
-  const dy = currentY
-  const distance = Math.abs(dy)
+  const dx = currentX
+  const distance = Math.abs(dx)
   const speed = Math.min(distance / props.maxOffset, 1)
 
-  let up = false
-  let down = false
+  let left = false
+  let right = false
 
   if (distance >= props.deadZone) {
-    if (dy < 0) {
-      up = true   // 屏幕上方：dy 为负
+    if (dx < 0) {
+      left = true    // 屏幕左侧：dx 为负
     } else {
-      down = true // 屏幕下方：dy 为正
+      right = true   // 屏幕右侧：dx 为正
     }
   }
 
   // 只在状态变化时更新响应式（减少 Vue 重渲染）
-  if (isUpActive.value !== up) isUpActive.value = up
-  if (isDownActive.value !== down) isDownActive.value = down
+  if (isLeftActive.value !== left) isLeftActive.value = left
+  if (isRightActive.value !== right) isRightActive.value = right
 
-  // 有符号值：-1（最上）~ 0（中）~ 1（最下）
-  const value = dy / props.maxOffset
+  // 有符号值：-1（最左）~ 0（中）~ 1（最右）
+  const value = dx / props.maxOffset
 
-  emit('change', {
-    up,
-    down,
-    speed,
-    distance,
-    value
-  })
+  // emit('change', {
+  //   left,
+  //   right,
+  //   speed,
+  //   distance,
+  //   value
+  // })
 }
 
 const resetDirection = () => {
-  isUpActive.value = false
-  isDownActive.value = false
+  isLeftActive.value = false
+  isRightActive.value = false
   if (emitTimer) {
     clearInterval(emitTimer)
     emitTimer = null
   }
-  emit('change', {
-    up: false,
-    down: false,
-    speed: 0,
-    distance: 0,
-    value: 0
-  })
+  // emit('change', {
+  //   left: false,
+  //   right: false,
+  //   speed: 0,
+  //   distance: 0,
+  //   value: 0
+  // })
 }
 
 // ==================== 拖动核心逻辑 ====================
-const updateJoystick = (dy) => {
+const updateJoystick = (dx) => {
   // 限制最大范围
-  dy = clamp(dy, -props.maxOffset, props.maxOffset)
+  dx = clamp(dx, -props.maxOffset, props.maxOffset)
 
-  currentY = dy
+  currentX = dx
   // ⚠️ 直接操作 DOM，绕过 Vue 响应式
-  updateDotTransform(dy)
+  updateDotTransform(dx)
 
-  const hasActive = Math.abs(dy) > props.deadZone
+  const hasActive = Math.abs(dx) > props.deadZone
 
   if (hasActive && isDragging.value) {
     emitCurrentState()
@@ -181,7 +181,7 @@ const handleStart = (e) => {
     dotRef.value.style.transition = 'none'
   }
 
-  const clientY = e.touches ? e.touches[0].clientY : e.clientY
+  const clientX = e.touches ? e.touches[0].clientX : e.clientX
 
   isDragging.value = true
   isReadyMode.value = false
@@ -189,12 +189,12 @@ const handleStart = (e) => {
   resetDirection()
 
   // ⭐ 记录手指起点 + 圆点起点（相对移动的关键）
-  startTouchY = clientY
-  startDotY = currentY
+  startTouchX = clientX
+  startDotX = currentX
 
   // 保留底盘中心计算（后续扩展用）
   const boxRect = boxRef.value.getBoundingClientRect()
-  baseCenterY = boxRect.top + boxRect.height / 2
+  baseCenterX = boxRect.left + boxRect.width / 2
 
   // 全局绑定，确保手指移出元素后依然生效
   document.addEventListener('mousemove', handleMove, { passive: false })
@@ -204,21 +204,21 @@ const handleStart = (e) => {
   document.addEventListener('touchcancel', handleEnd)
 
   resetIdleTimer()
-  emit('start', { y: clientY })
+  emit('start', { x: clientX })
 }
 
 const handleMove = (e) => {
   if (!isDragging.value) return
   e.preventDefault?.()
 
-  const clientY = e.touches ? e.touches[0].clientY : e.clientY
+  const clientX = e.touches ? e.touches[0].clientX : e.clientX
 
   // ⭐ 相对位移：手指移动了多少，圆点就走多少
-  const deltaY = clientY - startTouchY
-  const newY = clamp(startDotY + deltaY, -props.maxOffset, props.maxOffset)
+  const deltaX = clientX - startTouchX
+  const newX = clamp(startDotX + deltaX, -props.maxOffset, props.maxOffset)
 
   resetIdleTimer()
-  updateJoystick(newY)
+  updateJoystick(newX)
 }
 
 const handleEnd = (e) => {
@@ -229,7 +229,7 @@ const handleEnd = (e) => {
   clearTimeout(idleTimer)
 
   // 松手回中
-  currentY = 0
+  currentX = 0
   updateDotTransform(0)
   resetDirection()
 
@@ -248,8 +248,8 @@ const handleEnd = (e) => {
   document.removeEventListener('touchend', handleEnd)
   document.removeEventListener('touchcancel', handleEnd)
 
-  const clientY = e.changedTouches ? e.changedTouches[0].clientY : e.clientY
-  emit('end', { y: clientY })
+  const clientX = e.changedTouches ? e.changedTouches[0].clientX : e.clientX
+  // emit('end', { x: clientX })
 }
 
 // ==================== 生命周期 ====================
@@ -273,13 +273,13 @@ onUnmounted(() => {
 <style lang="scss" scoped>
 .control-box {
   position: fixed;
-  right: 120px;
-  bottom: 25px;
-  width: 55px;
-  height: 200px;
-  padding: 12.5px 0;
+  left: 25px;
+  bottom: 120px;
+  width: 200px;
+  height: 55px;
+  padding: 0 12.5px;
   display: flex;
-  flex-direction: column;
+  flex-direction: row;       /* ⭐ 横向排列 */
   align-items: center;
   justify-content: space-between;
   box-sizing: border-box;
@@ -302,17 +302,18 @@ onUnmounted(() => {
   opacity: 0.4;
   transition: opacity 0.15s ease, transform 0.15s ease;
   pointer-events: none;
+  flex-shrink: 0;
 
   &.active {
     opacity: 1;
     transform: scale(1.15);
   }
 
-  &.up.active {
+  &.left.active {
     filter: drop-shadow(0 0 8px #5bd3a8);
   }
 
-  &.down.active {
+  &.right.active {
     filter: drop-shadow(0 0 8px #ffc838);
   }
 }

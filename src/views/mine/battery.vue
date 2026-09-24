@@ -6,26 +6,20 @@
     <div class="wrap-content">
       <!-- 电池卡片 -->
       <div class="card">
-        <div class="card-bg">
-          <img
-            class="card-bg-img"
-            src="@/assets/images/mine/bg_battery@2x.png"
-          />
-        </div>
+
         <div class="card-content">
           <div class="card-left">
-            <div class="label">
-              <span class="label-text">我的电池</span>
-              <img
-                class="battery"
-                src="@/assets/images/mine/icon_battery@2x.png"
-              />
-            </div>
             <div class="num">{{ balance }}</div>
+            <div class="label">
+              我的电池
+            </div>
           </div>
-          <van-button class="recharge-btn" size="small" @click="handleRecharge"
-            >充值</van-button
-          >
+          <div class="recharge-btn" @click="goBattery">
+            <span> 充值 </span>
+
+            <img class="img" src="@/assets/images/common/icon_arrows2@2x.png" alt="" />
+            <!-- <van-icon name="arrow" /> -->
+          </div>
         </div>
       </div>
 
@@ -36,19 +30,9 @@
     </div>
 
     <!-- 标签栏 -->
-    <van-tabs
-      v-model:active="currentTab"
-      class="tabs"
-      color="#1A1A1A"
-      title-active-color="#1A1A1A"
-      title-inactive-color="#777777"
-    >
-      <van-tab
-        v-for="item in tabs"
-        :key="item.id"
-        :title="item.name"
-        :name="item.id"
-      />
+    <van-tabs v-model:active="currentTab" class="tabs" color="#1A1A1A" title-active-color="#1A1A1A"
+      title-inactive-color="#777777">
+      <van-tab v-for="item in tabs" :key="item.id" :title="item.name" :name="item.id" />
     </van-tabs>
 
     <!-- 列表 -->
@@ -57,11 +41,7 @@
       <div class="load-tip" v-if="loading">加载中...</div>
 
       <!-- 2. 无数据空状态 -->
-      <van-empty
-        v-if="!loading && list.length === 0"
-        :image="nodata"
-        description="暂时没有内容哦～"
-      />
+      <van-empty v-if="!loading && list.length === 0" :image="nodata" description="暂时没有内容哦～" />
 
       <!-- 3. 数据列表 -->
       <div class="item" v-for="(item, index) in list" :key="index">
@@ -69,7 +49,7 @@
         <div class="middle">
           <span class="common-text">{{
             item.type == 1 ? "提前结束驾驶退还" : "驾驶扣款"
-          }}</span>
+            }}</span>
           <span class="amount" :class="item.type == 1 ? 'green' : 'red'">
             {{ item.type == 1 ? "+" : "" }}{{ item.amount }}
           </span>
@@ -173,6 +153,7 @@ onMounted(() => getList());
   width: 100%;
   height: 85px; // 170rpx / 2
   z-index: 0;
+
   .image {
     width: 100%;
     height: 100%;
@@ -181,25 +162,10 @@ onMounted(() => getList());
   }
 }
 
-/* 电池卡片 */
 .card {
   position: relative;
-  z-index: 1;
-  padding: 15px;
+  padding: 25px 25px 20px 25px;
   overflow: hidden;
-  height: 98px; // 196rpx / 2
-}
-
-.card-bg {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  z-index: 0;
-  .card-bg-img {
-    width: 100%;
-    height: 98px; // 196rpx / 2
-  }
 }
 
 .card-content {
@@ -207,46 +173,69 @@ onMounted(() => getList());
   z-index: 1;
   display: flex;
   justify-content: space-between;
-  align-items: flex-end;
+  align-items: center;
+
+  background: linear-gradient(135deg, #35E1A0 0%, #33C5AA 100%);
+  border-radius: 20px;
+  height: 172px;
+}
+
+.card-left {
+  padding-left: 25px;
 }
 
 .label {
   padding-top: 5px;
-  display: flex;
-  align-items: center;
-  .label-text {
-    font-size: 14px;
-    color: #222222;
-  }
-  .battery {
-    width: 19px;
-    height: 19px;
-    margin-left: 4px;
-  }
+  font-family: PingFangSC, PingFang SC;
+  font-weight: 400;
+  font-size: 24px;
+  color: #666666;
+  line-height: 33px;
 }
 
 .num {
-  font-weight: 600;
-  font-size: 20px;
+  font-family: Impact;
+  font-size: 40px;
   color: #222222;
-  padding-top: 3px;
-  padding-left: 5px;
+  line-height: 48px;
+  font-weight: 700;
 }
 
+/* 充值按钮 */
 .recharge-btn {
-  background: #ffc838;
-  border: none;
-  color: #1a1a1a;
-  font-size: 12px;
-  padding: 5px 20px;
-  border-radius: 6px;
+  margin-right: 25px;
+  border-radius: 24px;
+  border: 1px solid #222222;
+  padding: 4px 20px;
+
+  display: flex;
+  align-items: center;
+  gap: 4px;
+
+  font-family: PingFangSC, PingFang SC;
+  font-weight: 400;
+  font-size: 24px;
+  color: #222222;
+  line-height: 33px;
+  text-align: left;
+  font-style: normal;
+
+  img {
+    width: 24px;
+    height: 24px;
+  }
 }
 
 /* 说明 */
 .desc {
-  padding: 0 10px 10px;
-  font-size: 12px;
+  padding: 0 25px;
+  font-family: PingFangSC, PingFang SC;
+  font-weight: 400;
+  font-size: 24px;
   color: #999999;
+  line-height: 40px;
+  text-align: left;
+  font-style: normal;
 }
 
 /* 标签栏 */
@@ -287,13 +276,16 @@ onMounted(() => getList());
   align-items: baseline;
   color: #999;
   margin-top: 6px;
+
   .amount {
     font-weight: bold;
     font-size: 20px;
   }
+
   .red {
     color: #ee4040;
   }
+
   .green {
     color: #07c160;
   }

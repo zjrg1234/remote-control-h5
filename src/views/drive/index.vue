@@ -71,7 +71,15 @@
 
       <LeftRight @action="handleLRDrive" :isLeft="operMode"></LeftRight>
 
-      <!-- <UpDown @action="handleFBDrive" :isLeft="!operMode"></UpDown> -->
+      <UpDown @action="handleFBDrive" :isLeft="!operMode" :base-size="200"
+      :dot-size="56"
+      :dead-zone="10"
+      :idle-delay="150"
+      :emit-interval="30"
+      show-debug></UpDown>
+
+
+
 
       <div class="time">
         <img src="@/assets/images/icon_time@2x.webp" alt="" />

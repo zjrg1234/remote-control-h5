@@ -99,15 +99,7 @@
     />
 
 
-    <GameJoystick :base-size="200"
-      :dot-size="56"
-      :dead-zone="10"
-      :idle-delay="150"
-      :emit-interval="30"
-      show-debug
-      @change="handleJoystickChange"
-      @start="handleStart"
-      @end="handleEnd"></GameJoystick>
+    
   </div>
 </template>
 
@@ -126,7 +118,6 @@ import NoticePopup from "@/components/notice-popup/notice-popup.vue";
 import SkeletonCard from "@/components/skeleton-card/skeleton-card.vue";
 import { shouldFetchNotice, resetNoticeFlag } from "@/utils/notice";
 
-import GameJoystick from './opera.vue'
 
 const router = useRouter();
 
