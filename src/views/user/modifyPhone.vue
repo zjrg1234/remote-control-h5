@@ -1,36 +1,40 @@
 <template>
-  <view class="container">
-    <view class="form-wrapper">
-      <view class="input-item">
-        <span>+86</span>
-        <input
-          class="input"
-          maxlength="11"
-          placeholder="请输入旧手机号"
-          v-model="formData.phone"
-        />
-      </view>
-    </view>
-    <VerifyCodeInput v-model="formData.code" phone="188888888" />
-    <view class="input-item">
-      <input
-        class="input"
-        maxlength="11"
-        placeholder="请输入新手机号"
-        v-model="formData.new_phone_number"
-      />
-    </view>
+  <div class="container">
+    <CustomNavBar title="修改手机号"></CustomNavBar>
+    <div class="cont">
+      <div class="form-wrapper">
+        <p class="title">当前手机号码:{{ userInfo.phone_number }}</p>
+        <VerifyCodeInput class="code-input" v-model="formData.code" :phone="userInfo.phone_number" />
+      </div>
+      <div class="form-wrapper">
+        <p class="title">新手机号</p>
+        <div class="input-item">
+          <input class="input" maxlength="11" placeholder="请输入新手机号" v-model="formData.new_phone_number" />
+        </div>
+        <VerifyCodeInput class="code-input" v-model="formData.code" :phone="formData.new_phone_number" />
+      </div>
 
-    <view class="btn-area">
+
+    <div class="btn-area">
       <button class="submit-btn" @click="handleSubmit">确定</button>
-    </view>
-  </view>
+    </div>
+
+    </div>
+
+
+  </div>
+
 </template>
 
 <script setup>
-import { ref, reactive } from "vue";
-import VerifyCodeInput from "@/components/verify-code/verify-code.vue";
-import { ChangePhone } from "@/axios/mine.js";
+import { reactive, computed } from "vue";
+import { showToast } from "vant";
+import VerifyCodeInput from "@/components/Code/index.vue";
+import { ChangePhone } from "@/api/mine";
+import { useUserStore } from "@/store/modules/user";
+
+const userStore = useUserStore();
+const userInfo = computed(() => userStore.userInfo);
 // --- 数据定义 ---
 const formData = reactive({
   code: "",
@@ -40,48 +44,82 @@ const formData = reactive({
 
 // 提交表单
 const handleSubmit = () => {
-  if (!formData.phone)
-    return uni.showToast({ title: "请输入旧手机号", icon: "none" });
-  if (!formData.code)
-    return uni.showToast({ title: "请输入验证码", icon: "none" });
-  if (!formData.new_phone_number)
-    return uni.showToast({ title: "请输入新手机号", icon: "none" });
+  if (!formData.phone) return showToast({ title: '请输入旧手机号', icon: 'none' });
+  if (!formData.code) return showToast({ title: '请输入验证码', icon: 'none' });
+  if (!formData.new_phone_number) return showToast({ title: '请输入新手机号', icon: 'none' });
 
-  console.log(formData);
   ChangePhone({
-    ...formData,
-  })
-    .then((res) => {
-      // 这里执行提交逻辑
-      uni.showToast({
-        title: "密码重置成功",
-        icon: "success",
-      });
-    })
-    .catch();
+    ...formData
+  }).then(res => {
+    if (res.code == 200) {
+      showToast({ title: '修改手机号码成功', icon: 'success' });
+    } else {
+      showToast({ title: res.msg, icon: 'none' });
+    }
+  }).catch()
+
 };
 </script>
 
 <style lang="scss" scoped>
 .container {
-  padding: 60rpx;
-  background-color: #fff;
+  background: #fff;
+}
+
+.cont {
   min-height: 100vh;
+  padding: 20px;
+  background: #F8F8F8;
+}
+
+
+.form-wrapper {
+  background: #FFFFFF;
+  border-radius: 16px;
+  margin-bottom: 20px;
+  padding-bottom: 40px;
+
+  .title {
+    font-family: PingFangSC, PingFang SC;
+    font-weight: 400;
+    font-size: 28px;
+    color: #222222;
+    line-height: 40px;
+    padding: 40px 0;
+    text-align: center;
+  }
+
+  .code-input {
+    margin: 0 20px;
+  }
+
+  :deep(.code-input input) {
+    background: #F8F8F8;
+
+    &::placeholder {
+      color: #ccc;
+    }
+  }
+
 }
 
 .input-item {
-  height: 88rpx;
+  height: 88px;
   background-color: #f7f7f7;
-  border-radius: 12rpx;
-  margin-bottom: 25rpx;
-  padding: 0 30rpx;
+  border-radius: 12px;
   display: flex;
   align-items: center;
   position: relative;
+  margin: 0 20px;
+  margin-bottom: 32px;
+
+  input {
+    background-color: #f7f7f7;
+  }
 
   &.phone-box {
     color: #333;
-    font-size: 28rpx;
+    font-size: 28px;
     font-weight: 500;
   }
 }
@@ -89,15 +127,23 @@ const handleSubmit = () => {
 .input {
   flex: 1;
   height: 100%;
-  font-size: 28rpx;
-  padding-left: 20rpx;
-  color: #333;
+  font-size: 28px;
+  padding-left: 20px;
+
+  font-family: PingFangSC, PingFang SC;
+  font-weight: 400;
+  font-size: 28px;
+  color: #222222;
+
+  &::placeholder {
+    color: #ccc;
+  }
 }
 
 /* 手机号文本 */
 .phone-text {
-  margin-left: 20rpx;
-  font-size: 28rpx;
+  margin-left: 20px;
+  font-size: 28px;
   color: #333;
 }
 
@@ -105,32 +151,46 @@ const handleSubmit = () => {
 .code-btn {
   font-family: PingFangSC, PingFang SC;
   font-weight: 400;
-  font-size: 28rpx;
+  font-size: 28px;
   color: #ff8500;
   position: absolute;
-  right: 20rpx;
-  padding: 10rpx 20rpx;
+  right: 20px;
+  padding: 10px 20px;
 }
 
 /* 按钮区域 */
 .btn-area {
-  margin-top: 200rpx;
+  margin-top: 70px;
+  width: 100%;
+  text-align: center;
 }
 
 /* 提交按钮 */
 .submit-btn {
-  background-color: #f7ba2a;
+  margin: auto;
+  width: 702px;
+  height: 94px;
+  background: #34D2A5;
+  border-radius: 44px;
+  margin-top: 25px;
+
   /* 黄色背景 */
   color: #333;
   /* 黑色文字 */
-  font-size: 32rpx;
+  font-size: 32px;
   font-weight: bold;
-  border-radius: 12rpx;
-  height: 90rpx;
-  line-height: 90rpx;
+  border-radius:50px;
+  line-height: 94px;
+
+  font-family: PingFangSC, PingFang SC;
+  font-weight: 500;
+  font-size: 32px;
+  color: #1A1A1A;
+  text-align: center;
   display: flex;
   align-items: center;
   justify-content: center;
+
 
   /* 去除按钮默认样式 */
   &::after {

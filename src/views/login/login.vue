@@ -219,7 +219,7 @@ const handleLogin = async () => {
   margin-bottom: 20px;
 }
 
-.input-group input {
+:deep(.input-group input) {
   width: 100%;
   height: 96px;
   padding: 0 24px;

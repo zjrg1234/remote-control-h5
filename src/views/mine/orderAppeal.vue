@@ -1,6 +1,6 @@
 <template>
     <div class="page">
-        <NavBar title="预约申诉" />
+        <CustomNavBar title="预约申诉" />
 
         <div class="wrap-content">
             <!-- 申诉图片：使用 Vant Uploader 组件 -->
@@ -62,7 +62,6 @@ import { ref, onMounted } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { showToast, showLoadingToast, closeToast } from "vant";
 import { AppealOrderNo } from "@/api/mine";
-import NavBar from "@/components/CustomNavBar/index.vue";
 
 
 const route = useRoute();

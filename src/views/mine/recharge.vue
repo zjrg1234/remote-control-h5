@@ -1,7 +1,7 @@
 <template>
   <div class="page">
     <!-- 顶部导航栏 -->
-    <NavBar title="我的电池" />
+    <CustomNavBar title="我的电池" />
 
     <div class="wrap-content">
      
@@ -136,7 +136,6 @@
 import { ref, computed, watch } from "vue";
 import { useRouter } from "vue-router";
 import { showToast } from "vant";
-import NavBar from "@/components/CustomNavBar/index.vue";
 import {
   GetDepositList,
   GetFirstDepositList,

@@ -49,6 +49,7 @@ export const useUserStore = defineStore("user", {
     setUser(data: Record<string, any>) {
       this.userInfo = data;
       this.id = data.id || "";
+      
 
       this.userInfo = data;
       this.id = data.id;

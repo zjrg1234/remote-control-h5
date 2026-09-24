@@ -154,7 +154,7 @@ const routes: Array<RouteRecordRaw> = [
       {
         path: "set",
         name: "Set",
-        component: () => import("@/views/mine/set.vue"),
+        component: () => import("@/views/set/index.vue"),
         meta: {
           title: "设置",
           noCache: true,
@@ -167,6 +167,36 @@ const routes: Array<RouteRecordRaw> = [
         component: () => import("@/views/mine/orderAppeal.vue"),
         meta: {
           title: "预约申诉",
+          noCache: true,
+          noAuth: true,
+        },
+      },
+      {
+        path: "modifyPwd",
+        name: "ModifyPwd",
+        component: () => import("@/views/user/modifyPwd.vue"),
+        meta: {
+          title: "修改密码",
+          noCache: true,
+          noAuth: true,
+        },
+      },
+      {
+        path: "modifyPhone",
+        name: "ModifyPhone",
+        component: () => import("@/views/user/modifyPhone.vue"),
+        meta: {
+          title: "修改手机号",
+          noCache: true,
+          noAuth: true,
+        },
+      },
+      {
+        path: "coupon",
+        name: "Coupon",
+        component: () => import("@/views/mine/coupon.vue"),
+        meta: {
+          title: "我的卡券",
           noCache: true,
           noAuth: true,
         },

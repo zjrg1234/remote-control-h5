@@ -1,6 +1,6 @@
 <template>
   <div class="container">
-    <NavBar title="变更专区"></NavBar>
+    <CustomNavBar title="变更专区"></CustomNavBar>
 
     <!-- 网格列表 -->
     <div class="grid">
@@ -59,7 +59,6 @@ import { onMounted, onUnmounted, ref } from "vue";
 import { showToast } from "vant";
 import { GetSpecialList, ChangeSpecialList } from "@/api/mine";
 import { useUserStore } from "@/store/modules/user";
-import NavBar from "@/components/CustomNavBar/index.vue";
 
 const userStore = useUserStore();
 

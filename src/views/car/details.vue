@@ -1,6 +1,6 @@
 <template>
   <div class="page">
-    <NavBar :title="$t('场地详情')"></NavBar>
+    <CustomNavBar :title="$t('场地详情')"></CustomNavBar>
     <div class="content">
       <div class="header-section">
         <van-image class="banner-img" :src="imageUrl" fit="cover" />
@@ -232,7 +232,6 @@ import { showToast } from "vant";
 import { $t } from "@/locales";
 import TipModal from "@/components/TipModal/index.vue";
 import BillingPopup from "@/components/BillingPopup/index.vue";
-import NavBar from "@/components/CustomNavBar/index.vue";
 
 import {
   GetVenueDetail,

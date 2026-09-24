@@ -5,37 +5,20 @@
       <div class="user-info">
         <div class="avatar-image">
           <!-- 上传组件绑定ref，插槽只放头像 -->
-          <van-uploader
-            ref="uploaderRef"
-            :after-read="onFileChange"
-            accept="image/*"
-            :preview-size="50"
-            :max-size="500 * 1024"
-            @oversize="
+          <van-uploader ref="uploaderRef" :after-read="onFileChange" accept="image/*" :preview-size="50"
+            :max-size="500 * 1024" @oversize="
               showToast({ message: '图片不能超过500KB', type: 'fail' })
-            "
-          >
-            <van-image
-              class="head-img"
-              round
-              width="108px"
-              height="108px"
-              fit="cover"
-              :src="userInfo.head_shot || defaultAvatar"
-            />
+              ">
+            <van-image class="head-img" round width="108px" height="108px" fit="cover"
+              :src="userInfo.head_shot || defaultAvatar" />
           </van-uploader>
           <!-- 编辑箭头独立在外，点击唤起上传弹窗 -->
-          <img
-            class="arrow-edit"
-            src="@/assets/images/mine/icon_camera@2x.png"
-            alt="编辑头像"
-            @click="triggerUpload"
-          />
+          <img class="arrow-edit" src="@/assets/images/mine/icon_camera@2x.png" alt="编辑头像" @click="triggerUpload" />
         </div>
         <div class="user-text">
           <span class="username" @click="goEditProfile">{{
             userInfo.username
-          }}</span>
+            }}</span>
           <span class="user-id">ID: {{ userInfo.show_id }}</span>
         </div>
       </div>
@@ -52,11 +35,7 @@
           <div class="recharge-btn" @click="goBattery">
             <span> 充值 </span>
 
-            <img
-              class="img"
-              src="@/assets/images/common/icon_arrows2@2x.png"
-              alt=""
-            />
+            <img class="img" src="@/assets/images/common/icon_arrows2@2x.png" alt="" />
             <!-- <van-icon name="arrow" /> -->
           </div>
         </div>
@@ -71,14 +50,8 @@
 
     <!-- 功能列表 -->
     <van-cell-group inset class="menu-list">
-      <van-cell
-        v-for="(item, index) in menuList1"
-        :key="index"
-        is-link
-        center
-        @click="handleClick(item)"
-        class="menu-item"
-      >
+      <van-cell v-for="(item, index) in menuList1" :key="index" is-link center @click="handleClick(item)"
+        class="menu-item">
         <template #title>
           <span class="menu-title">{{ item.name }}</span>
         </template>
@@ -87,24 +60,14 @@
         </template>
 
         <template #right-icon>
-          <img
-            class="menu-right-icon"
-            src="@/assets/images/common/icon_arrows@2x.png"
-            alt=""
-          />
+          <img class="menu-right-icon" src="@/assets/images/common/icon_arrows@2x.png" alt="" />
         </template>
       </van-cell>
     </van-cell-group>
 
     <van-cell-group inset class="menu-list">
-      <van-cell
-        v-for="(item, index) in menuList2"
-        :key="index"
-        is-link
-        center
-        @click="handleClick(item)"
-        class="menu-item"
-      >
+      <van-cell v-for="(item, index) in menuList2" :key="index" is-link center @click="handleClick(item)"
+        class="menu-item">
         <template #title>
           <span class="menu-title">{{ item.name }}</span>
         </template>
@@ -113,24 +76,14 @@
           <img class="menu-left-icon" :src="item.icon" alt="" />
         </template>
         <template #right-icon>
-          <img
-            class="menu-right-icon"
-            src="@/assets/images/common/icon_arrows@2x.png"
-            alt=""
-          />
+          <img class="menu-right-icon" src="@/assets/images/common/icon_arrows@2x.png" alt="" />
         </template>
       </van-cell>
     </van-cell-group>
 
     <van-cell-group inset class="menu-list">
-      <van-cell
-        v-for="(item, index) in menuList3"
-        :key="index"
-        is-link
-        center
-        @click="handleClick(item)"
-        class="menu-item"
-      >
+      <van-cell v-for="(item, index) in menuList3" :key="index" is-link center @click="handleClick(item)"
+        class="menu-item">
         <template #title>
           <span class="menu-title">{{ item.name }}</span>
         </template>
@@ -138,25 +91,14 @@
           <img class="menu-left-icon" :src="item.icon" alt="" />
         </template>
         <template #right-icon>
-          <img
-            class="menu-right-icon"
-            src="@/assets/images/common/icon_arrows@2x.png"
-            alt=""
-          />
+          <img class="menu-right-icon" src="@/assets/images/common/icon_arrows@2x.png" alt="" />
         </template>
       </van-cell>
     </van-cell-group>
 
     <van-cell-group inset class="menu-list">
-      <van-cell
-        v-for="(item, index) in menuList4"
-        :key="index"
-        :title="item.name"
-        is-link
-        center
-        @click="handleClick(item)"
-        class="menu-item"
-      >
+      <van-cell v-for="(item, index) in menuList4" :key="index" :title="item.name" is-link center
+        @click="handleClick(item)" class="menu-item">
         <template #title>
           <span class="menu-title">{{ item.name }}</span>
         </template>
@@ -164,25 +106,15 @@
           <img class="menu-left-icon" :src="item.icon" alt="" />
         </template>
         <template #right-icon>
-          <img
-            class="menu-right-icon"
-            src="@/assets/images/common/icon_arrows@2x.png"
-            alt=""
-          />
+          <img class="menu-right-icon" src="@/assets/images/common/icon_arrows@2x.png" alt="" />
         </template>
       </van-cell>
     </van-cell-group>
 
     <!-- 弹窗组件 -->
     <BusinessModal v-model:visible="showModal" />
-    <TipModal
-      v-model:visible="serviceModal"
-      title="在线客服"
-      :content="serviceTip"
-      cancel-text="拒绝"
-      confirm-text="确认"
-      @confirm="openService"
-    />
+    <TipModal v-model:visible="serviceModal" title="在线客服" :content="serviceTip" cancel-text="拒绝" confirm-text="确认"
+      @confirm="openService" />
   </div>
 </template>
 
@@ -250,8 +182,8 @@ const menuList3 = ref([
     name: "我的卡券",
     icon: new URL("@/assets/images/mine/icon_course@2x.png", import.meta.url)
       .href,
-    key: "service",
-    url: "",
+    key: "coupon",
+    url: "/coupon",
   },
 ]);
 
@@ -286,12 +218,12 @@ onMounted(async () => {
     .then((res) => {
       userStore.setUser(res.data);
     })
-    .catch(() => {});
+    .catch(() => { });
 });
 
 // 菜单点击事件
 const handleClick = (item) => {
-  const navKeys = ["area", "order", "appeal", "record", "set"];
+  const navKeys = ["area", "order", "appeal", "record", "set","coupon"];
   if (navKeys.includes(item.key)) {
     router.push(item.url);
     return;
@@ -377,16 +309,15 @@ const onFileChange = async (fileDetail) => {
 .user-info {
   display: flex;
   align-items: center;
-  flex-direction: column; /* 纵向排列 */
+  flex-direction: column;
+  /* 纵向排列 */
   justify-content: center;
 }
-.head-img {
-  // width: 108px !important;
-  // height: 108px !important;
-}
+
+
+
 .avatar-image {
   position: relative;
-
   width: 180px;
   height: 180px;
   border-radius: 50%;
@@ -395,8 +326,10 @@ const onFileChange = async (fileDetail) => {
   :deep(.van-uploader__wrapper) {
     width: 100%;
     height: 100%;
-    border-radius: 50%; /* 圆形头像 */
-    overflow: hidden; /* 限制图片不溢出 */
+    border-radius: 50%;
+    /* 圆形头像 */
+    overflow: hidden;
+    /* 限制图片不溢出 */
   }
 
   .arrow-edit {
@@ -424,13 +357,13 @@ const onFileChange = async (fileDetail) => {
   font-weight: 500;
   font-size: 30px;
   color: #333;
-  line-height: 42px;
+
   margin-bottom: 8px;
   font-family: PingFangSC, PingFang SC;
   font-weight: 500;
   font-size: 36px;
   color: #1a1a1a;
-  line-height: 50px;
+  padding-top: 15px;
 }
 
 .user-id {
@@ -556,9 +489,16 @@ const onFileChange = async (fileDetail) => {
     height: 24px;
   }
 }
+
 /* 菜单列表 */
 .menu-list {
   margin: 25px 30px;
+
+  .menu-item {
+    height: 108px;
+    background: rgba(255, 255, 255, 0.6);
+    border-radius: 20px;
+  }
 
   .menu-title {
     font-family: PingFangSC, PingFang SC;
@@ -568,7 +508,10 @@ const onFileChange = async (fileDetail) => {
     line-height: 40px;
     text-align: left;
     font-style: normal;
+    margin-top: 2px;
+    display: block;
   }
+
   .menu-left-icon {
     width: 40px;
     height: 40px;
@@ -582,11 +525,7 @@ const onFileChange = async (fileDetail) => {
     display: block;
   }
 
-  .menu-item {
-    height: 108px;
-    background: rgba(255, 255, 255, 0.6);
-    border-radius: 20px;
-  }
+
   :deep(.van-cell:after) {
     border: none;
   }
