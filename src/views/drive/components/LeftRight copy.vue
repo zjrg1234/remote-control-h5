@@ -1,39 +1,29 @@
 <template>
   <!-- 注意：这里不再绑定 Vue 的响应式 style，而是直接操作 DOM -->
   <div class="control-box" ref="boxRef">
-    <!-- 左箭头 -->
-    <div
-      class="arrow left"
-      :style="{ backgroundImage: `url(${leftImage})` }"
-      :class="{ active: isLeftActive }"
-    ></div>
+    <div class="cont">
+      <div class="track-bg" />
 
-    <!-- 可拖动的圆点 -->
-    <div
-      class="dot"
-      ref="dotRef"
-      :class="{ ready: isReadyMode }"
-      :style="{
+
+      <div class="arrow left" :style="{ backgroundImage: `url(${leftImage})` }" :class="{ active: isLeftActive }"></div>
+
+      <div class="dot" ref="dotRef" :class="{ ready: isReadyMode }" :style="{
         backgroundImage: `url(${dotImage})`,
-      }"
-      @mousedown.prevent="handleStart"
-      @touchstart.prevent="handleStart"
-    ></div>
+      }" @mousedown.prevent="handleStart" @touchstart.prevent="handleStart"></div>
 
-    <!-- 右箭头 -->
-    <div
-      class="arrow right"
-      :style="{ backgroundImage: `url(${rightImage})` }"
-      :class="{ active: isRightActive }"
-    ></div>
+      <div class="arrow right" :style="{ backgroundImage: `url(${rightImage})` }" :class="{ active: isRightActive }">
+      </div>
+    </div>
+
+
   </div>
 </template>
 
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue'
-import leftImg from "@/assets/images/s_left@2x.png";
-import rightImg from "@/assets/images/s_right@2x.png";
-import dotImg from "@/assets/images/s_dot@2x.png";
+import leftImg from "@/assets/images/d‌_left@2x.png";
+import rightImg from "@/assets/images/d_right@2x.png";
+import dotImg from "@/assets/images/d_dot‌@2x.png";
 
 const leftImage = ref(leftImg);
 const rightImage = ref(rightImg);
@@ -272,23 +262,36 @@ onUnmounted(() => {
 
 <style lang="scss" scoped>
 .control-box {
+
+
   position: fixed;
-  left: 25px;
-  bottom: 120px;
-  width: 200px;
-  height: 55px;
-  padding: 0 12.5px;
-  display: flex;
-  flex-direction: row;       /* ⭐ 横向排列 */
-  align-items: center;
-  justify-content: space-between;
-  box-sizing: border-box;
-  z-index: 100;
-  will-change: transform;
-  user-select: none;
+  right: 120px;
+  bottom: 50px;
+  width: 215px;
+  height: 175px;
+  z-index: 99;
   touch-action: none;
-  background: url("@/assets/images/s_bg@2x.png") center / cover no-repeat;
-  border-radius: 5px;
+  user-select: none;
+  -webkit-user-select: none;
+
+}
+
+.cont {
+  position: relative;
+  width: 235px;
+  height: 176px;
+}
+
+.track-bg {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 231.5px;
+  height: 100px;
+  pointer-events: none;
+  background: url('@/assets/images/d_bg@2x.png') center / cover no-repeat;
+  border-radius: 65px;
   overflow: hidden;
 }
 
